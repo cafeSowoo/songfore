@@ -65,7 +65,7 @@
 
     .leader-row {
       display: grid;
-      grid-template-columns: 1.2fr auto auto auto;
+      grid-template-columns: 1.2fr auto auto;
       gap: 8px;
       align-items: center;
     }
@@ -175,7 +175,7 @@
     }
 
     @media (max-width: 720px) {
-      .leader-row { grid-template-columns: 1fr 1fr 1fr auto; }
+      .leader-row { grid-template-columns: 1fr 1fr auto; }
       .grid-2 { grid-template-columns: 1fr; }
     }
   </style>
@@ -239,7 +239,7 @@
     <section class="panel">
       <h2 class="section-title">사용 방법</h2>
       <ol>
-        <li>북리더 이름/성별(필요 시 신입)을 입력합니다.</li>
+        <li>북리더 이름/성별을 입력합니다.</li>
         <li>참가자를 4개 텍스트박스(기존/신입 + 남/여)에 붙여넣습니다. (공백/탭/줄바꿈 모두 가능)</li>
         <li><strong>배정하기</strong>를 누르면 규칙 기반 랜덤 배정 결과가 생성됩니다.</li>
         <li><strong>다시 섞기</strong>로 재추첨하고, <strong>일반 복사/CSV 다운로드</strong>로 공유합니다.</li>
@@ -281,7 +281,7 @@
       return [leader, ...existing, ...newbies].filter(Boolean);
     }
 
-    function createLeaderRow(leader = { name: '', gender: 'M', newbie: false }) {
+    function createLeaderRow(leader = { name: '', gender: 'M' }) {
       const row = document.createElement('div');
       row.className = 'leader-row';
       row.innerHTML = `
@@ -290,9 +290,6 @@
           <option value="M" ${leader.gender === 'M' ? 'selected' : ''}>남</option>
           <option value="F" ${leader.gender === 'F' ? 'selected' : ''}>여</option>
         </select>
-        <label style="display:flex;gap:6px;align-items:center;font-size:0.9rem;color:#5f6b99;">
-          <input type="checkbox" class="leader-newbie" ${leader.newbie ? 'checked' : ''} />신입
-        </label>
         <button type="button" class="remove-leader">삭제</button>
       `;
 
@@ -363,7 +360,7 @@
       const leaders = leaderRows.map((row) => ({
         name: row.querySelector('.leader-name').value.trim(),
         gender: row.querySelector('.leader-gender').value,
-        newbie: row.querySelector('.leader-newbie').checked,
+        newbie: false,
         isLeader: true
       })).filter((leader) => leader.name);
 
@@ -541,7 +538,7 @@
         const newbie = group.members.filter((m) => m.newbie).length;
         const members = getDisplayMembers(group).filter((m) => !m.isLeader).map((m) => m.name).join(', ') || '없음';
 
-        return `${idx + 1}조 (${group.leader.name})\n- 리더: ${group.leader.name} (${group.leader.gender === 'M' ? '남' : '여'}${group.leader.newbie ? ', 신입' : ''})\n- 구성원: ${members}\n- 통계: 총원 ${group.members.length}명 / 남 ${male} / 여 ${female} / 신입 ${newbie}`;
+        return `${idx + 1}조 (${group.leader.name})\n- 리더: ${group.leader.name} (${group.leader.gender === 'M' ? '남' : '여'})\n- 구성원: ${members}\n- 통계: 총원 ${group.members.length}명 / 남 ${male} / 여 ${female} / 신입 ${newbie}`;
       }).join('\n\n');
     }
 
@@ -560,7 +557,7 @@
         const membersHtml = getDisplayMembers(group)
           .map((member) => {
             if (member.isLeader) {
-              return `<li><strong>리더: ${member.name}</strong> (${member.gender === 'M' ? '남' : '여'}${member.newbie ? ', 신입' : ''})</li>`;
+              return `<li><strong>리더: ${member.name}</strong> (${member.gender === 'M' ? '남' : '여'})</li>`;
             }
             return `<li>${member.name} (${member.gender === 'M' ? '남' : '여'}${member.newbie ? ', 신입' : ''})</li>`;
           })
@@ -639,9 +636,9 @@
 
     function fillSampleData() {
       leaderListEl.innerHTML = '';
-      addLeaderRow({ name: '민준', gender: 'M', newbie: false });
-      addLeaderRow({ name: '지현', gender: 'F', newbie: false });
-      addLeaderRow({ name: '서윤', gender: 'F', newbie: false });
+      addLeaderRow({ name: '민준', gender: 'M' });
+      addLeaderRow({ name: '지현', gender: 'F' });
+      addLeaderRow({ name: '서윤', gender: 'F' });
 
       document.getElementById('existingMale').value = '도현\n우진\n준호\n시우';
       document.getElementById('existingFemale').value = '유진\n채원\n소희\n나은\n하린';
