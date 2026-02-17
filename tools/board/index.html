@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>커뮤니티 게시판</title>
+  <style>
+    :root {
+      --bg: #f6f8ff;
+      --card: #ffffff;
+      --line: #d8def4;
+      --text: #1b2551;
+      --muted: #5f6b99;
+      --primary: #3f67ff;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 60%);
+    }
+
+    .container {
+      width: min(900px, 94vw);
+      margin: 28px auto 56px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(26, 39, 87, 0.06);
+      padding: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .post {
+      border-top: 1px solid var(--line);
+      padding: 10px 0;
+    }
+
+    .post:first-of-type {
+      border-top: 0;
+    }
+
+    .post-title {
+      margin: 0;
+      font-size: 1rem;
+      color: #21306d;
+    }
+
+    .post-meta {
+      margin: 5px 0 8px;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .post-content {
+      margin: 0;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .empty {
+      color: var(--muted);
+      margin: 10px 0 0;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="panel">
+      <h1>커뮤니티 게시판</h1>
+      <p class="sub">관리자 페이지에서 작성된 게시글이 표시되는 공간입니다.</p>
+      <div id="board" class="panel" style="margin-top: 12px;"></div>
+      <div class="actions">
+        <a href="/">홈으로</a>
+        <a href="../admin/">관리자 페이지</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const boardEl = document.getElementById('board');
+    const initialPosts = [
+      {
+        title: '게시판 테스트',
+        author: '관리자',
+        createdAt: '2026-02-18',
+        content: '현재는 예시 데이터입니다. 관리자 화면에서 실제 등록 기능을 추가하면 이 목록에 노출됩니다.'
+      }
+    ];
+
+    const saved = window.localStorage.getItem('songforest_posts');
+    const posts = saved ? JSON.parse(saved) : initialPosts;
+
+    if (!saved && posts.length > 0) {
+      window.localStorage.setItem('songforest_posts', JSON.stringify(posts));
+    }
+
+    function render() {
+      if (!posts.length) {
+        boardEl.innerHTML = '<p class="empty">등록된 글이 아직 없습니다.</p>';
+        return;
+      }
+
+      boardEl.innerHTML = posts.map((post) => `
+        <article class="post">
+          <h2 class="post-title">${escapeHtml(post.title)}</h2>
+          <div class="post-meta">${escapeHtml(post.author)} · ${escapeHtml(post.createdAt)}</div>
+          <p class="post-content">${escapeHtml(post.content)}</p>
+        </article>
+      `).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+      ;
+    }
+
+    render();
+  </script>
+</body>
+</html>
