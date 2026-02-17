@@ -442,9 +442,17 @@
       })();
     });
 
-    await initAuthSession();
-    listenPosts();
-    refreshAuth();
+    (async () => {
+      try {
+        await initAuthSession();
+        setStatus('Firebase 인증 준비 완료. 로그인 후 새 글 작성/수정/삭제 권한을 확인합니다.', 'ok');
+      } catch (error) {
+        setStatus(`Firebase 초기화 실패: ${error.message}`, 'error');
+      }
+
+      listenPosts();
+      refreshAuth();
+    })();
   </script>
 </body>
 </html>
