@@ -15,12 +15,13 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 const fallbackConfig = {
-  apiKey: 'REPLACE_WITH_API_KEY',
-  authDomain: 'REPLACE_WITH_PROJECT.firebaseapp.com',
-  projectId: 'REPLACE_WITH_PROJECT_ID',
-  storageBucket: 'REPLACE_WITH_PROJECT.appspot.com',
-  messagingSenderId: 'REPLACE_WITH_MESSAGING_SENDER_ID',
-  appId: 'REPLACE_WITH_APP_ID'
+  apiKey: "AIzaSyCo4VM9wfhQ1IK2fmm7nprN5Dp47IRCORE",
+   authDomain: "songfore-master.firebaseapp.com",
+   projectId: "songfore-master",
+   storageBucket: "songfore-master.firebasestorage.app",
+   messagingSenderId: "881807170656",
+   appId: "1:881807170656:web:4432db49a384d294557705",
+   measurementId: "G-FQS2ZQYZ3C"
 };
 
 const userConfig = window.__songforest_firebase_config__;
