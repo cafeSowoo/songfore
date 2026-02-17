@@ -1,0 +1,77 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import {
+  GoogleAuthProvider,
+  browserSessionPersistence,
+  getAuth,
+  setPersistence,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import {
+  doc,
+  getDoc,
+  getFirestore
+} from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+
+const fallbackConfig = {
+  apiKey: 'REPLACE_WITH_API_KEY',
+  authDomain: 'REPLACE_WITH_PROJECT.firebaseapp.com',
+  projectId: 'REPLACE_WITH_PROJECT_ID',
+  storageBucket: 'REPLACE_WITH_PROJECT.appspot.com',
+  messagingSenderId: 'REPLACE_WITH_MESSAGING_SENDER_ID',
+  appId: 'REPLACE_WITH_APP_ID'
+};
+
+const userConfig = window.__songforest_firebase_config__;
+const firebaseConfig = userConfig || fallbackConfig;
+
+const hasConfig = !/REPLACE_WITH_/.test(`${firebaseConfig.apiKey}${firebaseConfig.authDomain}${firebaseConfig.projectId}`);
+
+if (!hasConfig) {
+  console.warn(
+    'Firebase config is not set yet. Please replace placeholders in tools/common/firebase.js with values from Firebase console.'
+  );
+}
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const provider = new GoogleAuthProvider();
+
+export async function initAuthSession() {
+  await setPersistence(auth, browserSessionPersistence);
+}
+
+export async function loginWithGoogle() {
+  if (!hasConfig) {
+    throw new Error('Firebase config is not configured');
+  }
+  return signInWithPopup(auth, provider);
+}
+
+export async function logout() {
+  return signOut(auth);
+}
+
+export function observeAuth(callback) {
+  return onAuthStateChanged(auth, callback);
+}
+
+export async function loadUserRole(uid) {
+  if (!uid) return null;
+  if (!hasConfig) return null;
+
+  const ref = doc(db, 'roles', uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+
+  const role = snap.get('role');
+  return typeof role === 'string' ? role.toLowerCase() : null;
+}
+
+export const ROLE = {
+  MASTER: 'master',
+  ADMIN: 'admin',
+  NONE: 'none'
+};
