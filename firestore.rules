@@ -10,32 +10,33 @@ service cloud.firestore {
     }
 
     function hasRoleDoc() {
-      return exists(roleDocPath(request.auth.uid));
+      return isSignedIn() && exists(roleDocPath(request.auth.uid));
     }
 
     function userRole() {
+      if (!hasRoleDoc()) {
+        return null;
+      }
+
       return get(roleDocPath(request.auth.uid)).data.role;
     }
 
     function isMaster() {
-      return isSignedIn() && hasRoleDoc() && userRole() == 'master';
+      return isSignedIn() && userRole() == 'master';
     }
 
     function isAdmin() {
-      return isSignedIn() && hasRoleDoc() && (userRole() == 'admin' || isMaster());
+      return isSignedIn() && (userRole() == 'admin' || isMaster());
     }
 
     match /roles/{uid} {
-      allow read: if isSignedIn() && (request.auth.uid == uid || isMaster());
-      allow create: if isMaster();
-      allow update: if isSignedIn() && request.auth.uid == uid && request.resource.data.role == resource.data.role;
-      allow delete: if isMaster();
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if isMaster();
     }
 
     match /posts/{postId} {
       allow read: if true;
       allow write: if isAdmin();
-      allow delete: if isAdmin();
     }
   }
 }
