@@ -16,12 +16,12 @@ import {
 
 const fallbackConfig = {
   apiKey: "AIzaSyCo4VM9wfhQ1IK2fmm7nprN5Dp47IRCORE",
-   authDomain: "songfore-master.firebaseapp.com",
-   projectId: "songfore-master",
-   storageBucket: "songfore-master.firebasestorage.app",
-   messagingSenderId: "881807170656",
-   appId: "1:881807170656:web:4432db49a384d294557705",
-   measurementId: "G-FQS2ZQYZ3C"
+  authDomain: "songfore-master.firebaseapp.com",
+  projectId: "songfore-master",
+  storageBucket: "songfore-master.firebasestorage.app",
+  messagingSenderId: "881807170656",
+  appId: "1:881807170656:web:4432db49a384d294557705",
+  measurementId: "G-FQS2ZQYZ3C"
 };
 
 const userConfig = window.__songforest_firebase_config__;
