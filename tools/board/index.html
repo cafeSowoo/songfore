@@ -181,6 +181,7 @@
       logout,
       observeAuth,
       getCurrentUserRole,
+      handleRedirectLogin,
       ROLE,
       db
     } from '../common/firebase.js';
@@ -275,6 +276,8 @@
     }
 
     async function refreshAuth() {
+      let roleLabel = ROLE.NONE;
+
       if (!state.currentUser) {
         state.canManage = false;
         writeBtn.classList.add('hidden');
@@ -283,16 +286,24 @@
         return;
       }
 
-      const role = await getCurrentUserRole();
-      state.currentRole = role || ROLE.NONE;
-      state.canManage = role === ROLE.MASTER || role === ROLE.ADMIN;
+      try {
+        const role = await getCurrentUserRole();
+        state.currentRole = role || ROLE.NONE;
+        state.canManage = state.currentRole === ROLE.MASTER || state.currentRole === ROLE.ADMIN;
+        roleLabel = state.currentRole;
+      } catch (error) {
+        console.error('사용자 권한 확인 실패:', error);
+        state.currentRole = ROLE.NONE;
+        state.canManage = false;
+        roleLabel = ROLE.NONE;
+      }
 
       if (state.canManage) {
         writeBtn.classList.remove('hidden');
-        setStatus(`로그인: ${state.currentUser.email || '-'} / 역할: ${role}. 글쓰기/수정/삭제 가능`, 'ok');
+        setStatus(`로그인: ${state.currentUser.email || '-'} / 역할: ${roleLabel}. 글쓰기/수정/삭제 가능`, 'ok');
       } else {
         writeBtn.classList.add('hidden');
-        setStatus(`로그인: ${state.currentUser.email || '-'} / 역할: ${role}. 권한이 없어 관리 기능은 비활성입니다.`, 'warn');
+        setStatus(`로그인: ${state.currentUser.email || '-'} / 역할: ${roleLabel}. 권한이 없어 관리 기능은 비활성입니다.`, 'warn');
       }
 
       render();
@@ -438,14 +449,23 @@
     observeAuth((user) => {
       state.currentUser = user;
       (async () => {
-        await refreshAuth();
+        try {
+          await refreshAuth();
+        } catch (error) {
+          setStatus(`권한 확인 실패: ${error.message}`, 'error');
+        }
       })();
     });
 
     (async () => {
       try {
         await initAuthSession();
-        setStatus('Firebase 인증 준비 완료. 로그인 후 새 글 작성/수정/삭제 권한을 확인합니다.', 'ok');
+        const redirectResult = await handleRedirectLogin();
+        if (redirectResult?.user) {
+          setStatus(`로그인 완료: ${redirectResult.user.email || '-'}`, 'ok');
+        } else {
+          setStatus('Firebase 인증 준비 완료. 로그인 후 새 글 작성/수정/삭제 권한을 확인합니다.', 'ok');
+        }
       } catch (error) {
         setStatus(`Firebase 초기화 실패: ${error.message}`, 'error');
       }

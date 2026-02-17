@@ -1,10 +1,12 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import {
   GoogleAuthProvider,
-  browserSessionPersistence,
   getAuth,
+  inMemoryPersistence,
   setPersistence,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
@@ -47,14 +49,51 @@ export const ROLE = {
 };
 
 export async function initAuthSession() {
-  await setPersistence(auth, browserSessionPersistence);
+  try {
+    await setPersistence(auth, inMemoryPersistence);
+  } catch (error) {
+    console.warn('Firebase auth persistence 설정 실패, 기본 동작으로 진행합니다.', error);
+  }
 }
 
 export async function loginWithGoogle() {
   if (!hasConfig) {
     throw new Error('Firebase config is not configured');
   }
-  return signInWithPopup(auth, provider);
+  try {
+    return await signInWithPopup(auth, provider);
+  } catch (error) {
+    const fallbackCodes = new Set([
+      'auth/popup-blocked',
+      'auth/popup-closed-by-user',
+      'auth/cancelled-popup-request',
+      'auth/operation-not-supported-in-this-environment'
+    ]);
+
+    const isFallbackCase = fallbackCodes.has(error.code) ||
+      (error.message || '').includes('window.closed') ||
+      (error.message || '').includes('Cross-Origin-Opener-Policy') ||
+      (error.message || '').includes('window.close');
+
+    if (isFallbackCase) {
+      return signInWithRedirect(auth, provider);
+    }
+
+    throw error;
+  }
+}
+
+export async function handleRedirectLogin() {
+  if (!hasConfig) {
+    return null;
+  }
+
+  try {
+    return await getRedirectResult(auth);
+  } catch (error) {
+    console.warn('Firebase 리디렉트 로그인 처리 실패:', error);
+    return null;
+  }
 }
 
 export async function logout() {
@@ -76,12 +115,17 @@ export async function loadUserRole(uid) {
   if (!uid) return null;
   if (!hasConfig) return null;
 
-  const ref = doc(db, 'roles', uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return null;
+  try {
+    const ref = doc(db, 'roles', uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
 
-  const role = snap.get('role');
-  return normalizeRole(role);
+    const role = snap.get('role');
+    return normalizeRole(role);
+  } catch (error) {
+    console.warn('역할 조회 중 오류 발생:', error);
+    return null;
+  }
 }
 
 export function isMaster(role) {
@@ -93,8 +137,13 @@ export function isManager(role) {
 }
 
 export async function getCurrentUserRole() {
-  const user = auth.currentUser;
-  if (!user) return ROLE.NONE;
-  const role = await loadUserRole(user.uid);
-  return normalizeRole(role);
+  try {
+    const user = auth.currentUser;
+    if (!user) return ROLE.NONE;
+    const role = await loadUserRole(user.uid);
+    return normalizeRole(role);
+  } catch (error) {
+    console.warn('현재 사용자 역할 조회 실패:', error);
+    return ROLE.NONE;
+  }
 }
