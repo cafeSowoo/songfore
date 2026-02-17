@@ -40,6 +40,12 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const provider = new GoogleAuthProvider();
 
+export const ROLE = {
+  MASTER: 'master',
+  ADMIN: 'admin',
+  NONE: 'none'
+};
+
 export async function initAuthSession() {
   await setPersistence(auth, browserSessionPersistence);
 }
@@ -59,6 +65,13 @@ export function observeAuth(callback) {
   return onAuthStateChanged(auth, callback);
 }
 
+function normalizeRole(role) {
+  if (typeof role !== 'string') return ROLE.NONE;
+  const normalized = role.trim().toLowerCase();
+  if (normalized === ROLE.MASTER || normalized === ROLE.ADMIN) return normalized;
+  return ROLE.NONE;
+}
+
 export async function loadUserRole(uid) {
   if (!uid) return null;
   if (!hasConfig) return null;
@@ -68,11 +81,20 @@ export async function loadUserRole(uid) {
   if (!snap.exists()) return null;
 
   const role = snap.get('role');
-  return typeof role === 'string' ? role.toLowerCase() : null;
+  return normalizeRole(role);
 }
 
-export const ROLE = {
-  MASTER: 'master',
-  ADMIN: 'admin',
-  NONE: 'none'
-};
+export function isMaster(role) {
+  return role === ROLE.MASTER;
+}
+
+export function isManager(role) {
+  return role === ROLE.MASTER || role === ROLE.ADMIN;
+}
+
+export async function getCurrentUserRole() {
+  const user = auth.currentUser;
+  if (!user) return ROLE.NONE;
+  const role = await loadUserRole(user.uid);
+  return normalizeRole(role);
+}
