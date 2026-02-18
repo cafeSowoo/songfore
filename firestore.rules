@@ -30,7 +30,9 @@ service cloud.firestore {
     }
 
     match /roles/{uid} {
-      allow read: if isSignedIn() && request.auth.uid == uid;
+      // 로그인한 사용자만 roles 문서를 읽을 수 있도록 허용 (요청한 샘플 규칙)
+      allow read: if isSignedIn();
+      // roles 문서 쓰기는 master만 허용
       allow write: if isMaster();
     }
 
