@@ -213,6 +213,28 @@
       unsubPosts: null
     };
 
+    function isManagerRole(role) {
+      return role === ROLE.MASTER || role === ROLE.ADMIN;
+    }
+
+    function getManagementErrorMessage(error) {
+      const code = error?.code || '';
+      if (code === 'permission-denied' || code === 'failed-precondition') {
+        return '권한이 없습니다. Firebase 규칙 또는 roles 데이터 설정을 확인해주세요.';
+      }
+      return error?.message || '알 수 없는 오류가 발생했습니다.';
+    }
+
+    function assertCanManage(operationLabel) {
+      if (!state.currentUser) {
+        throw new Error(`${operationLabel}은(는) 로그인 후 이용 가능합니다.`);
+      }
+
+      if (!state.canManage) {
+        throw new Error(`${operationLabel}은(는) 관리자만 가능합니다.`);
+      }
+    }
+
     function setStatus(text, level = 'info') {
       statusEl.textContent = text;
       statusEl.className = `status ${level}`;
@@ -289,7 +311,7 @@
       try {
         const role = await getCurrentUserRole(state.currentUser);
         state.currentRole = role || ROLE.NONE;
-        state.canManage = state.currentRole === ROLE.MASTER || state.currentRole === ROLE.ADMIN;
+        state.canManage = isManagerRole(state.currentRole);
         roleLabel = state.currentRole;
       } catch (error) {
         console.error('사용자 권한 확인 실패:', error);
@@ -340,8 +362,10 @@
     }
 
     async function createPost() {
-      if (!state.canManage) {
-        setStatus('글쓰기 권한이 없습니다.', 'error');
+      try {
+        assertCanManage('글쓰기');
+      } catch (error) {
+        setStatus(error.message, 'error');
         return;
       }
 
@@ -362,13 +386,15 @@
         });
         setStatus('글이 작성되었습니다.', 'ok');
       } catch (error) {
-        setStatus(`글쓰기 실패: ${error.message}`, 'error');
+        setStatus(`글쓰기 실패: ${getManagementErrorMessage(error)}`, 'error');
       }
     }
 
     async function updatePost(postId) {
-      if (!state.canManage) {
-        setStatus('수정 권한이 없습니다.', 'error');
+      try {
+        assertCanManage('글 수정');
+      } catch (error) {
+        setStatus(error.message, 'error');
         return;
       }
 
@@ -388,13 +414,15 @@
         });
         setStatus('글이 수정되었습니다.', 'ok');
       } catch (error) {
-        setStatus(`수정 실패: ${error.message}`, 'error');
+        setStatus(`수정 실패: ${getManagementErrorMessage(error)}`, 'error');
       }
     }
 
     async function removePost(postId) {
-      if (!state.canManage) {
-        setStatus('삭제 권한이 없습니다.', 'error');
+      try {
+        assertCanManage('글 삭제');
+      } catch (error) {
+        setStatus(error.message, 'error');
         return;
       }
 
@@ -405,7 +433,7 @@
         await deleteDoc(doc(db, POSTS_COLLECTION, postId));
         setStatus('글이 삭제되었습니다.', 'ok');
       } catch (error) {
-        setStatus(`삭제 실패: ${error.message}`, 'error');
+        setStatus(`삭제 실패: ${getManagementErrorMessage(error)}`, 'error');
       }
     }
 
