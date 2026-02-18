@@ -139,139 +139,39 @@
     }
   </style>
 </head>
-<body>
+  <body>
   <main class="container">
     <section class="panel">
       <h1>관리자 페이지</h1>
-      <p class="sub">Google 로그인을 통해 사용자 권한을 확인하고 관리 기능을 사용할 수 있습니다.</p>
+      <p class="sub">현재 로그인 기능은 비활성화된 상태입니다.</p>
+      <p class="sub">관리 기능은 다음 단계에서 다시 연결 예정입니다.</p>
       <div class="toolbar">
-        <button id="loginBtn">Google 로그인</button>
-        <button id="logoutBtn" class="secondary" type="button">로그아웃</button>
-      </div>
-      <div id="status" class="status">로그인 상태를 확인하는 중...</div>
-      <div id="userInfo" style="margin-top: 10px; display:none;">
-        <strong>현재 사용자:</strong> <span id="userEmail">-</span>
-        <div class="role-chip">역할: <span id="userRole">-</span></div>
-      </div>
-      <div id="accessOnly" class="link-row" style="display:none; margin-top: 12px;">
         <a href="../board/" class="button">게시판 바로가기</a>
+        <a href="/" class="button secondary">홈으로</a>
       </div>
       <div class="link-row" style="margin-top: 12px;">
-        <a href="/">홈으로</a>
+        <a href="/">홈으로 돌아가기</a>
       </div>
     </section>
     <section class="panel">
       <h2>현재 진행 상태</h2>
-      <p class="sub">현재 단계: 3단계 — 게시글 CRUD API 연동</p>
+      <p class="sub">현재 단계: 로그인 일시 중단, 다음 작업은 보류 상태</p>
       <h3 style="margin: 10px 0 6px; font-size: 0.95rem;">완료된 항목</h3>
       <ul class="list">
-        <li>Firebase 로그인/로그아웃 동작 연결</li>
-        <li>auth.currentUser 감지 및 상태 표시</li>
-        <li>roles 문서 기반 권한 읽기 및 역할 표시</li>
-        <li>관리자 링크 노출 제어 (master/admin 전용)</li>
-        <li>게시글 쓰기/수정/삭제 API 연동 (권한 체크 포함)</li>
+        <li>관리자 페이지 화면 UI 정리 완료</li>
+        <li>로그인 의존 코드 제거로 현재 진입 안정화</li>
       </ul>
-      <h3 style="margin: 10px 0 6px; font-size: 0.95rem;">규칙/동작 정리</h3>
+      <h3 style="margin: 10px 0 6px; font-size: 0.95rem;">보류 상태</h3>
       <ul class="list">
-        <li>허용 역할: <code>master</code>, <code>admin</code></li>
-        <li>로그인했더라도 역할이 없으면 관리 동작은 비활성/숨김</li>
-        <li>일반 사용자 로그인은 읽기 전용으로 목록 조회만 가능</li>
+        <li>OAuth/로그인 플로우</li>
+        <li>권한 기반 메뉴 제어</li>
       </ul>
       <h3 style="margin: 10px 0 6px; font-size: 0.95rem;">다음 단계</h3>
       <ul class="list">
-        <li>API 호출 로그/실패 시 롤백 메시지/권한 감사 기록</li>
+        <li>로그인 재활성화 후 roles/권한 규칙 검증 재개</li>
       </ul>
-      <p class="sub" style="margin-top: 10px;">(운영 단계: 관리자는 게시판 CRUD만 수행)</p>
+      <p class="sub" style="margin-top: 10px;">로그인 관련 기능은 추후 다시 연결하며, 우선 화면은 정상 노출됩니다.</p>
     </section>
   </main>
-
-  <script type="module">
-    import {
-      initAuthSession,
-      loginWithGoogle,
-      logout,
-      observeAuth,
-      getCurrentUserRole,
-      handleRedirectLogin,
-      ROLE
-    } from '../common/firebase.js';
-
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const statusEl = document.getElementById('status');
-    const userInfoEl = document.getElementById('userInfo');
-    const userEmailEl = document.getElementById('userEmail');
-    const userRoleEl = document.getElementById('userRole');
-    const accessOnlyEl = document.getElementById('accessOnly');
-
-    function renderStatus(text, level = 'info') {
-      statusEl.className = `status ${level === 'ok' ? 'success' : level === 'error' ? 'error' : ''}`;
-      statusEl.textContent = text;
-    }
-
-    function renderAccessInfo(user, role) {
-      if (!user) {
-        userInfoEl.style.display = 'none';
-        accessOnlyEl.style.display = 'none';
-        userRoleEl.textContent = ROLE.NONE;
-        renderStatus('로그인되지 않았습니다.');
-        return;
-      }
-
-      userInfoEl.style.display = 'block';
-      userEmailEl.textContent = user.email || '-';
-      userRoleEl.textContent = role;
-
-      if (role === ROLE.MASTER || role === ROLE.ADMIN) {
-        accessOnlyEl.style.display = 'flex';
-        renderStatus('관리자 권한이 확인되어 사용 가능합니다.', 'ok');
-      } else {
-        accessOnlyEl.style.display = 'none';
-        renderStatus('권한이 없습니다. 사용자 roles 문서를 먼저 등록해 주세요.', 'error');
-      }
-    }
-
-    loginBtn.addEventListener('click', async () => {
-      try {
-        await loginWithGoogle();
-      } catch (error) {
-        renderStatus(`로그인 실패: ${error.message}`, 'error');
-      }
-    });
-
-    logoutBtn.addEventListener('click', async () => {
-      try {
-        await logout();
-      } catch (error) {
-        renderStatus(`로그아웃 실패: ${error.message}`, 'error');
-      }
-    });
-
-    observeAuth((user) => {
-      (async () => {
-        if (!user) {
-          renderAccessInfo(null, ROLE.NONE);
-          return;
-        }
-
-        const role = await getCurrentUserRole(user);
-        renderAccessInfo(user, role);
-      })();
-    });
-
-    (async () => {
-      try {
-        await initAuthSession();
-        const redirectResult = await handleRedirectLogin();
-        if (redirectResult && redirectResult.user) {
-          renderStatus('로그인 완료. 관리자 페이지 접근을 확인합니다.', 'ok');
-        } else {
-          renderStatus('Google 로그인 준비 완료. 버튼을 눌러 시작하세요.');
-        }
-      } catch (error) {
-        renderStatus(`초기화 실패: ${error.message}`, 'error');
-      }
-    })();
-  </script>
 </body>
 </html>
