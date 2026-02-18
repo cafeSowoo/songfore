@@ -2,6 +2,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/fireba
 import {
   GoogleAuthProvider,
   getAuth,
+  browserLocalPersistence,
   inMemoryPersistence,
   setPersistence,
   signInWithPopup,
@@ -50,7 +51,13 @@ export const ROLE = {
 
 export async function initAuthSession() {
   try {
-    await setPersistence(auth, inMemoryPersistence);
+    try {
+      await setPersistence(auth, browserLocalPersistence);
+      return;
+    } catch (localError) {
+      console.warn('Firebase auth persistence browserLocalPersistence 설정 실패. inMemoryPersistence로 폴백합니다.', localError);
+      await setPersistence(auth, inMemoryPersistence);
+    }
   } catch (error) {
     console.warn('Firebase auth persistence 설정 실패, 기본 동작으로 진행합니다.', error);
   }

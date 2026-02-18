@@ -179,6 +179,7 @@
       logout,
       observeAuth,
       getCurrentUserRole,
+      handleRedirectLogin,
       ROLE
     } from '../common/firebase.js';
 
@@ -247,7 +248,12 @@
 
     try {
       await initAuthSession();
-      renderStatus('Google 로그인 준비 완료. 버튼을 눌러 시작하세요.');
+      const redirectResult = await handleRedirectLogin();
+      if (redirectResult && redirectResult.user) {
+        renderStatus('로그인 완료. 관리자 권한을 확인 중입니다.');
+      } else {
+        renderStatus('Google 로그인 준비 완료. 버튼을 눌러 시작하세요.');
+      }
     } catch (error) {
       renderStatus(`초기화 실패: ${error.message}`, 'error');
     }
