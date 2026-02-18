@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>愿由ъ옄 ?섏씠吏</title>
+  <title>관리자 페이지</title>
   <style>
     :root {
       --bg: #f6f8ff;
@@ -142,25 +142,24 @@
 <body>
   <main class="container">
     <section class="panel">
-      <h1>愿由ъ옄 ?섏씠吏</h1>
-      <p class="sub">Google 濡쒓렇??????븷???뺤씤?댁꽌 沅뚰븳蹂?湲곕뒫??蹂댁뿬以띾땲??</p>
+      <h1>관리자 페이지</h1>
+      <p class="sub">Google 로그인을 통해 사용자 권한을 확인하고 관리 기능을 사용할 수 있습니다.</p>
       <div class="toolbar">
-        <button id="loginBtn">Google 濡쒓렇??/button>
-        <button id="logoutBtn" class="secondary" type="button">濡쒓렇?꾩썐</button>
+        <button id="loginBtn">Google 로그인</button>
+        <button id="logoutBtn" class="secondary" type="button">로그아웃</button>
       </div>
-      <div id="status" class="status">濡쒓렇???곹깭瑜??뺤씤?섏꽭??</div>
+      <div id="status" class="status">로그인 상태를 확인하는 중...</div>
       <div id="userInfo" style="margin-top: 10px; display:none;">
-        <strong>?꾩옱 ?ъ슜??</strong> <span id="userEmail">-</span>
-        <div class="role-chip">??븷: <span id="userRole">-</span></div>
+        <strong>현재 사용자:</strong> <span id="userEmail">-</span>
+        <div class="role-chip">역할: <span id="userRole">-</span></div>
       </div>
       <div id="accessOnly" class="link-row" style="display:none; margin-top: 12px;">
-        <a href="../board/" class="button">寃뚯떆???닿린</a>
+        <a href="../board/" class="button">게시판 바로가기</a>
       </div>
       <div class="link-row" style="margin-top: 12px;">
-        <a href="/">?덉쑝濡?/a>
+        <a href="/">홈으로</a>
       </div>
     </section>
-
     <section class="panel">
       <h2>현재 진행 상태</h2>
       <p class="sub">현재 단계: 3단계 — 게시글 CRUD API 연동</p>
@@ -215,7 +214,7 @@
         userInfoEl.style.display = 'none';
         accessOnlyEl.style.display = 'none';
         userRoleEl.textContent = ROLE.NONE;
-        renderStatus('濡쒓렇?몄씠 ?꾩슂?⑸땲??');
+        renderStatus('로그인되지 않았습니다.');
         return;
       }
 
@@ -225,10 +224,10 @@
 
       if (role === ROLE.MASTER || role === ROLE.ADMIN) {
         accessOnlyEl.style.display = 'flex';
-        renderStatus('沅뚰븳???뺤씤?섏뼱 愿由??붾㈃???ъ슜?????덉뒿?덈떎.', 'ok');
+        renderStatus('관리자 권한이 확인되어 사용 가능합니다.', 'ok');
       } else {
         accessOnlyEl.style.display = 'none';
-        renderStatus('沅뚰븳???놁뒿?덈떎. 愿由ъ옄?먭쾶 roles 臾몄꽌 ?깅줉???꾩슂?⑸땲??', 'error');
+        renderStatus('권한이 없습니다. 사용자 roles 문서를 먼저 등록해 주세요.', 'error');
       }
     }
 
@@ -236,7 +235,7 @@
       try {
         await loginWithGoogle();
       } catch (error) {
-        renderStatus(`濡쒓렇???ㅽ뙣: ${error.message}`, 'error');
+        renderStatus(`로그인 실패: ${error.message}`, 'error');
       }
     });
 
@@ -244,7 +243,7 @@
       try {
         await logout();
       } catch (error) {
-        renderStatus(`濡쒓렇?꾩썐 ?ㅽ뙣: ${error.message}`, 'error');
+        renderStatus(`로그아웃 실패: ${error.message}`, 'error');
       }
     });
 
@@ -260,17 +259,19 @@
       })();
     });
 
-    try {
-      await initAuthSession();
-      const redirectResult = await handleRedirectLogin();
-      if (redirectResult && redirectResult.user) {
-        renderStatus('濡쒓렇???꾨즺. 愿由ъ옄 沅뚰븳???뺤씤 以묒엯?덈떎.');
-      } else {
-        renderStatus('Google 濡쒓렇??以鍮??꾨즺. 踰꾪듉???뚮윭 ?쒖옉?섏꽭??');
+    (async () => {
+      try {
+        await initAuthSession();
+        const redirectResult = await handleRedirectLogin();
+        if (redirectResult && redirectResult.user) {
+          renderStatus('로그인 완료. 관리자 페이지 접근을 확인합니다.', 'ok');
+        } else {
+          renderStatus('Google 로그인 준비 완료. 버튼을 눌러 시작하세요.');
+        }
+      } catch (error) {
+        renderStatus(`초기화 실패: ${error.message}`, 'error');
       }
-    } catch (error) {
-      renderStatus(`珥덇린???ㅽ뙣: ${error.message}`, 'error');
-    }
+    })();
   </script>
 </body>
 </html>
