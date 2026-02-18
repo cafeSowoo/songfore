@@ -67,6 +67,10 @@ export async function loginWithGoogle() {
   if (!hasConfig) {
     throw new Error('Firebase config is not configured');
   }
+  const isEdge = typeof navigator !== 'undefined' && /Edg\//i.test(navigator.userAgent || '');
+  if (isEdge) {
+    return signInWithRedirect(auth, provider);
+  }
   try {
     return await signInWithPopup(auth, provider);
   } catch (error) {
@@ -143,9 +147,8 @@ export function isManager(role) {
   return role === ROLE.MASTER || role === ROLE.ADMIN;
 }
 
-export async function getCurrentUserRole() {
+export async function getCurrentUserRole(user = auth.currentUser) {
   try {
-    const user = auth.currentUser;
     if (!user) return ROLE.NONE;
     const role = await loadUserRole(user.uid);
     return normalizeRole(role);

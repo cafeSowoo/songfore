@@ -241,7 +241,7 @@
           return;
         }
 
-        const role = await getCurrentUserRole();
+        const role = await getCurrentUserRole(user);
         renderAccessInfo(user, role);
       })();
     });
