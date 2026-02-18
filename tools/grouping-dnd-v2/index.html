@@ -1,0 +1,1086 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>독서모임 조 랜덤 배정기 (드래그앤드롭)</title>
+  <style>
+    :root {
+      --bg: #f6f8ff;
+      --card: #ffffff;
+      --line: #d8def4;
+      --text: #1b2551;
+      --muted: #5f6b99;
+      --primary: #3f67ff;
+      --primary-dark: #2d4fd1;
+      --ok: #0f8a48;
+      --warn: #8e5a00;
+      --error: #b3261e;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% -18%, #d8e2ff 0 240px, transparent 240px),
+        radial-gradient(circle at 85% 4%, #ffdceb 0 160px, transparent 160px),
+        linear-gradient(180deg, #edf2ff 0, var(--bg) 55%, #f0f4ff 100%);
+    }
+
+    .container {
+      width: min(1120px, 94vw);
+      margin: 28px auto 60px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #fff, #f4f7ff);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(26, 39, 87, 0.06);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2vw, 2rem);
+    }
+
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(26, 39, 87, 0.06);
+      padding: 16px;
+    }
+
+    .panel > h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+    }
+
+    .panel > p.hint {
+      margin: 10px 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    textarea,
+    button,
+    .person-chip select {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: #fff;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 122px;
+      resize: vertical;
+      line-height: 1.45;
+      font-family: inherit;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-row button,
+    .back-home-btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: #e9edff;
+      color: #2a3a8a;
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    button.warn {
+      background: #fff4e2;
+      color: #8f5200;
+    }
+
+    button:disabled {
+      opacity: 0.52;
+      cursor: not-allowed;
+    }
+
+    .btn-label {
+      display: inline-block;
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .message {
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      margin-top: 10px;
+      display: none;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .message.show { display: block; }
+    .message.error { background: #ffebee; color: var(--error); }
+    .message.warn { background: #fff8e1; color: var(--warn); }
+    .message.ok { background: #e7f6ed; color: var(--ok); }
+
+    .board {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(170px, 1fr));
+      gap: 10px;
+    }
+
+    .zone {
+      min-height: 240px;
+      border-radius: 12px;
+      border: 1.5px dashed var(--line);
+      padding: 10px;
+      background: #fbfcff;
+      transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+    }
+
+    .zone.drag-over {
+      border-color: #a7b8f7;
+      background: #f2f6ff;
+      transform: translateY(-2px);
+    }
+
+    .zone h3 {
+      margin: 0;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .count {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #eef3ff;
+    }
+
+    .chip-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+      min-height: 180px;
+      align-content: start;
+    }
+
+    .person-chip {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      border: 1px solid #ced9f7;
+      background: #fff;
+      border-radius: 999px;
+      padding: 8px 10px;
+      line-height: 1.25;
+      cursor: grab;
+      transition: transform 0.14s ease;
+    }
+
+    .person-chip:hover {
+      transform: translateY(-1px);
+    }
+
+    .person-chip.leader {
+      background: #eef2ff;
+      border-color: #afc0ff;
+    }
+
+    .person-name {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .person-chip-controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .person-chip select {
+      width: 100%;
+      cursor: pointer;
+      min-width: 0;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .group-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fafbff;
+    }
+
+    .group-card h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .stats {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .member-list {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.5;
+    }
+
+    .back-home-btn {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 18px;
+      width: fit-content;
+      margin: 0 auto;
+      padding: 10px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 20px rgba(25, 39, 88, 0.15);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 1080px) {
+      .board { grid-template-columns: repeat(3, minmax(170px, 1fr)); }
+    }
+
+    @media (max-width: 720px) {
+      .board { grid-template-columns: repeat(2, minmax(170px, 1fr)); }
+      .person-chip-controls { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 460px) {
+      .board { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <h1>독서모임 조 랜덤 배정기 (드래그앤드롭)</h1>
+      <p class="sub">전체 이름을 먼저 넣고, 포인트앤 클릭 또는 드래그앤드랍으로
+      북리더·기존남·기존여·신입남·신입여를 나눈 뒤 조를 배정합니다.</p>
+    </section>
+
+    <section class="panel">
+      <h2>1. 전체 사람 입력</h2>
+      <textarea id="allPeople" placeholder="이름을 공백, 줄바꿈, 쉼표, 세미콜론으로 구분해 입력"></textarea>
+      <div class="btn-row">
+        <button id="confirmPeopleBtn" class="primary" type="button">확인</button>
+        <button id="clearAllBtn" type="button">전체 초기화</button>
+      </div>
+      <p class="hint">예: 홍길동, 김영수 정은지
+        또는 각 줄마다 1명씩 입력</p>
+    </section>
+
+    <section class="panel" id="classifyPanel" hidden>
+      <h2>2. 리더/기존/신입 분류</h2>
+      <p class="hint">칩을 드래그해서도 배치 가능하고, 각 칩의 분류 선택으로 바로 이동할 수 있습니다.</p>
+      <div class="board" id="board">
+        <section class="zone" data-zone="unassigned">
+          <h3>미분류 <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="unassigned"></div>
+        </section>
+        <section class="zone" data-zone="leader">
+          <h3>북리더 <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="leader"></div>
+        </section>
+        <section class="zone" data-zone="existing-male">
+          <h3>기존남 <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="existing-male"></div>
+        </section>
+        <section class="zone" data-zone="existing-female">
+          <h3>기존여 <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="existing-female"></div>
+        </section>
+        <section class="zone" data-zone="new-male">
+          <h3>신입남 <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="new-male"></div>
+        </section>
+        <section class="zone" data-zone="new-female">
+          <h3>신입여 <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="new-female"></div>
+        </section>
+      </div>
+
+      <div class="btn-row">
+        <button id="assignBtn" class="primary" type="button">조 배정하기</button>
+        <button id="reshuffleBtn" type="button">다시 배정</button>
+        <button id="resetBoardBtn" class="warn" type="button">분류 초기화</button>
+      </div>
+
+      <div id="statusMessage" class="message"></div>
+      <div id="warningMessage" class="message"></div>
+    </section>
+
+    <section class="panel" id="resultPanel" hidden>
+      <h2>3. 조 배정 결과</h2>
+      <div class="btn-row">
+        <button id="plainCopyBtn" type="button">복사하기</button>
+        <button id="csvBtn" type="button">CSV 다운로드</button>
+      </div>
+
+      <div id="resultContainer" class="result-grid"></div>
+    </section>
+  </main>
+
+  <a class="back-home-btn" href="/">홈으로 돌아가기</a>
+
+  <script>
+    const zoneOrder = [
+      'unassigned',
+      'leader',
+      'existing-male',
+      'existing-female',
+      'new-male',
+      'new-female'
+    ];
+
+    const zoneSelectOptions = [
+      { value: 'unassigned', label: '미분류' },
+      { value: 'leader', label: '북리더' },
+      { value: 'existing-male', label: '기존남' },
+      { value: 'existing-female', label: '기존여' },
+      { value: 'new-male', label: '신입남' },
+      { value: 'new-female', label: '신입여' }
+    ];
+    const allPeopleEl = document.getElementById('allPeople');
+    const confirmPeopleBtn = document.getElementById('confirmPeopleBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const classifyPanelEl = document.getElementById('classifyPanel');
+    const resultPanelEl = document.getElementById('resultPanel');
+    const statusMessageEl = document.getElementById('statusMessage');
+    const warningMessageEl = document.getElementById('warningMessage');
+    const resultContainerEl = document.getElementById('resultContainer');
+    const assignBtn = document.getElementById('assignBtn');
+    const reshuffleBtn = document.getElementById('reshuffleBtn');
+    const resetBoardBtn = document.getElementById('resetBoardBtn');
+    const plainCopyBtn = document.getElementById('plainCopyBtn');
+    const csvBtn = document.getElementById('csvBtn');
+
+    const zoneElements = {};
+    const zoneCountElements = {};
+    document.querySelectorAll('.zone').forEach((zoneEl) => {
+      const zone = zoneEl.dataset.zone;
+      zoneElements[zone] = zoneEl.querySelector('.chip-list');
+      zoneCountElements[zone] = zoneEl.querySelector('.count');
+    });
+
+    let people = [];
+    let duplicatedBaseNames = [];
+    let lastResult = null;
+    let dragHandlersBound = false;
+
+    function showMessage(el, type, text) {
+      el.className = `message show ${type}`;
+      el.textContent = text;
+    }
+
+    function hideMessage(el) {
+      el.className = 'message';
+      el.textContent = '';
+    }
+
+    function parseNames(text) {
+      return text
+        .trim()
+        .split(/[\s,;\n\r]+/)
+        .map((name) => name.trim())
+        .filter(Boolean);
+    }
+
+    function dedupePeople(basePeople) {
+      const counts = new Map();
+      const duplicatedBaseNames = new Set();
+      const deduped = basePeople.map((person) => {
+        const base = person.name;
+        const current = counts.get(base) || 0;
+        counts.set(base, current + 1);
+
+        if (current === 0) return person;
+
+        duplicatedBaseNames.add(base);
+        return {
+          ...person,
+          name: `${base} (${current + 1})`
+        };
+      });
+
+      return { deduped, duplicatedBaseNames: Array.from(duplicatedBaseNames) };
+    }
+
+    function makeTargetArray(total, groupCount) {
+      const base = Math.floor(total / groupCount);
+      const remainder = total % groupCount;
+      const result = Array.from({ length: groupCount }, () => base);
+      const shuffledIndexes = shuffle(Array.from({ length: groupCount }, (_, i) => i));
+      for (let i = 0; i < remainder; i += 1) {
+        result[shuffledIndexes[i]] += 1;
+      }
+      return result;
+    }
+
+    function shuffle(arr) {
+      const cloned = [...arr];
+      for (let i = cloned.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cloned[i], cloned[j]] = [cloned[j], cloned[i]];
+      }
+      return cloned;
+    }
+
+    function evaluateGroups(groups, targets) {
+      const sizePenalty = groups.reduce((sum, group, i) => sum + Math.abs(group.members.length - targets.sizes[i]), 0);
+      const newbiePenalty = groups.reduce((sum, group, i) => sum + Math.abs(group.newbieCount - targets.newbies[i]), 0);
+      const malePenalty = groups.reduce((sum, group, i) => sum + Math.abs(group.maleCount - targets.males[i]), 0);
+      const femalePenalty = groups.reduce((sum, group, i) => {
+        const femaleCount = group.members.length - group.maleCount;
+        return sum + Math.abs(femaleCount - targets.females[i]);
+      }, 0);
+
+      const score = sizePenalty * 1000 + newbiePenalty * 260 + malePenalty * 50 + femalePenalty * 50;
+      return { score, sizePenalty, newbiePenalty, malePenalty, femalePenalty };
+    }
+
+    function assignWithBestOfN(leaders, participants, tries = 1000) {
+      const groupCount = leaders.length;
+      const totalPeople = leaders.length + participants.length;
+      const totalNewbies = [...leaders, ...participants].filter((p) => p.newbie).length;
+      const totalMales = [...leaders, ...participants].filter((p) => p.gender === 'M').length;
+
+      const targetSizes = makeTargetArray(totalPeople, groupCount);
+      const targetNewbies = makeTargetArray(totalNewbies, groupCount);
+      const targetMales = makeTargetArray(totalMales, groupCount);
+      const targetFemales = targetSizes.map((size, i) => size - targetMales[i]);
+
+      const targets = {
+        sizes: targetSizes,
+        newbies: targetNewbies,
+        males: targetMales,
+        females: targetFemales
+      };
+
+      let best = null;
+
+      for (let attempt = 0; attempt < tries; attempt += 1) {
+        const groups = leaders.map((leader, idx) => ({
+          name: `${idx + 1}조 (${leader.name})`,
+          leader,
+          members: [leader],
+          newbieCount: leader.newbie ? 1 : 0,
+          maleCount: leader.gender === 'M' ? 1 : 0
+        }));
+
+        const shuffled = shuffle(participants);
+        const participantNeedPerGroup = groups.map((g, i) => ({
+          size: Math.max(0, targets.sizes[i] - g.members.length),
+          newbie: Math.max(0, targets.newbies[i] - g.newbieCount),
+          male: Math.max(0, targets.males[i] - g.maleCount),
+          female: Math.max(0, targets.females[i] - (g.members.length - g.maleCount))
+        }));
+
+        const totalNeed = participantNeedPerGroup.reduce((acc, need) => ({
+          size: acc.size + need.size,
+          newbie: acc.newbie + need.newbie,
+          male: acc.male + need.male,
+          female: acc.female + need.female
+        }), { size: 0, newbie: 0, male: 0, female: 0 });
+
+        const ordered = shuffled.sort((a, b) => {
+          const rarityA = (a.newbie && totalNeed.newbie > 0 ? 3 : 0) + (a.gender === 'M' && totalNeed.male > 0 ? 2 : 0) + (a.gender === 'F' && totalNeed.female > 0 ? 2 : 0);
+          const rarityB = (b.newbie && totalNeed.newbie > 0 ? 3 : 0) + (b.gender === 'M' && totalNeed.male > 0 ? 2 : 0) + (b.gender === 'F' && totalNeed.female > 0 ? 2 : 0);
+          return rarityB - rarityA;
+        });
+
+        for (const person of ordered) {
+          let bestGroupIndex = -1;
+          let bestScore = Infinity;
+
+          const groupNeedNewbie = groups.map((g, i) => Math.max(0, targets.newbies[i] - g.newbieCount));
+          const mustPlaceToNewbieNeedGroup = person.newbie && groupNeedNewbie.some((need) => need > 0);
+
+          for (let i = 0; i < groups.length; i += 1) {
+            const g = groups[i];
+            const sizeAfter = g.members.length + 1;
+            const newbieAfter = g.newbieCount + (person.newbie ? 1 : 0);
+            const maleAfter = g.maleCount + (person.gender === 'M' ? 1 : 0);
+            const femaleAfter = sizeAfter - maleAfter;
+            const remainingCapacity = targets.sizes[i] - g.members.length;
+
+            if (remainingCapacity <= 0) continue;
+            if (mustPlaceToNewbieNeedGroup && groupNeedNewbie[i] <= 0) continue;
+
+            const sizeGap = Math.max(0, sizeAfter - targets.sizes[i]);
+            const sizeLack = Math.max(0, targets.sizes[i] - sizeAfter);
+            const newbieGap = Math.max(0, newbieAfter - targets.newbies[i]);
+            const newbieLack = Math.max(0, targets.newbies[i] - newbieAfter);
+            const maleGap = Math.max(0, maleAfter - targets.males[i]);
+            const maleLack = Math.max(0, targets.males[i] - maleAfter);
+            const femaleGap = Math.max(0, femaleAfter - targets.females[i]);
+            const femaleLack = Math.max(0, targets.females[i] - femaleAfter);
+
+            const localScore = sizeGap * 500 + sizeLack * 120 + newbieGap * 220 + newbieLack * 140 + maleGap * 50 + maleLack * 25 + femaleGap * 50 + femaleLack * 25 + Math.random() * 2;
+
+            if (localScore < bestScore || (localScore === bestScore && Math.random() < 0.5)) {
+              bestScore = localScore;
+              bestGroupIndex = i;
+            }
+          }
+
+          if (bestGroupIndex === -1) {
+            const availableIndices = groups
+              .map((g, i) => ({ i, remain: targets.sizes[i] - g.members.length }))
+              .filter((it) => it.remain > 0)
+              .map((it) => it.i);
+            bestGroupIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)] ?? 0;
+          }
+
+          const targetGroup = groups[bestGroupIndex];
+          targetGroup.members.push(person);
+          if (person.newbie) targetGroup.newbieCount += 1;
+          if (person.gender === 'M') targetGroup.maleCount += 1;
+        }
+
+        const metrics = evaluateGroups(groups, targets);
+        const candidate = { groups, targets, metrics };
+
+        if (
+          !best ||
+          candidate.metrics.score < best.metrics.score ||
+          (candidate.metrics.score === best.metrics.score && Math.random() < 0.35)
+        ) {
+          best = candidate;
+        }
+      }
+
+      return best;
+    }
+
+    function getDisplayMembers(group) {
+      const leader = group.members.find((m) => m.isLeader);
+      const participants = group.members.filter((m) => !m.isLeader);
+      const existing = participants.filter((m) => !m.newbie);
+      const newbies = participants.filter((m) => m.newbie);
+      return [leader, ...existing, ...newbies].filter(Boolean);
+    }
+
+    function resolveZoneMeta(zone) {
+      if (zone === 'leader') {
+        return {
+          isLeader: true,
+          isNewbie: false,
+          gender: null
+        };
+      }
+
+      if (zone === 'existing-male') {
+        return {
+          isLeader: false,
+          isNewbie: false,
+          gender: 'M'
+        };
+      }
+
+      if (zone === 'existing-female') {
+        return {
+          isLeader: false,
+          isNewbie: false,
+          gender: 'F'
+        };
+      }
+
+      if (zone === 'new-male') {
+        return {
+          isLeader: false,
+          isNewbie: true,
+          gender: 'M'
+        };
+      }
+
+      if (zone === 'new-female') {
+        return {
+          isLeader: false,
+          isNewbie: true,
+          gender: 'F'
+        };
+      }
+
+      return {
+        isLeader: false,
+        isNewbie: null,
+        gender: null
+      };
+    }
+
+    function normalizePersonByZone(person) {
+      const zoneMeta = resolveZoneMeta(person.zone);
+      if (person.zone === 'leader') {
+        const leaderGender = person.leaderGender === 'F' ? 'F' : 'M';
+        return {
+          ...person,
+          isLeader: true,
+          newbie: false,
+          gender: leaderGender
+        };
+      }
+
+      const normalizedGender = zoneMeta.gender || (person.gender === 'M' || person.gender === 'F' ? person.gender : 'F');
+      return {
+        ...person,
+        isLeader: false,
+        newbie: zoneMeta.isNewbie ?? false,
+        gender: normalizedGender
+      };
+    }
+
+    function buildSummary(result) {
+      return result.groups.map((group, idx) => {
+        const members = getDisplayMembers(group).filter((m) => !m.isLeader).map((m) => m.name).join(', ') || '없음';
+        const male = group.members.filter((m) => m.gender === 'M').length;
+        const female = group.members.filter((m) => m.gender === 'F').length;
+        const newbie = group.members.filter((m) => m.newbie).length;
+        return `${idx + 1}조 (${group.leader.name})\n- 리더: ${group.leader.name} (${group.leader.gender === 'M' ? '남' : '여'})\n- 구성원: ${members}\n- 통계: 총원 ${group.members.length}명 / 남 ${male} / 여 ${female} / 신입 ${newbie}`;
+      }).join('\n\n');
+    }
+
+    function renderResult(result, warnings = []) {
+      resultContainerEl.innerHTML = '';
+
+      result.groups.forEach((group, idx) => {
+        const total = group.members.length;
+        const male = group.members.filter((m) => m.gender === 'M').length;
+        const female = group.members.filter((m) => m.gender === 'F').length;
+        const newbie = group.members.filter((m) => m.newbie).length;
+
+        const card = document.createElement('article');
+        card.className = 'group-card';
+
+        const membersHtml = getDisplayMembers(group)
+          .map((member) => {
+            if (member.isLeader) {
+              return `<li><strong>리더: ${member.name}</strong> (${member.gender === 'M' ? '남' : '여'})</li>`;
+            }
+            return `<li>${member.name} (${member.gender === 'M' ? '남' : '여'}${member.newbie ? ', 신입' : ''})</li>`;
+          })
+          .join('');
+
+        card.innerHTML = `
+          <h3>${idx + 1}조 · ${group.leader.name}조</h3>
+          <div class="stats">총원 ${total}명 · 남 ${male} · 여 ${female} · 신입 ${newbie}</div>
+          <ul class="member-list">${membersHtml}</ul>
+        `;
+
+        resultContainerEl.appendChild(card);
+      });
+
+      const score = result.metrics.score;
+      if (score === 0) {
+        showMessage(statusMessageEl, 'ok', '모든 규칙을 만족합니다.');
+      } else {
+        showMessage(statusMessageEl, 'warn', '균형을 최대한 맞춰 배정했지만 일부 제약을 완벽히 만족할 수 없습니다.');
+      }
+
+      if (warnings.length) {
+        showMessage(warningMessageEl, 'warn', warnings.join('\n'));
+      } else {
+        hideMessage(warningMessageEl);
+      }
+    }
+
+    function createPersonChip(person) {
+      const chip = document.createElement('div');
+      chip.className = `person-chip ${person.zone === 'leader' ? 'leader' : ''}`;
+      chip.dataset.id = person.id;
+      chip.draggable = true;
+
+      const nameText = document.createElement('span');
+      nameText.className = 'person-name';
+      nameText.textContent = person.name;
+      chip.appendChild(nameText);
+
+      const controls = document.createElement('div');
+      controls.className = 'person-chip-controls';
+
+      const zoneSelect = document.createElement('select');
+      zoneSelect.className = 'zone-select';
+      zoneSelect.innerHTML = zoneSelectOptions.map((option) => `<option value="${option.value}">${option.label}</option>`).join('');
+      zoneSelect.value = person.zone;
+      zoneSelect.addEventListener('change', (event) => {
+        assignPersonToZone(person.id, event.target.value);
+      });
+      zoneSelect.addEventListener('click', (event) => {
+        event.stopPropagation();
+      });
+      controls.appendChild(zoneSelect);
+
+      if (person.zone === 'leader') {
+        const genderSelect = document.createElement('select');
+        genderSelect.className = 'leader-gender';
+        genderSelect.innerHTML = `
+          <option value="M">남</option>
+          <option value="F">여</option>
+        `;
+        genderSelect.value = person.leaderGender;
+        genderSelect.addEventListener('change', (event) => {
+          person.leaderGender = event.target.value;
+          if (person.zone === 'leader') {
+            person.gender = event.target.value;
+          }
+        });
+        genderSelect.addEventListener('click', (event) => {
+          event.stopPropagation();
+        });
+        controls.appendChild(genderSelect);
+      }
+
+      chip.appendChild(controls);
+
+      chip.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', String(person.id));
+        event.dataTransfer.effectAllowed = 'move';
+      });
+
+      return chip;
+    }
+
+    function renderBoard() {
+      zoneOrder.forEach((zone) => {
+        zoneElements[zone].innerHTML = '';
+      });
+
+      people.forEach((person) => {
+        zoneElements[person.zone].appendChild(createPersonChip(person));
+      });
+
+      zoneOrder.forEach((zone) => {
+        zoneCountElements[zone].textContent = String(zoneElements[zone].children.length);
+      });
+    }
+
+    function getLeaderCount() {
+      return people.filter((person) => person.zone === 'leader').length;
+    }
+
+    function assignPersonToZone(personId, nextZone) {
+      const person = people.find((item) => item.id === personId);
+      if (!person || person.zone === nextZone) return;
+
+      if (nextZone === 'leader' && getLeaderCount() >= 4) {
+        showMessage(statusMessageEl, 'error', '리더는 최대 4명까지만 지정할 수 있습니다.');
+        return;
+      }
+
+      person.zone = nextZone;
+
+      if (nextZone === 'leader') {
+        person.isLeader = true;
+        person.newbie = false;
+        person.gender = person.leaderGender === 'F' ? 'F' : 'M';
+      } else {
+        person.isLeader = false;
+        const zoneMeta = resolveZoneMeta(nextZone);
+        person.gender = zoneMeta.gender;
+        person.newbie = zoneMeta.isNewbie;
+      }
+
+      hideMessage(statusMessageEl);
+      renderBoard();
+    }
+
+    function resetBoard() {
+      people.forEach((person) => {
+        person.zone = 'unassigned';
+        person.isLeader = false;
+        person.gender = null;
+        person.newbie = false;
+      });
+
+      renderBoard();
+      hideMessage(statusMessageEl);
+      hideMessage(warningMessageEl);
+      resultContainerEl.innerHTML = '';
+      resultPanelEl.hidden = true;
+      lastResult = null;
+      assignBtn.disabled = false;
+    }
+
+    function enableDragAndDrop() {
+      if (dragHandlersBound) return;
+      const zoneEls = document.querySelectorAll('.zone');
+      zoneEls.forEach((zoneEl) => {
+        const zone = zoneEl.dataset.zone;
+        zoneEl.addEventListener('dragover', (event) => {
+          event.preventDefault();
+          zoneEl.classList.add('drag-over');
+        });
+        zoneEl.addEventListener('dragleave', () => {
+          zoneEl.classList.remove('drag-over');
+        });
+        zoneEl.addEventListener('drop', (event) => {
+          event.preventDefault();
+          zoneEl.classList.remove('drag-over');
+          const personId = Number(event.dataTransfer.getData('text/plain'));
+          if (Number.isNaN(personId)) return;
+          assignPersonToZone(personId, zone);
+        });
+      });
+      dragHandlersBound = true;
+    }
+
+    function confirmPeople() {
+      const parsedNames = parseNames(allPeopleEl.value);
+      if (parsedNames.length === 0) {
+        showMessage(statusMessageEl, 'error', '이름을 먼저 입력해 주세요.');
+        return;
+      }
+
+      const basePeople = parsedNames.map((name) => ({
+        id: 0,
+        name,
+        gender: null,
+        newbie: false,
+        isLeader: false,
+        leaderGender: 'M',
+        zone: 'unassigned'
+      }));
+
+      const dedupedResult = dedupePeople(basePeople);
+      duplicatedBaseNames = dedupedResult.duplicatedBaseNames;
+      people = dedupedResult.deduped.map((person, index) => ({ ...person, id: index }));
+
+      resultContainerEl.innerHTML = '';
+      classifyPanelEl.hidden = false;
+      resultPanelEl.hidden = true;
+      lastResult = null;
+
+      if (duplicatedBaseNames.length > 0) {
+        showMessage(
+          warningMessageEl,
+          'warn',
+          `중복 이름은 자동으로 구분 번호를 붙였습니다: ${duplicatedBaseNames.join(', ')}`
+        );
+      } else {
+        hideMessage(warningMessageEl);
+      }
+
+      hideMessage(statusMessageEl);
+      renderBoard();
+      enableDragAndDrop();
+      window.scrollTo({ top: classifyPanelEl.offsetTop - 20, behavior: 'smooth' });
+    }
+
+    function runAssignment() {
+      hideMessage(statusMessageEl);
+      hideMessage(warningMessageEl);
+      resultContainerEl.innerHTML = '';
+
+      if (!people.length) {
+        showMessage(statusMessageEl, 'error', '먼저 전체 이름을 입력하고 확인해 주세요.');
+        return;
+      }
+
+      const unassignedCount = people.filter((person) => person.zone === 'unassigned').length;
+      const leaders = people.filter((person) => person.zone === 'leader');
+
+      if (unassignedCount > 0) {
+        showMessage(statusMessageEl, 'error', '모든 사람의 칩을 미분류 칸에서 빼고 카테고리에 지정해 주세요.');
+        return;
+      }
+
+      if (leaders.length === 0) {
+        showMessage(statusMessageEl, 'error', '북리더를 최소 1명 지정해야 배정할 수 있습니다.');
+        return;
+      }
+
+      if (leaders.length > 4) {
+        showMessage(statusMessageEl, 'error', '북리더는 최대 4명까지만 지정할 수 있습니다.');
+        return;
+      }
+
+      const preparedLeaders = leaders
+        .map((leader) => normalizePersonByZone(leader))
+        .map((leader) => ({
+          name: leader.name,
+          gender: leader.gender || 'M',
+          newbie: false,
+          isLeader: true
+        }));
+
+      const participants = people
+        .filter((person) => person.zone !== 'leader')
+        .map((person) => {
+          const normalized = normalizePersonByZone(person);
+          return {
+            name: normalized.name,
+            gender: normalized.gender,
+            newbie: normalized.newbie,
+            isLeader: false
+          };
+        });
+
+      const groupCount = preparedLeaders.length;
+      const totalPeople = people.length;
+      const targetSizes = makeTargetArray(totalPeople, groupCount);
+      const minTarget = Math.min(...targetSizes);
+      const maxTarget = Math.max(...targetSizes);
+      const warnings = [];
+
+      if (minTarget < 4 || maxTarget > 7) {
+        warnings.push('현재 인원으로 조당 4~7명을 만족하기 어렵습니다. 가능한 한 균형 배정 결과를 제공합니다.');
+      }
+
+      const result = assignWithBestOfN(preparedLeaders, participants, 1000);
+
+      const constraintsReason = [];
+      if (result.metrics.sizePenalty > 0) constraintsReason.push('조별 총원 균등');
+      if (result.metrics.newbiePenalty > 0) constraintsReason.push('신입 분산');
+      if (result.metrics.malePenalty > 0) constraintsReason.push('성비 균형');
+      if (constraintsReason.length) {
+        warnings.push(`완전 반영이 어려운 제약: ${constraintsReason.join(', ')}`);
+      }
+
+      if (duplicatedBaseNames.length > 0) {
+        warnings.push(`중복 이름은 자동 구분 표기로 처리했습니다: ${duplicatedBaseNames.join(', ')}`);
+      }
+
+      renderResult(result, warnings);
+      lastResult = { ...result, textSummary: buildSummary(result) };
+      resultPanelEl.hidden = false;
+      window.scrollTo({ top: resultPanelEl.offsetTop - 20, behavior: 'smooth' });
+    }
+
+    async function copyPlainResult() {
+      if (!lastResult) {
+        showMessage(statusMessageEl, 'error', '먼저 배정 결과를 생성해 주세요.');
+        return;
+      }
+
+      const plainLines = lastResult.groups
+        .map((group) => getDisplayMembers(group).map((m) => m.name).join(' '))
+        .join('\n');
+
+      try {
+        await navigator.clipboard.writeText(plainLines);
+        showMessage(statusMessageEl, 'ok', '배정 결과를 클립보드에 복사했습니다.');
+      } catch (error) {
+        showMessage(statusMessageEl, 'error', '복사에 실패했습니다. 브라우저 권한을 확인해 주세요.');
+      }
+    }
+
+    function downloadCsv() {
+      if (!lastResult) {
+        showMessage(statusMessageEl, 'error', '먼저 배정 결과를 생성해 주세요.');
+        return;
+      }
+
+      const rows = [['조', '이름', '역할', '성별', '신입여부']];
+      lastResult.groups.forEach((group, idx) => {
+        group.members.forEach((member) => {
+          rows.push([
+            `${idx + 1}조`,
+            member.name,
+            member.isLeader ? '리더' : '참가자',
+            member.gender === 'M' ? '남' : '여',
+            member.newbie ? '신입' : '기존'
+          ]);
+        });
+      });
+
+      const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '독서모임_조배정결과.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    confirmPeopleBtn.addEventListener('click', confirmPeople);
+    clearAllBtn.addEventListener('click', () => {
+      allPeopleEl.value = '';
+      people = [];
+      duplicatedBaseNames = [];
+      classifyPanelEl.hidden = true;
+      resultPanelEl.hidden = true;
+      resultContainerEl.innerHTML = '';
+      Object.values(zoneElements).forEach((zoneEl) => {
+        zoneEl.innerHTML = '';
+      });
+      Object.values(zoneCountElements).forEach((countEl) => {
+        countEl.textContent = '0';
+      });
+      hideMessage(statusMessageEl);
+      hideMessage(warningMessageEl);
+    });
+
+    assignBtn.addEventListener('click', runAssignment);
+    reshuffleBtn.addEventListener('click', runAssignment);
+    resetBoardBtn.addEventListener('click', resetBoard);
+    plainCopyBtn.addEventListener('click', copyPlainResult);
+    csvBtn.addEventListener('click', downloadCsv);
+
+    classifyPanelEl.hidden = true;
+    resultPanelEl.hidden = true;
+    hideMessage(statusMessageEl);
+    hideMessage(warningMessageEl);
+  </script>
+</body>
+</html>
