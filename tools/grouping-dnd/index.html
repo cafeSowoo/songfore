@@ -456,7 +456,12 @@
     function makeTargetArray(total, groupCount) {
       const base = Math.floor(total / groupCount);
       const remainder = total % groupCount;
-      return Array.from({ length: groupCount }, (_, i) => base + (i < remainder ? 1 : 0));
+      const result = Array.from({ length: groupCount }, () => base);
+      const shuffledIndexes = shuffle(Array.from({ length: groupCount }, (_, i) => i));
+      for (let i = 0; i < remainder; i += 1) {
+        result[shuffledIndexes[i]] += 1;
+      }
+      return result;
     }
 
     function shuffle(arr) {
@@ -560,7 +565,7 @@
 
             const localScore = sizeGap * 500 + sizeLack * 120 + newbieGap * 220 + newbieLack * 140 + maleGap * 50 + maleLack * 25 + femaleGap * 50 + femaleLack * 25 + Math.random() * 2;
 
-            if (localScore < bestScore) {
+            if (localScore < bestScore || (localScore === bestScore && Math.random() < 0.5)) {
               bestScore = localScore;
               bestGroupIndex = i;
             }
@@ -583,9 +588,12 @@
         const metrics = evaluateGroups(groups, targets);
         const candidate = { groups, targets, metrics };
 
-        if (!best || candidate.metrics.score < best.metrics.score) {
+        if (
+          !best ||
+          candidate.metrics.score < best.metrics.score ||
+          (candidate.metrics.score === best.metrics.score && Math.random() < 0.35)
+        ) {
           best = candidate;
-          if (candidate.metrics.score === 0) break;
         }
       }
 
@@ -651,19 +659,21 @@
     function normalizePersonByZone(person) {
       const zoneMeta = resolveZoneMeta(person.zone);
       if (person.zone === 'leader') {
+        const leaderGender = person.leaderGender === 'F' ? 'F' : 'M';
         return {
           ...person,
           isLeader: true,
           newbie: false,
-          gender: person.leaderGender || person.gender || 'M'
+          gender: leaderGender
         };
       }
 
+      const normalizedGender = zoneMeta.gender || (person.gender === 'M' || person.gender === 'F' ? person.gender : 'F');
       return {
         ...person,
         isLeader: false,
         newbie: zoneMeta.isNewbie ?? false,
-        gender: zoneMeta.gender || person.gender || 'F'
+        gender: normalizedGender
       };
     }
 
@@ -794,7 +804,7 @@
       if (nextZone === 'leader') {
         person.isLeader = true;
         person.newbie = false;
-        person.gender = person.leaderGender || 'M';
+        person.gender = person.leaderGender === 'F' ? 'F' : 'M';
       } else {
         person.isLeader = false;
         const zoneMeta = resolveZoneMeta(nextZone);
