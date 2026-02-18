@@ -8,7 +8,7 @@
   <link rel="apple-touch-icon" href="../assets/favicon/apple-touch-icon.png" />
   <link rel="manifest" href="../assets/favicon/site.webmanifest" />
   <meta name="theme-color" content="#3f67ff" />
-  <title>독서모임 조 랜덤 배정기 (드래그앤드롭)</title>
+  <title>독서모임 조 랜덤 배정기</title>
   <style>
     :root {
       --bg: #f6f8ff;
@@ -372,7 +372,7 @@
 <body>
   <main class="container">
     <section class="hero">
-      <h1>독서모임 조 랜덤 배정기 (드래그앤드롭)</h1>
+      <h1>독서모임 조 랜덤 배정기</h1>
       <p class="sub">전체 이름을 먼저 넣고, 미분류에서 남/여를 지정한 뒤 성별 구간에서 북리더·신입만 표시해 조를 배정합니다.</p>
     </section>
 
@@ -384,8 +384,7 @@
         <button id="clearAllBtn" type="button">전체 초기화</button>
       </div>
       <p class="hint">
-        예: 홍길동, 김영수 정은지
-        또는 각 줄마다 1명씩 입력
+        예: 공백, 엔터 모두 인식합니다.
       </p>
     </section>
 
@@ -420,8 +419,7 @@
     <section class="panel" id="resultPanel" hidden>
       <h2>3. 조 배정 결과</h2>
       <div class="btn-row">
-        <button id="plainCopyBtn" type="button">복사하기</button>
-        <button id="csvBtn" type="button">CSV 다운로드</button>
+        <button id="plainCopyBtn" type="button">결과 복사하기</button>
       </div>
 
       <div id="resultContainer" class="result-grid"></div>
@@ -449,7 +447,6 @@
     const reshuffleBtn = document.getElementById('reshuffleBtn');
     const resetBoardBtn = document.getElementById('resetBoardBtn');
     const plainCopyBtn = document.getElementById('plainCopyBtn');
-    const csvBtn = document.getElementById('csvBtn');
 
     const zoneElements = {};
     const zoneCountElements = {};
@@ -1021,35 +1018,6 @@
       }
     }
 
-    function downloadCsv() {
-      if (!lastResult) {
-        showMessage(statusMessageEl, 'error', '먼저 배정 결과를 생성해 주세요.');
-        return;
-      }
-
-      const rows = [['조', '이름', '역할', '성별', '신입여부']];
-      lastResult.groups.forEach((group, idx) => {
-        group.members.forEach((member) => {
-          rows.push([
-            `${idx + 1}조`,
-            member.name,
-            member.isLeader ? '리더' : '참가자',
-            member.gender === 'M' ? '남' : '여',
-            member.newbie ? '신입' : '기존'
-          ]);
-        });
-      });
-
-      const csv = rows.map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = '독서모임_조배정결과.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
     confirmPeopleBtn.addEventListener('click', confirmPeople);
     clearAllBtn.addEventListener('click', () => {
       allPeopleEl.value = '';
@@ -1072,7 +1040,6 @@
     reshuffleBtn.addEventListener('click', runAssignment);
     resetBoardBtn.addEventListener('click', resetBoard);
     plainCopyBtn.addEventListener('click', copyPlainResult);
-    csvBtn.addEventListener('click', downloadCsv);
 
     classifyPanelEl.hidden = true;
     resultPanelEl.hidden = true;
