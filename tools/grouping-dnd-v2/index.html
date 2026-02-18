@@ -76,7 +76,7 @@
 
     textarea,
     button,
-    .person-chip select {
+    .person-chip-controls button {
       border: 1px solid var(--line);
       border-radius: 10px;
       padding: 10px 12px;
@@ -157,7 +157,7 @@
     .board {
       margin-top: 10px;
       display: grid;
-      grid-template-columns: repeat(6, minmax(170px, 1fr));
+      grid-template-columns: repeat(3, minmax(170px, 1fr));
       gap: 10px;
     }
 
@@ -215,9 +215,7 @@
       transition: transform 0.14s ease;
     }
 
-    .person-chip:hover {
-      transform: translateY(-1px);
-    }
+    .person-chip:hover { transform: translateY(-1px); }
 
     .person-chip.leader {
       background: #eef2ff;
@@ -238,13 +236,28 @@
       gap: 6px;
     }
 
-    .person-chip select {
+    .person-chip-controls button {
       width: 100%;
       cursor: pointer;
       min-width: 0;
       padding: 4px 8px;
       border-radius: 999px;
       font-size: 0.82rem;
+      font-weight: 700;
+      background: #eef2ff;
+      color: #30419a;
+      border-color: #b7c5f7;
+    }
+
+    .person-chip-controls button.active {
+      background: #3f67ff;
+      color: #fff;
+      border-color: #3f67ff;
+    }
+
+    .person-chip-controls button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
     }
 
     .result-grid {
@@ -298,16 +311,24 @@
     }
 
     @media (max-width: 1080px) {
-      .board { grid-template-columns: repeat(3, minmax(170px, 1fr)); }
+      .board {
+        grid-template-columns: repeat(3, minmax(170px, 1fr));
+      }
     }
 
     @media (max-width: 720px) {
-      .board { grid-template-columns: repeat(2, minmax(170px, 1fr)); }
-      .person-chip-controls { grid-template-columns: 1fr; }
+      .board {
+        grid-template-columns: repeat(2, minmax(170px, 1fr));
+      }
+      .person-chip-controls {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 460px) {
-      .board { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+      .board {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+      }
     }
   </style>
 </head>
@@ -315,8 +336,7 @@
   <main class="container">
     <section class="hero">
       <h1>독서모임 조 랜덤 배정기 (드래그앤드롭)</h1>
-      <p class="sub">전체 이름을 먼저 넣고, 포인트앤 클릭 또는 드래그앤드랍으로
-      북리더·기존남·기존여·신입남·신입여를 나눈 뒤 조를 배정합니다.</p>
+      <p class="sub">전체 이름을 먼저 넣고, 미분류에서 남/여를 지정한 뒤 성별 구간에서 북리더·신입만 표시해 조를 배정합니다.</p>
     </section>
 
     <section class="panel">
@@ -326,37 +346,27 @@
         <button id="confirmPeopleBtn" class="primary" type="button">확인</button>
         <button id="clearAllBtn" type="button">전체 초기화</button>
       </div>
-      <p class="hint">예: 홍길동, 김영수 정은지
-        또는 각 줄마다 1명씩 입력</p>
+      <p class="hint">
+        예: 홍길동, 김영수 정은지
+        또는 각 줄마다 1명씩 입력
+      </p>
     </section>
 
     <section class="panel" id="classifyPanel" hidden>
       <h2>2. 리더/기존/신입 분류</h2>
-      <p class="hint">칩을 드래그해서도 배치 가능하고, 각 칩의 분류 선택으로 바로 이동할 수 있습니다.</p>
+      <p class="hint">칩 드래그앤드롭으로 미분류→남성/여성 분류하고, 분류 후 남성/여성 구간에서 ‘북리더’ ‘신입’ 버튼만 눌러 표시합니다.</p>
       <div class="board" id="board">
         <section class="zone" data-zone="unassigned">
           <h3>미분류 <span class="count">0</span></h3>
           <div class="chip-list" data-zone="unassigned"></div>
         </section>
-        <section class="zone" data-zone="leader">
-          <h3>북리더 <span class="count">0</span></h3>
-          <div class="chip-list" data-zone="leader"></div>
+        <section class="zone" data-zone="male">
+          <h3>남성 <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="male"></div>
         </section>
-        <section class="zone" data-zone="existing-male">
-          <h3>기존남 <span class="count">0</span></h3>
-          <div class="chip-list" data-zone="existing-male"></div>
-        </section>
-        <section class="zone" data-zone="existing-female">
-          <h3>기존여 <span class="count">0</span></h3>
-          <div class="chip-list" data-zone="existing-female"></div>
-        </section>
-        <section class="zone" data-zone="new-male">
-          <h3>신입남 <span class="count">0</span></h3>
-          <div class="chip-list" data-zone="new-male"></div>
-        </section>
-        <section class="zone" data-zone="new-female">
-          <h3>신입여 <span class="count">0</span></h3>
-          <div class="chip-list" data-zone="new-female"></div>
+        <section class="zone" data-zone="female">
+          <h3>여성 <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="female"></div>
         </section>
       </div>
 
@@ -386,21 +396,10 @@
   <script>
     const zoneOrder = [
       'unassigned',
-      'leader',
-      'existing-male',
-      'existing-female',
-      'new-male',
-      'new-female'
+      'male',
+      'female'
     ];
 
-    const zoneSelectOptions = [
-      { value: 'unassigned', label: '미분류' },
-      { value: 'leader', label: '북리더' },
-      { value: 'existing-male', label: '기존남' },
-      { value: 'existing-female', label: '기존여' },
-      { value: 'new-male', label: '신입남' },
-      { value: 'new-female', label: '신입여' }
-    ];
     const allPeopleEl = document.getElementById('allPeople');
     const confirmPeopleBtn = document.getElementById('confirmPeopleBtn');
     const clearAllBtn = document.getElementById('clearAllBtn');
@@ -621,78 +620,21 @@
       return [leader, ...existing, ...newbies].filter(Boolean);
     }
 
-    function resolveZoneMeta(zone) {
-      if (zone === 'leader') {
-        return {
-          isLeader: true,
-          isNewbie: false,
-          gender: null
-        };
-      }
-
-      if (zone === 'existing-male') {
-        return {
-          isLeader: false,
-          isNewbie: false,
-          gender: 'M'
-        };
-      }
-
-      if (zone === 'existing-female') {
-        return {
-          isLeader: false,
-          isNewbie: false,
-          gender: 'F'
-        };
-      }
-
-      if (zone === 'new-male') {
-        return {
-          isLeader: false,
-          isNewbie: true,
-          gender: 'M'
-        };
-      }
-
-      if (zone === 'new-female') {
-        return {
-          isLeader: false,
-          isNewbie: true,
-          gender: 'F'
-        };
-      }
-
+    function buildPersonForAssignment(person) {
       return {
-        isLeader: false,
-        isNewbie: null,
-        gender: null
-      };
-    }
-
-    function normalizePersonByZone(person) {
-      const zoneMeta = resolveZoneMeta(person.zone);
-      if (person.zone === 'leader') {
-        const leaderGender = person.leaderGender === 'F' ? 'F' : 'M';
-        return {
-          ...person,
-          isLeader: true,
-          newbie: false,
-          gender: leaderGender
-        };
-      }
-
-      const normalizedGender = zoneMeta.gender || (person.gender === 'M' || person.gender === 'F' ? person.gender : 'F');
-      return {
-        ...person,
-        isLeader: false,
-        newbie: zoneMeta.isNewbie ?? false,
-        gender: normalizedGender
+        name: person.name,
+        gender: person.gender === 'F' ? 'F' : 'M',
+        newbie: !!person.newbie,
+        isLeader: !!person.isLeader
       };
     }
 
     function buildSummary(result) {
       return result.groups.map((group, idx) => {
-        const members = getDisplayMembers(group).filter((m) => !m.isLeader).map((m) => m.name).join(', ') || '없음';
+        const members = getDisplayMembers(group)
+          .filter((m) => !m.isLeader)
+          .map((m) => m.name)
+          .join(', ') || '없음';
         const male = group.members.filter((m) => m.gender === 'M').length;
         const female = group.members.filter((m) => m.gender === 'F').length;
         const newbie = group.members.filter((m) => m.newbie).length;
@@ -746,48 +688,61 @@
 
     function createPersonChip(person) {
       const chip = document.createElement('div');
-      chip.className = `person-chip ${person.zone === 'leader' ? 'leader' : ''}`;
+      chip.className = `person-chip ${person.isLeader ? 'leader' : ''}`;
       chip.dataset.id = person.id;
       chip.draggable = true;
 
       const nameText = document.createElement('span');
       nameText.className = 'person-name';
-      nameText.textContent = person.name;
+
+      const suffix = [];
+      if (person.gender === 'M') suffix.push('남');
+      if (person.gender === 'F') suffix.push('여');
+      if (person.isLeader) suffix.push('리더');
+      if (person.newbie) suffix.push('신입');
+      nameText.textContent = suffix.length ? `${person.name} (${suffix.join(', ')})` : person.name;
       chip.appendChild(nameText);
 
       const controls = document.createElement('div');
       controls.className = 'person-chip-controls';
 
-      const zoneSelect = document.createElement('select');
-      zoneSelect.className = 'zone-select';
-      zoneSelect.innerHTML = zoneSelectOptions.map((option) => `<option value="${option.value}">${option.label}</option>`).join('');
-      zoneSelect.value = person.zone;
-      zoneSelect.addEventListener('change', (event) => {
-        assignPersonToZone(person.id, event.target.value);
-      });
-      zoneSelect.addEventListener('click', (event) => {
-        event.stopPropagation();
-      });
-      controls.appendChild(zoneSelect);
+      if (person.zone === 'unassigned') {
+        const maleBtn = document.createElement('button');
+        maleBtn.type = 'button';
+        maleBtn.textContent = '남';
+        maleBtn.className = person.gender === 'M' ? 'active' : '';
+        maleBtn.addEventListener('click', () => {
+          assignPersonToZone(person.id, 'male');
+        });
+        controls.appendChild(maleBtn);
 
-      if (person.zone === 'leader') {
-        const genderSelect = document.createElement('select');
-        genderSelect.className = 'leader-gender';
-        genderSelect.innerHTML = `
-          <option value="M">남</option>
-          <option value="F">여</option>
-        `;
-        genderSelect.value = person.leaderGender;
-        genderSelect.addEventListener('change', (event) => {
-          person.leaderGender = event.target.value;
-          if (person.zone === 'leader') {
-            person.gender = event.target.value;
-          }
+        const femaleBtn = document.createElement('button');
+        femaleBtn.type = 'button';
+        femaleBtn.textContent = '여';
+        femaleBtn.className = person.gender === 'F' ? 'active' : '';
+        femaleBtn.addEventListener('click', () => {
+          assignPersonToZone(person.id, 'female');
         });
-        genderSelect.addEventListener('click', (event) => {
-          event.stopPropagation();
+        controls.appendChild(femaleBtn);
+      } else {
+        const leaderBtn = document.createElement('button');
+        leaderBtn.type = 'button';
+        leaderBtn.textContent = '북리더';
+        leaderBtn.className = person.isLeader ? 'active' : '';
+        leaderBtn.addEventListener('click', () => {
+          toggleLeader(person.id);
         });
-        controls.appendChild(genderSelect);
+        controls.appendChild(leaderBtn);
+
+        const newbieBtn = document.createElement('button');
+        newbieBtn.type = 'button';
+        newbieBtn.textContent = '신입';
+        newbieBtn.className = person.newbie ? 'active' : '';
+        newbieBtn.disabled = person.isLeader;
+        newbieBtn.addEventListener('click', () => {
+          toggleNewbie(person.id);
+        });
+        controls.appendChild(newbieBtn);
       }
 
       chip.appendChild(controls);
@@ -815,30 +770,45 @@
     }
 
     function getLeaderCount() {
-      return people.filter((person) => person.zone === 'leader').length;
+      return people.filter((person) => person.isLeader).length;
+    }
+
+    function toggleLeader(personId) {
+      const person = people.find((item) => item.id === personId);
+      if (!person) return;
+
+      if (!person.isLeader && getLeaderCount() >= 4) {
+        showMessage(statusMessageEl, 'error', '북리더는 최대 4명까지만 지정할 수 있습니다.');
+        return;
+      }
+
+      person.isLeader = !person.isLeader;
+      if (person.isLeader) {
+        person.newbie = false;
+      }
+
+      hideMessage(statusMessageEl);
+      renderBoard();
+    }
+
+    function toggleNewbie(personId) {
+      const person = people.find((item) => item.id === personId);
+      if (!person || person.isLeader) return;
+
+      person.newbie = !person.newbie;
+      hideMessage(statusMessageEl);
+      renderBoard();
     }
 
     function assignPersonToZone(personId, nextZone) {
       const person = people.find((item) => item.id === personId);
       if (!person || person.zone === nextZone) return;
-
-      if (nextZone === 'leader' && getLeaderCount() >= 4) {
-        showMessage(statusMessageEl, 'error', '리더는 최대 4명까지만 지정할 수 있습니다.');
-        return;
-      }
+      if (!zoneOrder.includes(nextZone)) return;
 
       person.zone = nextZone;
-
-      if (nextZone === 'leader') {
-        person.isLeader = true;
-        person.newbie = false;
-        person.gender = person.leaderGender === 'F' ? 'F' : 'M';
-      } else {
-        person.isLeader = false;
-        const zoneMeta = resolveZoneMeta(nextZone);
-        person.gender = zoneMeta.gender;
-        person.newbie = zoneMeta.isNewbie;
-      }
+      if (nextZone === 'male') person.gender = 'M';
+      else if (nextZone === 'female') person.gender = 'F';
+      else if (nextZone === 'unassigned') person.gender = null;
 
       hideMessage(statusMessageEl);
       renderBoard();
@@ -897,7 +867,6 @@
         gender: null,
         newbie: false,
         isLeader: false,
-        leaderGender: 'M',
         zone: 'unassigned'
       }));
 
@@ -936,11 +905,11 @@
         return;
       }
 
-      const unassignedCount = people.filter((person) => person.zone === 'unassigned').length;
-      const leaders = people.filter((person) => person.zone === 'leader');
+      const unassignedCount = people.filter((person) => person.zone === 'unassigned' || !person.gender).length;
+      const leaders = people.filter((person) => person.isLeader);
 
       if (unassignedCount > 0) {
-        showMessage(statusMessageEl, 'error', '모든 사람의 칩을 미분류 칸에서 빼고 카테고리에 지정해 주세요.');
+        showMessage(statusMessageEl, 'error', '모든 사람을 미분류에서 남/여로 지정해 주세요.');
         return;
       }
 
@@ -955,25 +924,16 @@
       }
 
       const preparedLeaders = leaders
-        .map((leader) => normalizePersonByZone(leader))
+        .map(buildPersonForAssignment)
         .map((leader) => ({
-          name: leader.name,
-          gender: leader.gender || 'M',
+          ...leader,
           newbie: false,
           isLeader: true
         }));
 
       const participants = people
-        .filter((person) => person.zone !== 'leader')
-        .map((person) => {
-          const normalized = normalizePersonByZone(person);
-          return {
-            name: normalized.name,
-            gender: normalized.gender,
-            newbie: normalized.newbie,
-            isLeader: false
-          };
-        });
+        .filter((person) => !person.isLeader)
+        .map(buildPersonForAssignment);
 
       const groupCount = preparedLeaders.length;
       const totalPeople = people.length;
@@ -989,9 +949,9 @@
       const result = assignWithBestOfN(preparedLeaders, participants, 1000);
 
       const constraintsReason = [];
-      if (result.metrics.sizePenalty > 0) constraintsReason.push('조별 총원 균등');
+      if (result.metrics.sizePenalty > 0) constraintsReason.push('조별 총원 균형');
       if (result.metrics.newbiePenalty > 0) constraintsReason.push('신입 분산');
-      if (result.metrics.malePenalty > 0) constraintsReason.push('성비 균형');
+      if (result.metrics.malePenalty > 0 || result.metrics.femalePenalty > 0) constraintsReason.push('성별 균형');
       if (constraintsReason.length) {
         warnings.push(`완전 반영이 어려운 제약: ${constraintsReason.join(', ')}`);
       }
