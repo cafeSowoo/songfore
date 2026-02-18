@@ -1,0 +1,1588 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../assets/favicon/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="../assets/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../assets/favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="../assets/favicon/site.webmanifest" />
+  <meta name="theme-color" content="#3f67ff" />
+  <title>독서모임 조 랜덤 배정기</title>
+  <style>
+    :root {
+      --bg: #f6f8ff;
+      --card: #ffffff;
+      --line: #d8def4;
+      --text: #1b2551;
+      --muted: #5f6b99;
+      --primary: #3f67ff;
+      --primary-dark: #2d4fd1;
+      --ok: #0f8a48;
+      --warn: #8e5a00;
+      --error: #b3261e;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% -18%, #d8e2ff 0 240px, transparent 240px),
+        radial-gradient(circle at 85% 4%, #ffdceb 0 160px, transparent 160px),
+        linear-gradient(180deg, #edf2ff 0, var(--bg) 55%, #f0f4ff 100%);
+    }
+
+    .container {
+      width: min(1120px, 94vw);
+      margin: 28px auto 60px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #fff, #f4f7ff);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(26, 39, 87, 0.06);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2vw, 2rem);
+    }
+
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(26, 39, 87, 0.06);
+      padding: 16px;
+    }
+
+    .panel > h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+    }
+
+    .panel > p.hint {
+      margin: 10px 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    textarea,
+    button,
+    .person-chip-controls button {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: #fff;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 122px;
+      resize: vertical;
+      line-height: 1.45;
+      font-family: inherit;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-row button,
+    .back-home-btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: #e9edff;
+      color: #2a3a8a;
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    button.warn {
+      background: #fff4e2;
+      color: #8f5200;
+    }
+
+    button:disabled {
+      opacity: 0.52;
+      cursor: not-allowed;
+    }
+
+    .btn-label {
+      display: inline-block;
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .message {
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      margin-top: 10px;
+      display: none;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .message.show { display: block; }
+    .message.error { background: #ffebee; color: var(--error); }
+    .message.warn { background: #fff8e1; color: var(--warn); }
+    .message.ok { background: #e7f6ed; color: var(--ok); }
+
+    .board {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        "unassigned unassigned"
+        "male female";
+      gap: 10px;
+    }
+
+    .zone[data-zone="unassigned"] { grid-area: unassigned; }
+    .zone[data-zone="male"] { grid-area: male; }
+    .zone[data-zone="female"] { grid-area: female; }
+
+    .zone[data-zone="male"] .person-chip,
+    .zone[data-zone="female"] .person-chip {
+      grid-template-columns: 1fr;
+    }
+
+    .zone[data-zone="male"] .person-chip-controls,
+    .zone[data-zone="female"] .person-chip-controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .zone[data-zone="male"] .person-chip-controls button,
+    .zone[data-zone="female"] .person-chip-controls button {
+      width: 100%;
+    }
+
+    .zone {
+      min-height: 240px;
+      border-radius: 12px;
+      border: 1.5px dashed var(--line);
+      padding: 10px;
+      background: #fbfcff;
+      transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+    }
+
+    .zone.drag-over {
+      border-color: #a7b8f7;
+      background: #f2f6ff;
+      transform: translateY(-2px);
+    }
+
+    .zone h3 {
+      margin: 0;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .count {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: #eef3ff;
+    }
+
+    .chip-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+      min-height: 180px;
+      align-content: start;
+    }
+
+    .person-chip {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #ced9f7;
+      background: #fff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      line-height: 1.25;
+      cursor: grab;
+      transition: transform 0.14s ease;
+    }
+
+    .person-chip:hover { transform: translateY(-1px); }
+
+    .person-chip.leader {
+      background: #eef2ff;
+      border-color: #afc0ff;
+    }
+
+    .person-name {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .person-chip-controls {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .person-chip-controls button {
+      width: auto;
+      cursor: pointer;
+      min-width: 0;
+      white-space: nowrap;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: #eef2ff;
+      color: #30419a;
+      border-color: #b7c5f7;
+    }
+
+    .person-chip-controls button.active {
+      background: #3f67ff;
+      color: #fff;
+      border-color: #3f67ff;
+    }
+
+    .person-chip-controls button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .person-chip-pick-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .person-chip-pick-label {
+      font-size: 0.74rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .person-pick-select {
+      border: 1px solid #c3cef7;
+      border-radius: 8px;
+      padding: 0 22px 0 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: linear-gradient(160deg, #f4f7ff, #ecf1ff);
+      color: #2d3f85;
+      min-width: 46px;
+      max-width: 46px;
+      width: 46px;
+      height: 28px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      box-sizing: border-box;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      text-align: left;
+      justify-content: flex-start;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: none;
+    }
+
+    .person-pick-select.has-value {
+      padding-right: 6px;
+    }
+
+    .person-pick-select:focus {
+      outline: none;
+      border-color: #3f67ff;
+    }
+
+    .person-pick-arrow {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      font-size: 0.68rem;
+      line-height: 1;
+      color: #5366a5;
+    }
+
+    .person-chip-pick-wrap.has-pick .person-pick-arrow {
+      opacity: 0;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .group-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fafbff;
+    }
+
+    .group-card h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .stats {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .member-list {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.5;
+    }
+
+    .back-home-btn {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 18px;
+      width: fit-content;
+      margin: 0 auto;
+      padding: 10px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 20px rgba(25, 39, 88, 0.15);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 1080px) {
+      .board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+          "unassigned unassigned"
+          "male female";
+      }
+    }
+
+    @media (max-width: 720px) {
+      .board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+          "unassigned unassigned"
+          "male female";
+      }
+
+      .back-home-btn {
+        position: static;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        margin: 16px auto 0;
+        width: min(100%, 320px);
+        display: block;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+          "unassigned unassigned"
+          "male female";
+      }
+    }
+
+    @media (min-width: 721px) {
+      .chip-list {
+        justify-items: center;
+      }
+
+      .person-chip {
+        width: fit-content;
+        max-width: fit-content;
+        min-width: 0;
+        justify-self: center;
+        grid-template-columns: max-content auto;
+      }
+
+      .person-chip-controls {
+        width: auto;
+        justify-content: flex-start;
+      }
+
+      .person-chip-controls button {
+        padding: 4px 9px;
+      }
+
+      .zone[data-zone="male"] .person-chip,
+      .zone[data-zone="female"] .person-chip {
+        grid-template-columns: max-content auto;
+      }
+
+      .zone[data-zone="male"] .person-chip-controls,
+      .zone[data-zone="female"] .person-chip-controls {
+        display: flex;
+      }
+
+      .zone[data-zone="male"] .person-chip-controls button,
+      .zone[data-zone="female"] .person-chip-controls button {
+        width: auto;
+      }
+    }
+
+    :root {
+      --bg: #f3f6ff;
+      --card: #ffffff;
+      --line: #d7def2;
+      --text: #1e2550;
+      --muted: #647299;
+      --primary: #3e67ff;
+      --primary-dark: #2744d4;
+      --ok: #0f8a48;
+      --warn: #8f5e00;
+      --error: #b3261e;
+      --shadow-soft: 0 20px 48px rgba(26, 39, 87, 0.12);
+      --shadow-card: 0 10px 30px rgba(31, 52, 122, 0.11);
+      --chip-glow: 0 8px 20px rgba(63, 103, 255, 0.16);
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 10% -8%, #dce8ff 0 240px, transparent 240px),
+        radial-gradient(circle at 86% 5%, #ffdbe8 0 170px, transparent 170px),
+        radial-gradient(circle at 65% 80%, #d4f0ff 0 190px, transparent 190px),
+        linear-gradient(180deg, #edf2ff 0, var(--bg) 58%, #eff3ff 100%);
+      background-attachment: fixed;
+      color: var(--text);
+      animation: intro-fade 0.55s ease;
+    }
+
+    @keyframes intro-fade {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .container {
+      margin-block: 28px 80px;
+    }
+
+    .hero,
+    .panel {
+      position: relative;
+      border: 1px solid #d7def4;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(246, 250, 255, 0.94));
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .hero::before,
+    .panel::before {
+      content: '';
+      position: absolute;
+      pointer-events: none;
+      inset: -45% auto auto -18%;
+      width: 220px;
+      height: 220px;
+      background: linear-gradient(130deg, rgba(63, 103, 255, 0.2), rgba(91, 202, 255, 0.18));
+      filter: blur(0px);
+      border-radius: 50%;
+    }
+
+    .panel::before {
+      inset: auto auto -40px -20%;
+      width: 190px;
+      height: 190px;
+      background: linear-gradient(130deg, rgba(240, 101, 170, 0.15), rgba(63, 103, 255, 0.16));
+    }
+
+    .hero:hover,
+    .panel:hover {
+      transform: translateY(-1px);
+      border-color: #b3c2ff;
+      box-shadow: var(--shadow-soft);
+    }
+
+    h1 {
+      letter-spacing: -0.01em;
+      font-weight: 800;
+    }
+
+    .sub {
+      line-height: 1.55;
+    }
+
+    textarea,
+    button,
+    .person-chip-controls button,
+    .person-pick-select {
+      transition: all 0.18s ease;
+    }
+
+    textarea:focus,
+    .person-pick-select:focus,
+    button:focus-visible {
+      outline: 2px solid rgba(63, 103, 255, 0.28);
+      outline-offset: 2px;
+    }
+
+    .btn-row button,
+    .back-home-btn {
+      padding-block: 10px;
+      font-weight: 700;
+      border: 1px solid #b4c2ff;
+      box-shadow: 0 8px 20px rgba(43, 72, 181, 0.16);
+    }
+
+    .btn-row button:hover,
+    .back-home-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    button.primary {
+      background: linear-gradient(160deg, #4664ff, #3045e2);
+      box-shadow: 0 10px 24px rgba(63, 103, 255, 0.2);
+    }
+
+    button.primary:hover {
+      background: linear-gradient(160deg, #3045e2, #273ecd);
+      box-shadow: 0 12px 26px rgba(63, 103, 255, 0.24);
+    }
+
+    button.warn {
+      background: linear-gradient(160deg, #ffefcf, #ffd98f);
+    }
+
+    button:disabled {
+      filter: grayscale(0.3);
+      box-shadow: none;
+    }
+
+    .message {
+      border: 1px solid #d9e2ff;
+      backdrop-filter: blur(2px);
+    }
+
+    .message.ok { background: linear-gradient(160deg, #eaf8ee, #e8f7ea); }
+    .message.warn { background: linear-gradient(160deg, #fff9e5, #fff3c9); }
+    .message.error { background: linear-gradient(160deg, #ffeaee, #ffdde1); }
+
+    .board {
+      gap: 12px;
+    }
+
+    .zone {
+      background: linear-gradient(180deg, #fbfdff 0, #f4f7ff 100%);
+      border-width: 1.5px;
+      border-style: dashed;
+      box-shadow: inset 0 0 0 1px #f5f7ff, var(--shadow-soft);
+      border-color: #d7dff4;
+      min-height: 0;
+    }
+
+    .zone.drag-over {
+      border-style: solid;
+      border-color: #9eb4ff;
+      background: linear-gradient(180deg, #f2f7ff 0, #edf4ff 100%);
+      transform: translateY(-2px) scale(1.005);
+    }
+
+    .zone h3 {
+      color: #213062;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.87rem;
+      font-weight: 800;
+    }
+
+    .chip-list {
+      align-content: start;
+      gap: 9px;
+      min-height: 0;
+    }
+
+    .zone[data-zone="male"],
+    .zone[data-zone="female"] {
+      min-height: 110px;
+    }
+
+    .zone[data-zone="unassigned"] {
+      min-height: 0;
+    }
+
+    .zone[data-zone="unassigned"] .chip-list {
+      min-height: 0;
+    }
+
+    .person-chip {
+      grid-template-columns: minmax(0, 1fr) auto;
+      background: linear-gradient(170deg, #ffffff, #f8fbff);
+      border: 1px solid #cad6f8;
+      border-radius: 10px;
+      padding: 8px 12px;
+      gap: 10px;
+      box-shadow: var(--chip-glow);
+      animation: chip-pop 0.2s ease;
+    }
+
+    @keyframes chip-pop {
+      0% { transform: scale(0.98); }
+      100% { transform: scale(1); }
+    }
+
+    .person-chip:hover {
+      transform: translateY(-1px);
+      border-color: #9eb3ff;
+    }
+
+    .person-chip.leader {
+      background: linear-gradient(170deg, #e9eeff, #f6f8ff);
+      border-color: #a9bfff;
+      box-shadow: 0 8px 22px rgba(63, 103, 255, 0.2);
+      color: #2d3f85;
+    }
+
+    .person-name {
+      font-size: 0.95rem;
+    }
+
+    .person-chip-controls {
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .person-chip-controls button {
+      min-width: 46px;
+      padding: 4px 9px;
+      border: 1px solid #c3cef7;
+      border-radius: 8px;
+      background: linear-gradient(160deg, #f4f7ff, #ecf1ff);
+      color: #2d3f85;
+      font-weight: 800;
+    }
+
+    .person-chip-controls button:hover {
+      border-color: #97a9ff;
+      box-shadow: inset 0 0 0 1px rgba(63, 103, 255, 0.22);
+    }
+
+    .person-chip-controls button.active {
+      background: linear-gradient(160deg, #3f67ff, #3151d9);
+      border-color: #3551d5;
+      color: #fff;
+      box-shadow: 0 6px 14px rgba(63, 103, 255, 0.25);
+    }
+
+    .person-chip-pick-wrap {
+      position: relative;
+      gap: 6px;
+    }
+
+    .person-pick-select {
+      width: 46px;
+      min-width: 46px;
+      max-width: 46px;
+      height: 28px;
+      padding: 0 22px 0 6px;
+      box-sizing: border-box;
+      background: #f3f6ff;
+      border: 1px solid #c3cef7;
+      border-radius: 8px;
+      font-weight: 800;
+      color: #2d3f85;
+      text-align: left;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: none;
+    }
+
+    .person-pick-select.has-value {
+      padding-right: 6px;
+    }
+
+    .group-card {
+      background: linear-gradient(155deg, #ffffff, #f8fbff);
+      border: 1px solid #d7e0f8;
+      box-shadow: var(--shadow-card);
+    }
+
+    .member-list {
+      padding-left: 21px;
+    }
+
+    .back-home-btn {
+      backdrop-filter: blur(2px);
+      background: linear-gradient(160deg, #ffffff, #f0f4ff);
+      border-color: #b9c6ff;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <h1>독서모임 조 랜덤 배정기</h1>
+      <p class="sub">전체 이름을 먼저 넣고, 미분류에서 남/여를 지정한 뒤 성별 구간에서 북리더·신입만 표시해 조를 배정합니다.</p>
+    </section>
+
+    <section class="panel">
+      <h2>1. 전체 사람 입력</h2>
+      <textarea id="allPeople" placeholder="이름을 공백, 줄바꿈(엔터)로 구분해 입력하세요 복붙 가능"></textarea>
+      <div class="btn-row">
+        <button id="confirmPeopleBtn" class="primary" type="button">확인</button>
+        <button id="clearAllBtn" type="button">전체 초기화</button>
+      </div>
+    </section>
+
+    <section class="panel" id="classifyPanel" hidden>
+      <h2>2. 리더/기존/신입 분류</h2>
+      <p class="hint">1. 각 멤버별 남성 여성을 선택해주세요<br>2. 북리더를 선택하면 픽이 가능합니다.<br>3. 신입 부원을 체크한 후 조 배정하기를 눌러주세요</p>
+      <div class="board" id="board">
+        <section class="zone" data-zone="unassigned">
+          <h3>미분류 <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="unassigned"></div>
+        </section>
+        <section class="zone" data-zone="male">
+          <h3>남성 <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="male"></div>
+        </section>
+        <section class="zone" data-zone="female">
+          <h3>여성 <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="female"></div>
+        </section>
+      </div>
+
+      <div class="btn-row">
+        <button id="assignBtn" class="primary" type="button">조 배정하기</button>
+        <button id="reshuffleBtn" type="button">다시 배정</button>
+        <button id="resetBoardBtn" class="warn" type="button">분류 초기화</button>
+      </div>
+
+      <div id="statusMessage" class="message"></div>
+      <div id="warningMessage" class="message"></div>
+    </section>
+
+    <section class="panel" id="resultPanel" hidden>
+      <h2>3. 조 배정 결과</h2>
+      <div class="btn-row">
+        <button id="plainCopyBtn" type="button">결과 복사하기</button>
+      </div>
+
+      <div id="resultContainer" class="result-grid"></div>
+    </section>
+  </main>
+
+  <a class="back-home-btn" href="/">홈으로 돌아가기</a>
+
+  <script>
+    const zoneOrder = [
+      'unassigned',
+      'male',
+      'female'
+    ];
+
+    const allPeopleEl = document.getElementById('allPeople');
+    const confirmPeopleBtn = document.getElementById('confirmPeopleBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const classifyPanelEl = document.getElementById('classifyPanel');
+    const resultPanelEl = document.getElementById('resultPanel');
+    const statusMessageEl = document.getElementById('statusMessage');
+    const warningMessageEl = document.getElementById('warningMessage');
+    const resultContainerEl = document.getElementById('resultContainer');
+    const assignBtn = document.getElementById('assignBtn');
+    const reshuffleBtn = document.getElementById('reshuffleBtn');
+    const resetBoardBtn = document.getElementById('resetBoardBtn');
+    const plainCopyBtn = document.getElementById('plainCopyBtn');
+
+    const zoneElements = {};
+    const zoneCountElements = {};
+    document.querySelectorAll('.zone').forEach((zoneEl) => {
+      const zone = zoneEl.dataset.zone;
+      zoneElements[zone] = zoneEl.querySelector('.chip-list');
+      zoneCountElements[zone] = zoneEl.querySelector('.count');
+    });
+
+    let people = [];
+    let duplicatedBaseNames = [];
+    let lastResult = null;
+    let dragHandlersBound = false;
+
+    function showMessage(el, type, text) {
+      el.className = `message show ${type}`;
+      el.textContent = text;
+    }
+
+    function hideMessage(el) {
+      el.className = 'message';
+      el.textContent = '';
+    }
+
+    function parseNames(text) {
+      return text
+        .trim()
+        .split(/[\s,;\n\r]+/)
+        .map((name) => name.trim())
+        .filter(Boolean);
+    }
+
+    function dedupePeople(basePeople) {
+      const counts = new Map();
+      const duplicatedBaseNames = new Set();
+      const deduped = basePeople.map((person) => {
+        const base = person.name;
+        const current = counts.get(base) || 0;
+        counts.set(base, current + 1);
+
+        if (current === 0) return person;
+
+        duplicatedBaseNames.add(base);
+        return {
+          ...person,
+          name: `${base} (${current + 1})`
+        };
+      });
+
+      return { deduped, duplicatedBaseNames: Array.from(duplicatedBaseNames) };
+    }
+
+    function makeTargetArray(total, groupCount) {
+      const base = Math.floor(total / groupCount);
+      const remainder = total % groupCount;
+      const result = Array.from({ length: groupCount }, () => base);
+      const shuffledIndexes = shuffle(Array.from({ length: groupCount }, (_, i) => i));
+      for (let i = 0; i < remainder; i += 1) {
+        result[shuffledIndexes[i]] += 1;
+      }
+      return result;
+    }
+
+    function shuffle(arr) {
+      const cloned = [...arr];
+      for (let i = cloned.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cloned[i], cloned[j]] = [cloned[j], cloned[i]];
+      }
+      return cloned;
+    }
+
+    function evaluateGroups(groups, targets) {
+      const sizePenalty = groups.reduce((sum, group, i) => sum + Math.abs(group.members.length - targets.sizes[i]), 0);
+      const newbiePenalty = groups.reduce((sum, group, i) => sum + Math.abs(group.newbieCount - targets.newbies[i]), 0);
+      const malePenalty = groups.reduce((sum, group, i) => sum + Math.abs(group.maleCount - targets.males[i]), 0);
+      const femalePenalty = groups.reduce((sum, group, i) => {
+        const femaleCount = group.members.length - group.maleCount;
+        return sum + Math.abs(femaleCount - targets.females[i]);
+      }, 0);
+
+      const score = sizePenalty * 1000 + newbiePenalty * 260 + malePenalty * 50 + femalePenalty * 50;
+      return { score, sizePenalty, newbiePenalty, malePenalty, femalePenalty };
+    }
+
+    function assignWithBestOfN(leaders, participants, fixedPicks = new Map(), tries = 1000) {
+      const fixedPairs = fixedPicks instanceof Map ? fixedPicks : new Map(fixedPicks);
+      const fixedPairIds = new Set(Array.from(fixedPairs.values()));
+      const fixedMembers = participants.filter((person) => fixedPairIds.has(person.id));
+      const fixedMemberByLeader = new Map();
+      leaders.forEach((leader) => {
+        const memberId = fixedPairs.get(leader.id);
+        const fixedMember = fixedMembers.find((person) => person.id === memberId);
+        if (fixedMember) {
+          fixedMemberByLeader.set(leader.id, fixedMember);
+        }
+      });
+
+      const groupCount = leaders.length;
+      const remainingParticipants = participants.filter((person) => !fixedPairIds.has(person.id));
+      const totalPeople = leaders.length + fixedMembers.length + remainingParticipants.length;
+      const totalNewbies = [...leaders, ...fixedMembers, ...remainingParticipants].filter((p) => p.newbie).length;
+      const totalMales = [...leaders, ...fixedMembers, ...remainingParticipants].filter((p) => p.gender === 'M').length;
+
+      const targetSizes = makeTargetArray(totalPeople, groupCount);
+      const targetNewbies = makeTargetArray(totalNewbies, groupCount);
+      const targetMales = makeTargetArray(totalMales, groupCount);
+      const targetFemales = targetSizes.map((size, i) => size - targetMales[i]);
+
+      const targets = {
+        sizes: targetSizes,
+        newbies: targetNewbies,
+        males: targetMales,
+        females: targetFemales
+      };
+
+      let best = null;
+
+      for (let attempt = 0; attempt < tries; attempt += 1) {
+        const groups = leaders.map((leader, idx) => {
+          const fixedMember = fixedMemberByLeader.get(leader.id);
+          const members = [leader];
+          let newbieCount = leader.newbie ? 1 : 0;
+          let maleCount = leader.gender === 'M' ? 1 : 0;
+
+          if (fixedMember) {
+            members.push(fixedMember);
+            newbieCount += fixedMember.newbie ? 1 : 0;
+            maleCount += fixedMember.gender === 'M' ? 1 : 0;
+          }
+
+          return {
+            name: `${idx + 1}조 (${leader.name})`,
+            leader,
+            members,
+            newbieCount,
+            maleCount
+          };
+        });
+
+        const shuffled = shuffle(remainingParticipants);
+        const participantNeedPerGroup = groups.map((g, i) => ({
+          size: Math.max(0, targets.sizes[i] - g.members.length),
+          newbie: Math.max(0, targets.newbies[i] - g.newbieCount),
+          male: Math.max(0, targets.males[i] - g.maleCount),
+          female: Math.max(0, targets.females[i] - (g.members.length - g.maleCount))
+        }));
+
+        const totalNeed = participantNeedPerGroup.reduce((acc, need) => ({
+          size: acc.size + need.size,
+          newbie: acc.newbie + need.newbie,
+          male: acc.male + need.male,
+          female: acc.female + need.female
+        }), { size: 0, newbie: 0, male: 0, female: 0 });
+
+        const ordered = shuffled.sort((a, b) => {
+          const rarityA = (a.newbie && totalNeed.newbie > 0 ? 3 : 0) + (a.gender === 'M' && totalNeed.male > 0 ? 2 : 0) + (a.gender === 'F' && totalNeed.female > 0 ? 2 : 0);
+          const rarityB = (b.newbie && totalNeed.newbie > 0 ? 3 : 0) + (b.gender === 'M' && totalNeed.male > 0 ? 2 : 0) + (b.gender === 'F' && totalNeed.female > 0 ? 2 : 0);
+          return rarityB - rarityA;
+        });
+
+        for (const person of ordered) {
+          let bestGroupIndex = -1;
+          let bestScore = Infinity;
+
+          const groupNeedNewbie = groups.map((g, i) => Math.max(0, targets.newbies[i] - g.newbieCount));
+          const mustPlaceToNewbieNeedGroup = person.newbie && groupNeedNewbie.some((need) => need > 0);
+
+          for (let i = 0; i < groups.length; i += 1) {
+            const g = groups[i];
+            const sizeAfter = g.members.length + 1;
+            const newbieAfter = g.newbieCount + (person.newbie ? 1 : 0);
+            const maleAfter = g.maleCount + (person.gender === 'M' ? 1 : 0);
+            const femaleAfter = sizeAfter - maleAfter;
+            const remainingCapacity = targets.sizes[i] - g.members.length;
+
+            if (remainingCapacity <= 0) continue;
+            if (mustPlaceToNewbieNeedGroup && groupNeedNewbie[i] <= 0) continue;
+
+            const sizeGap = Math.max(0, sizeAfter - targets.sizes[i]);
+            const sizeLack = Math.max(0, targets.sizes[i] - sizeAfter);
+            const newbieGap = Math.max(0, newbieAfter - targets.newbies[i]);
+            const newbieLack = Math.max(0, targets.newbies[i] - newbieAfter);
+            const maleGap = Math.max(0, maleAfter - targets.males[i]);
+            const maleLack = Math.max(0, targets.males[i] - maleAfter);
+            const femaleGap = Math.max(0, femaleAfter - targets.females[i]);
+            const femaleLack = Math.max(0, targets.females[i] - femaleAfter);
+
+            const localScore = sizeGap * 500 + sizeLack * 120 + newbieGap * 220 + newbieLack * 140 + maleGap * 50 + maleLack * 25 + femaleGap * 50 + femaleLack * 25 + Math.random() * 2;
+
+            if (localScore < bestScore || (localScore === bestScore && Math.random() < 0.5)) {
+              bestScore = localScore;
+              bestGroupIndex = i;
+            }
+          }
+
+          if (bestGroupIndex === -1) {
+            const availableIndices = groups
+              .map((g, i) => ({ i, remain: targets.sizes[i] - g.members.length }))
+              .filter((it) => it.remain > 0)
+              .map((it) => it.i);
+            bestGroupIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)] ?? 0;
+          }
+
+          const targetGroup = groups[bestGroupIndex];
+          targetGroup.members.push(person);
+          if (person.newbie) targetGroup.newbieCount += 1;
+          if (person.gender === 'M') targetGroup.maleCount += 1;
+        }
+
+        const metrics = evaluateGroups(groups, targets);
+        const candidate = { groups, targets, metrics };
+
+        if (
+          !best ||
+          candidate.metrics.score < best.metrics.score ||
+          (candidate.metrics.score === best.metrics.score && Math.random() < 0.35)
+        ) {
+          best = candidate;
+        }
+      }
+
+      return best;
+    }
+
+    function getDisplayMembers(group) {
+      const leader = group.members.find((m) => m.isLeader);
+      const participants = group.members.filter((m) => !m.isLeader);
+      const existing = participants.filter((m) => !m.newbie);
+      const newbies = participants.filter((m) => m.newbie);
+      return [leader, ...existing, ...newbies].filter(Boolean);
+    }
+
+    function buildPersonForAssignment(person) {
+      return {
+        id: person.id,
+        name: person.name,
+        gender: person.gender === 'F' ? 'F' : 'M',
+        newbie: !!person.newbie,
+        isLeader: !!person.isLeader,
+        pickedPersonId: person.pickedPersonId ?? null
+      };
+    }
+
+    function buildSummary(result) {
+      return result.groups.map((group, idx) => {
+        const members = getDisplayMembers(group)
+          .filter((m) => !m.isLeader)
+          .map((m) => m.name)
+          .join(', ') || '없음';
+        const male = group.members.filter((m) => m.gender === 'M').length;
+        const female = group.members.filter((m) => m.gender === 'F').length;
+        const newbie = group.members.filter((m) => m.newbie).length;
+        const pick = group.members.find((member) => member.id === group.leader.pickedPersonId);
+        const pickText = pick ? `\n- 픽: ${pick.name} (${pick.gender === 'M' ? '남' : '여'})` : '';
+        return `${idx + 1}조 (${group.leader.name})\n- 리더: ${group.leader.name} (${group.leader.gender === 'M' ? '남' : '여'})${pickText}\n- 구성원: ${members}\n- 통계: 총원 ${group.members.length}명 / 남 ${male} / 여 ${female} / 신입 ${newbie}`;
+      }).join('\n\n');
+    }
+
+    function renderResult(result, warnings = []) {
+      resultContainerEl.innerHTML = '';
+
+      result.groups.forEach((group, idx) => {
+        const total = group.members.length;
+        const male = group.members.filter((m) => m.gender === 'M').length;
+        const female = group.members.filter((m) => m.gender === 'F').length;
+        const newbie = group.members.filter((m) => m.newbie).length;
+        const card = document.createElement('article');
+        card.className = 'group-card';
+
+        const membersHtml = getDisplayMembers(group)
+          .map((member) => {
+            if (member.isLeader) {
+              return `<li><strong>리더: ${member.name}</strong> (${member.gender === 'M' ? '남' : '여'})</li>`;
+            }
+            return `<li>${member.name} (${member.gender === 'M' ? '남' : '여'}${member.newbie ? ', 신입' : ''})</li>`;
+          })
+          .join('');
+
+        card.innerHTML = `
+          <h3>${idx + 1}조 · ${group.leader.name}조</h3>
+          <div class="stats">총원 ${total}명 · 남 ${male} · 여 ${female} · 신입 ${newbie}</div>
+          <ul class="member-list">${membersHtml}</ul>
+        `;
+
+        resultContainerEl.appendChild(card);
+      });
+
+      const score = result.metrics.score;
+      if (score === 0) {
+        showMessage(statusMessageEl, 'ok', '모든 규칙을 만족합니다.');
+      } else {
+        showMessage(statusMessageEl, 'warn', '균형을 최대한 맞춰 배정했지만 일부 제약을 완벽히 만족할 수 없습니다.');
+      }
+
+      if (warnings.length) {
+        showMessage(warningMessageEl, 'warn', warnings.join('\n'));
+      } else {
+        hideMessage(warningMessageEl);
+      }
+    }
+
+    function createPersonChip(person) {
+      const chip = document.createElement('div');
+      chip.className = `person-chip ${person.isLeader ? 'leader' : ''}`;
+      chip.dataset.id = person.id;
+      chip.draggable = true;
+
+      const nameText = document.createElement('span');
+      nameText.className = 'person-name';
+
+        nameText.textContent = person.name;
+      chip.appendChild(nameText);
+
+      const controls = document.createElement('div');
+      controls.className = 'person-chip-controls';
+
+      if (person.zone === 'unassigned') {
+        const maleBtn = document.createElement('button');
+        maleBtn.type = 'button';
+        maleBtn.textContent = '남';
+        maleBtn.className = person.gender === 'M' ? 'active' : '';
+        maleBtn.addEventListener('click', () => {
+          assignPersonToZone(person.id, 'male');
+        });
+        controls.appendChild(maleBtn);
+
+        const femaleBtn = document.createElement('button');
+        femaleBtn.type = 'button';
+        femaleBtn.textContent = '여';
+        femaleBtn.className = person.gender === 'F' ? 'active' : '';
+        femaleBtn.addEventListener('click', () => {
+          assignPersonToZone(person.id, 'female');
+        });
+        controls.appendChild(femaleBtn);
+        } else {
+        const leaderBtn = document.createElement('button');
+        leaderBtn.type = 'button';
+        leaderBtn.textContent = '북리더';
+        leaderBtn.className = person.isLeader ? 'active' : '';
+        leaderBtn.addEventListener('click', () => {
+          toggleLeader(person.id);
+        });
+        controls.appendChild(leaderBtn);
+
+        if (person.isLeader) {
+          const pickWrap = document.createElement('span');
+          pickWrap.className = 'person-chip-pick-wrap';
+
+          const pickSelect = document.createElement('select');
+          pickSelect.className = 'person-pick-select';
+
+          const candidateMembers = people.filter((item) => (
+            // 기존/신입만 허용: 미분류 제외 + 리더 제외
+            item.id !== person.id && !item.isLeader && (item.zone === 'male' || item.zone === 'female')
+          ));
+
+          const selectedPickId = person.pickedPersonId;
+          const hasValidPick = candidateMembers.some((member) => member.id === selectedPickId);
+          if (selectedPickId != null && !hasValidPick) {
+            person.pickedPersonId = null;
+          }
+
+          const hasPick = person.pickedPersonId != null;
+          if (hasPick) {
+            pickWrap.classList.add('has-pick');
+            pickSelect.className = 'person-pick-select has-value';
+          }
+
+          pickSelect.innerHTML = '<option value="">픽</option>';
+          candidateMembers.forEach((member) => {
+            const option = document.createElement('option');
+            option.value = String(member.id);
+            option.textContent = `${member.name}`;
+            option.selected = member.id === person.pickedPersonId;
+            pickSelect.appendChild(option);
+          });
+
+          pickSelect.value = (person.pickedPersonId != null && hasValidPick) ? String(person.pickedPersonId) : '';
+          pickSelect.disabled = candidateMembers.length === 0;
+
+          if (!pickWrap.classList.contains('has-pick')) {
+            const pickArrow = document.createElement('span');
+            pickArrow.className = 'person-pick-arrow';
+            pickArrow.textContent = '▾';
+            pickWrap.appendChild(pickArrow);
+          }
+
+          pickSelect.addEventListener('change', () => {
+            const value = pickSelect.value;
+            setLeaderPick(person.id, value === '' ? null : Number(value));
+          });
+
+          pickWrap.appendChild(pickSelect);
+          controls.appendChild(pickWrap);
+        } else {
+          const newbieBtn = document.createElement('button');
+          newbieBtn.type = 'button';
+          newbieBtn.textContent = '신입';
+          newbieBtn.className = person.newbie ? 'active' : '';
+          newbieBtn.disabled = person.isLeader;
+          newbieBtn.addEventListener('click', () => {
+            toggleNewbie(person.id);
+          });
+          controls.appendChild(newbieBtn);
+        }
+      }
+
+      chip.appendChild(controls);
+
+      chip.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', String(person.id));
+        event.dataTransfer.effectAllowed = 'move';
+      });
+
+      return chip;
+    }
+
+    function renderBoard() {
+      zoneOrder.forEach((zone) => {
+        zoneElements[zone].innerHTML = '';
+      });
+
+      people.forEach((person) => {
+        zoneElements[person.zone].appendChild(createPersonChip(person));
+      });
+
+      zoneOrder.forEach((zone) => {
+        zoneCountElements[zone].textContent = String(zoneElements[zone].children.length);
+      });
+    }
+
+    function getLeaderCount() {
+      return people.filter((person) => person.isLeader).length;
+    }
+
+    function toggleLeader(personId) {
+      const person = people.find((item) => item.id === personId);
+      if (!person) return;
+
+      if (!person.isLeader && getLeaderCount() >= 4) {
+        showMessage(statusMessageEl, 'error', '북리더는 최대 4명까지만 지정할 수 있습니다.');
+        return;
+      }
+
+      person.isLeader = !person.isLeader;
+      if (person.isLeader) {
+        person.newbie = false;
+      } else {
+        person.pickedPersonId = null;
+      }
+
+      if (person.isLeader) {
+        people.forEach((member) => {
+          if (member.id !== person.id && member.isLeader && member.pickedPersonId === person.id) {
+            member.pickedPersonId = null;
+          }
+        });
+      }
+
+      hideMessage(statusMessageEl);
+      renderBoard();
+    }
+
+    function setLeaderPick(leaderId, pickedPersonId) {
+      const leader = people.find((item) => item.id === leaderId);
+      if (!leader || !leader.isLeader) return;
+
+      if (pickedPersonId == null) {
+        leader.pickedPersonId = null;
+        renderBoard();
+        return;
+      }
+
+      const targetId = Number(pickedPersonId);
+      const target = people.find((item) => item.id === targetId);
+      if (!target || target.zone === 'unassigned' || target.isLeader || target.id === leader.id) {
+        leader.pickedPersonId = null;
+        renderBoard();
+        return;
+      }
+
+      people.forEach((member) => {
+        if (member.isLeader && member.id !== leader.id && member.pickedPersonId === target.id) {
+          member.pickedPersonId = null;
+        }
+      });
+
+      leader.pickedPersonId = targetId;
+      renderBoard();
+    }
+
+    function toggleNewbie(personId) {
+      const person = people.find((item) => item.id === personId);
+      if (!person || person.isLeader) return;
+
+      person.newbie = !person.newbie;
+      hideMessage(statusMessageEl);
+      renderBoard();
+    }
+
+    function assignPersonToZone(personId, nextZone) {
+      const person = people.find((item) => item.id === personId);
+      if (!person || person.zone === nextZone) return;
+      if (!zoneOrder.includes(nextZone)) return;
+
+      person.zone = nextZone;
+      if (nextZone === 'male') person.gender = 'M';
+      else if (nextZone === 'female') person.gender = 'F';
+      else if (nextZone === 'unassigned') person.gender = null;
+
+      hideMessage(statusMessageEl);
+      renderBoard();
+    }
+
+    function resetBoard() {
+      people.forEach((person) => {
+        person.zone = 'unassigned';
+        person.isLeader = false;
+        person.pickedPersonId = null;
+        person.gender = null;
+        person.newbie = false;
+      });
+
+      renderBoard();
+      hideMessage(statusMessageEl);
+      hideMessage(warningMessageEl);
+      resultContainerEl.innerHTML = '';
+      resultPanelEl.hidden = true;
+      lastResult = null;
+      assignBtn.disabled = false;
+    }
+
+    function enableDragAndDrop() {
+      if (dragHandlersBound) return;
+      const zoneEls = document.querySelectorAll('.zone');
+      zoneEls.forEach((zoneEl) => {
+        const zone = zoneEl.dataset.zone;
+        zoneEl.addEventListener('dragover', (event) => {
+          event.preventDefault();
+          zoneEl.classList.add('drag-over');
+        });
+        zoneEl.addEventListener('dragleave', () => {
+          zoneEl.classList.remove('drag-over');
+        });
+        zoneEl.addEventListener('drop', (event) => {
+          event.preventDefault();
+          zoneEl.classList.remove('drag-over');
+          const personId = Number(event.dataTransfer.getData('text/plain'));
+          if (Number.isNaN(personId)) return;
+          assignPersonToZone(personId, zone);
+        });
+      });
+      dragHandlersBound = true;
+    }
+
+    function confirmPeople() {
+      const parsedNames = parseNames(allPeopleEl.value);
+      if (parsedNames.length === 0) {
+        showMessage(statusMessageEl, 'error', '이름을 먼저 입력해 주세요.');
+        return;
+      }
+
+      const basePeople = parsedNames.map((name) => ({
+        id: 0,
+        name,
+        gender: null,
+        newbie: false,
+        pickedPersonId: null,
+        isLeader: false,
+        zone: 'unassigned'
+      }));
+
+      const dedupedResult = dedupePeople(basePeople);
+      duplicatedBaseNames = dedupedResult.duplicatedBaseNames;
+      people = dedupedResult.deduped.map((person, index) => ({ ...person, id: index }));
+
+      resultContainerEl.innerHTML = '';
+      classifyPanelEl.hidden = false;
+      resultPanelEl.hidden = true;
+      lastResult = null;
+
+      if (duplicatedBaseNames.length > 0) {
+        showMessage(
+          warningMessageEl,
+          'warn',
+          `중복 이름은 자동으로 구분 번호를 붙였습니다: ${duplicatedBaseNames.join(', ')}`
+        );
+      } else {
+        hideMessage(warningMessageEl);
+      }
+
+      hideMessage(statusMessageEl);
+      renderBoard();
+      enableDragAndDrop();
+      window.scrollTo({ top: classifyPanelEl.offsetTop - 20, behavior: 'smooth' });
+    }
+
+    function runAssignment() {
+      hideMessage(statusMessageEl);
+      hideMessage(warningMessageEl);
+      resultContainerEl.innerHTML = '';
+
+      if (!people.length) {
+        showMessage(statusMessageEl, 'error', '먼저 전체 이름을 입력하고 확인해 주세요.');
+        return;
+      }
+
+      const unassignedCount = people.filter((person) => person.zone === 'unassigned' || !person.gender).length;
+      const leaders = people.filter((person) => person.isLeader);
+      const fixedPicks = new Map();
+      const usedPickIds = new Set();
+
+      if (unassignedCount > 0) {
+        showMessage(statusMessageEl, 'error', '모든 사람을 미분류에서 남/여로 지정해 주세요.');
+        return;
+      }
+
+      if (leaders.length === 0) {
+        showMessage(statusMessageEl, 'error', '북리더를 최소 1명 지정해야 배정할 수 있습니다.');
+        return;
+      }
+
+      if (leaders.length > 4) {
+        showMessage(statusMessageEl, 'error', '북리더는 최대 4명까지만 지정할 수 있습니다.');
+        return;
+      }
+
+      leaders.forEach((leader) => {
+        const pickId = leader.pickedPersonId;
+        if (pickId == null) return;
+
+        const target = people.find((person) => person.id === pickId);
+        if (!target || target.zone === 'unassigned' || target.isLeader || target.id === leader.id || usedPickIds.has(pickId)) {
+          leader.pickedPersonId = null;
+          return;
+        }
+
+        fixedPicks.set(leader.id, pickId);
+        usedPickIds.add(pickId);
+      });
+
+      const preparedLeaders = leaders
+        .map(buildPersonForAssignment)
+        .map((leader) => ({
+          ...leader,
+          newbie: false,
+          isLeader: true
+        }));
+
+      const participants = people
+        .filter((person) => !person.isLeader)
+        .map(buildPersonForAssignment);
+
+      const groupCount = preparedLeaders.length;
+      const totalPeople = people.length;
+      const targetSizes = makeTargetArray(totalPeople, groupCount);
+      const minTarget = Math.min(...targetSizes);
+      const maxTarget = Math.max(...targetSizes);
+      const warnings = [];
+
+      if (minTarget < 4 || maxTarget > 7) {
+        warnings.push('현재 인원으로 조당 4~7명을 만족하기 어렵습니다. 가능한 한 균형 배정 결과를 제공합니다.');
+      }
+
+      const result = assignWithBestOfN(preparedLeaders, participants, fixedPicks, 1000);
+
+      const constraintsReason = [];
+      if (result.metrics.sizePenalty > 0) constraintsReason.push('조별 총원 균형');
+      if (result.metrics.newbiePenalty > 0) constraintsReason.push('신입 분산');
+      if (result.metrics.malePenalty > 0 || result.metrics.femalePenalty > 0) constraintsReason.push('성별 균형');
+      if (constraintsReason.length) {
+        warnings.push(`완전 반영이 어려운 제약: ${constraintsReason.join(', ')}`);
+      }
+
+      if (duplicatedBaseNames.length > 0) {
+        warnings.push(`중복 이름은 자동 구분 표기로 처리했습니다: ${duplicatedBaseNames.join(', ')}`);
+      }
+
+      renderResult(result, warnings);
+      lastResult = { ...result, textSummary: buildSummary(result) };
+      resultPanelEl.hidden = false;
+      window.scrollTo({ top: resultPanelEl.offsetTop - 20, behavior: 'smooth' });
+    }
+
+    async function copyPlainResult() {
+      if (!lastResult) {
+        showMessage(statusMessageEl, 'error', '먼저 배정 결과를 생성해 주세요.');
+        return;
+      }
+
+      const plainLines = lastResult.groups
+        .map((group) => getDisplayMembers(group).map((m) => m.name).join(' '))
+        .join('\n');
+
+      try {
+        await navigator.clipboard.writeText(plainLines);
+        showMessage(statusMessageEl, 'ok', '배정 결과를 클립보드에 복사했습니다.');
+      } catch (error) {
+        showMessage(statusMessageEl, 'error', '복사에 실패했습니다. 브라우저 권한을 확인해 주세요.');
+      }
+    }
+
+    confirmPeopleBtn.addEventListener('click', confirmPeople);
+    clearAllBtn.addEventListener('click', () => {
+      allPeopleEl.value = '';
+      people = [];
+      duplicatedBaseNames = [];
+      classifyPanelEl.hidden = true;
+      resultPanelEl.hidden = true;
+      resultContainerEl.innerHTML = '';
+      Object.values(zoneElements).forEach((zoneEl) => {
+        zoneEl.innerHTML = '';
+      });
+      Object.values(zoneCountElements).forEach((countEl) => {
+        countEl.textContent = '0';
+      });
+      hideMessage(statusMessageEl);
+      hideMessage(warningMessageEl);
+    });
+
+    assignBtn.addEventListener('click', runAssignment);
+    reshuffleBtn.addEventListener('click', runAssignment);
+    resetBoardBtn.addEventListener('click', resetBoard);
+    plainCopyBtn.addEventListener('click', copyPlainResult);
+
+    classifyPanelEl.hidden = true;
+    resultPanelEl.hidden = true;
+    hideMessage(statusMessageEl);
+    hideMessage(warningMessageEl);
+  </script>
+</body>
+</html>

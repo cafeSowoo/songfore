@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="assets/favicon/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="assets/favicon/site.webmanifest" />
+  <meta name="theme-color" content="#3f67ff" />
+  <title>독서모임 조 랜덤 배정기</title>
+  <style>
+    :root {
+      --bg: #f5f7ff;
+      --card: #ffffff;
+      --line: #d9dff3;
+      --text: #1a2450;
+      --muted: #5a6494;
+      --primary: #3f67ff;
+      --primary-dark: #2d4fd1;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% -20%, #dbe5ff 0 240px, transparent 240px),
+        radial-gradient(circle at 85% 0%, #ffe2f0 0 180px, transparent 180px),
+        linear-gradient(180deg, #edf2ff 0, var(--bg) 55%, #f0f4ff 100%);
+    }
+
+    .wrap {
+      width: min(980px, 92vw);
+      margin: 0 auto;
+      padding: 36px 0 56px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #ffffffcc, #f4f7ff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 10px 28px rgba(28, 44, 100, 0.06);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 2.2vw, 2rem);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hero-title-icon {
+      width: 1.25em;
+      height: 1.25em;
+      display: inline-block;
+      flex: 0 0 auto;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+    }
+
+    .menu-card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(25, 41, 88, 0.06);
+      transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-3px);
+      border-color: #b4c1f2;
+      box-shadow: 0 14px 28px rgba(22, 44, 104, 0.13);
+    }
+
+    .menu-card h2 {
+      margin: 0;
+      font-size: 1.08rem;
+    }
+
+    .menu-card p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.93rem;
+    }
+
+    .badge {
+      margin-top: 12px;
+      display: inline-block;
+      background: #edf1ff;
+      color: var(--primary);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .footer {
+      color: #7380a7;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    @media (max-width: 680px) {
+      .wrap { padding-top: 22px; }
+      .hero { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>
+        <img class="hero-title-icon" src="assets/favicon/favicon.svg" alt="" aria-hidden="true">
+        송포레 홈페이지
+      </h1>
+      <p>안녕하세요 반갑습니다.</p>
+    </section>
+
+    <section class="menu-grid" aria-label="메인 메뉴">
+      <a class="menu-card" href="./tools/grouping-dnd-v2/index.html">
+        <h2>독서모임 조 랜덤 배정기</h2>
+        <p>쉽습니다 :) </p>
+        <span class="badge">개선</span>
+      </a>
+      <a class="menu-card" href="./tools/board/index.html">
+        <h2>모임 히스토리</h2>
+        <p>현재 공사중입니다.</p>
+        <span class="badge">공사중</span>
+      </a>
+      <a class="menu-card" href="./tools/admin/index.html">
+        <h2>관리 메뉴</h2>
+        <p>현재 공사중입니다.</p>
+        <span class="badge">공사중</span>
+      </a>
+    </section>
+
+    <p class="footer">원하시는 메뉴를 선택해 진행하세요.</p>
+  </main>
+</body>
+</html>
