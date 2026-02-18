@@ -648,6 +648,25 @@
       };
     }
 
+    function normalizePersonByZone(person) {
+      const zoneMeta = resolveZoneMeta(person.zone);
+      if (person.zone === 'leader') {
+        return {
+          ...person,
+          isLeader: true,
+          newbie: false,
+          gender: person.leaderGender || person.gender || 'M'
+        };
+      }
+
+      return {
+        ...person,
+        isLeader: false,
+        newbie: zoneMeta.isNewbie ?? false,
+        gender: zoneMeta.gender || person.gender || 'F'
+      };
+    }
+
     function buildSummary(result) {
       return result.groups.map((group, idx) => {
         const members = getDisplayMembers(group).filter((m) => !m.isLeader).map((m) => m.name).join(', ') || '없음';
@@ -905,21 +924,26 @@
         return;
       }
 
-      const preparedLeaders = leaders.map((leader) => ({
-        name: leader.name,
-        gender: leader.gender || 'M',
-        newbie: false,
-        isLeader: true
-      }));
+      const preparedLeaders = leaders
+        .map((leader) => normalizePersonByZone(leader))
+        .map((leader) => ({
+          name: leader.name,
+          gender: leader.gender || 'M',
+          newbie: false,
+          isLeader: true
+        }));
 
       const participants = people
         .filter((person) => person.zone !== 'leader')
-        .map((person) => ({
-          name: person.name,
-          gender: person.gender,
-          newbie: person.newbie,
-          isLeader: false
-        }));
+        .map((person) => {
+          const normalized = normalizePersonByZone(person);
+          return {
+            name: normalized.name,
+            gender: normalized.gender,
+            newbie: normalized.newbie,
+            isLeader: false
+          };
+        });
 
       const groupCount = preparedLeaders.length;
       const totalPeople = people.length;
