@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../assets/favicon/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="../assets/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../assets/favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="../assets/favicon/site.webmanifest" />
+  <meta name="theme-color" content="#3f67ff" />
   <title>독서모임 조 랜덤 배정기 (드래그앤드롭)</title>
   <style>
     :root {
@@ -168,6 +173,22 @@
     .zone[data-zone="male"] { grid-area: male; }
     .zone[data-zone="female"] { grid-area: female; }
 
+    .zone[data-zone="male"] .person-chip,
+    .zone[data-zone="female"] .person-chip {
+      grid-template-columns: 1fr;
+    }
+
+    .zone[data-zone="male"] .person-chip-controls,
+    .zone[data-zone="female"] .person-chip-controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .zone[data-zone="male"] .person-chip-controls button,
+    .zone[data-zone="female"] .person-chip-controls button {
+      width: 100%;
+    }
+
     .zone {
       min-height: 240px;
       border-radius: 12px;
@@ -211,7 +232,8 @@
 
     .person-chip {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr auto;
+      align-items: center;
       gap: 8px;
       border: 1px solid #ced9f7;
       background: #fff;
@@ -238,15 +260,17 @@
     }
 
     .person-chip-controls {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
       gap: 6px;
     }
 
     .person-chip-controls button {
-      width: 100%;
+      width: auto;
       cursor: pointer;
       min-width: 0;
+      white-space: nowrap;
       padding: 4px 8px;
       border-radius: 999px;
       font-size: 0.82rem;
@@ -332,9 +356,6 @@
         grid-template-areas:
           "unassigned unassigned"
           "male female";
-      }
-      .person-chip-controls {
-        grid-template-columns: 1fr;
       }
     }
 
