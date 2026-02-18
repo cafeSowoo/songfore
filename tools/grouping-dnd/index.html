@@ -600,6 +600,54 @@
       return [leader, ...existing, ...newbies].filter(Boolean);
     }
 
+    function resolveZoneMeta(zone) {
+      if (zone === 'leader') {
+        return {
+          isLeader: true,
+          isNewbie: false,
+          gender: null
+        };
+      }
+
+      if (zone === 'existing-male') {
+        return {
+          isLeader: false,
+          isNewbie: false,
+          gender: 'M'
+        };
+      }
+
+      if (zone === 'existing-female') {
+        return {
+          isLeader: false,
+          isNewbie: false,
+          gender: 'F'
+        };
+      }
+
+      if (zone === 'new-male') {
+        return {
+          isLeader: false,
+          isNewbie: true,
+          gender: 'M'
+        };
+      }
+
+      if (zone === 'new-female') {
+        return {
+          isLeader: false,
+          isNewbie: true,
+          gender: 'F'
+        };
+      }
+
+      return {
+        isLeader: false,
+        isNewbie: null,
+        gender: null
+      };
+    }
+
     function buildSummary(result) {
       return result.groups.map((group, idx) => {
         const members = getDisplayMembers(group).filter((m) => !m.isLeader).map((m) => m.name).join(', ') || '없음';
@@ -730,8 +778,9 @@
         person.gender = person.leaderGender || 'M';
       } else {
         person.isLeader = false;
-        person.gender = nextZone.includes('male') ? 'M' : 'F';
-        person.newbie = nextZone.startsWith('new-');
+        const zoneMeta = resolveZoneMeta(nextZone);
+        person.gender = zoneMeta.gender;
+        person.newbie = zoneMeta.isNewbie;
       }
 
       hideMessage(statusMessageEl);
