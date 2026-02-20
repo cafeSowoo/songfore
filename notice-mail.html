@@ -1,0 +1,330 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="assets/favicon/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png" />
+  <meta name="theme-color" content="#3f67ff" />
+  <title>조모임 공지용 메일 쓰기</title>
+  <style>
+    :root {
+      --bg: #f5f7ff;
+      --card: #ffffff;
+      --line: #d9dff3;
+      --text: #1a2450;
+      --muted: #5a6494;
+      --primary: #3f67ff;
+      --primary-dark: #2d4fd1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% -20%, #dbe5ff 0 240px, transparent 240px),
+        radial-gradient(circle at 85% 0%, #ffe2f0 0 180px, transparent 180px),
+        linear-gradient(180deg, #edf2ff 0, var(--bg) 55%, #f0f4ff 100%);
+    }
+
+    .wrap {
+      width: min(980px, 92vw);
+      margin: 0 auto;
+      padding: 36px 0 56px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #ffffffcc, #f4f7ff);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 28px rgba(28, 44, 100, 0.06);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.3rem, 2vw, 1.9rem);
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(25, 41, 88, 0.06);
+      display: grid;
+      gap: 10px;
+    }
+
+    label { color: var(--muted); font-size: 0.96rem; }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.96rem;
+      background: #fff;
+      color: var(--text);
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    textarea {
+      min-height: 160px;
+      line-height: 1.45;
+    }
+
+    .toggle-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    button {
+      border: 1px solid #d9dff3;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #e9edff;
+      color: #2a3a8a;
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .output {
+      white-space: pre-wrap;
+      background: #fbfcff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      line-height: 1.55;
+      min-height: 180px;
+      display: none;
+    }
+
+    .output.show { display: block; }
+
+    .message {
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      display: none;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .message.show { display: block; }
+    .message.error { background: #ffebee; color: #b3261e; }
+    .message.ok { background: #e7f6ed; color: #0f8a48; }
+
+    .footer { color: #7380a7; font-size: 0.9rem; text-align: center; }
+
+    @media (max-width: 680px) {
+      .wrap { padding-top: 22px; }
+      .hero { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>조모임 공지용 메일 쓰기</h1>
+      <p>입력한 값으로 공지문을 바로 생성합니다.</p>
+    </section>
+
+    <section class="panel">
+      <label for="resultLines">1. 조 배정 결과 입력 칸 (최대 4줄)</label>
+      <textarea id="resultLines" rows="5" placeholder="1조: 홍길동, 김영희\n2조: ..."></textarea>
+
+      <p class="sub" style="margin:0;color:var(--muted);font-size:0.9rem">2. 조모임 장소 토글</p>
+      <div class="toggle-group" role="radiogroup" aria-label="조모임 장소">
+        <label><input type="radio" name="venue" value="cafe" /> 가. 카페 와안 2층</label>
+        <label><input type="radio" name="venue" value="hollys" /> 나. 할리스 인천대입구역점</label>
+        <label><input type="radio" name="venue" value="etc" /> 다. 기타</label>
+      </div>
+
+      <label for="bookTitle">3. 책 제목 입력칸</label>
+      <input id="bookTitle" type="text" />
+
+      <p class="sub" style="margin:0;color:var(--muted);font-size:0.9rem">4. 배포 시점 토글</p>
+      <div class="toggle-group" role="radiogroup" aria-label="배포 시점">
+        <label><input type="radio" name="releaseTime" value="thu" /> 가. 목요일</label>
+        <label><input type="radio" name="releaseTime" value="fri" /> 나. 금요일</label>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" id="generateBtn" class="primary">확인</button>
+        <button type="button" id="copyBtn" disabled>복사</button>
+      </div>
+      <div id="noticeMessage" class="message"></div>
+      <pre id="noticeOutput" class="output" aria-live="polite"></pre>
+    </section>
+
+    <a href="index.html">← 홈으로</a>
+    <p class="footer">원하시면 출력 문구 포맷만 수정해 드릴게요.</p>
+  </main>
+
+  <script>
+    const resultLinesEl = document.getElementById('resultLines');
+    const bookTitleEl = document.getElementById('bookTitle');
+    const generateBtn = document.getElementById('generateBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const outputEl = document.getElementById('noticeOutput');
+    const messageEl = document.getElementById('noticeMessage');
+
+    const venueText = {
+      cafe: '카페 와안 2층',
+      hollys: '할리스 인천대입구역점',
+      etc: '기타'
+    };
+
+    const timeText = {
+      thu: {
+        intro: '이번주 토요일',
+        close: '토요일에'
+      },
+      fri: {
+        intro: '내일 토요일',
+        close: '내일'
+      }
+    };
+
+    const emojis = ['📙', '📘', '📗', '📕'];
+
+    function shuffle(list) {
+      const arr = [...list];
+      for (let i = arr.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function showMessage(type, text) {
+      messageEl.className = `message show ${type}`;
+      messageEl.textContent = text;
+    }
+
+    function hideMessage() {
+      messageEl.className = 'message';
+      messageEl.textContent = '';
+    }
+
+    function clampLines() {
+      const lines = resultLinesEl.value.replace(/\r/g, '').split('\n');
+      if (lines.length <= 4) return;
+      resultLinesEl.value = lines.slice(0, 4).join('\n');
+    }
+
+    function buildNotice() {
+      hideMessage();
+
+      const teams = resultLinesEl.value
+        .replace(/\r/g, '')
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+
+      if (teams.length === 0) {
+        showMessage('error', '조 배정 결과를 1줄 이상 입력해 주세요.');
+        return;
+      }
+
+      const book = bookTitleEl.value.trim();
+      if (!book) {
+        showMessage('error', '책 제목을 입력해 주세요.');
+        return;
+      }
+
+      const selectedVenue = document.querySelector('input[name="venue"]:checked');
+      if (!selectedVenue) {
+        showMessage('error', '조모임 장소를 선택해 주세요.');
+        return;
+      }
+
+      const selectedTime = document.querySelector('input[name="releaseTime"]:checked');
+      if (!selectedTime) {
+        showMessage('error', '배포 시점을 선택해 주세요.');
+        return;
+      }
+
+      const teamsClamped = teams.slice(0, 4);
+      const emojiList = shuffle(emojis).slice(0, teamsClamped.length);
+
+      const header = timeText[selectedTime.value]?.intro || '내일 토요일';
+      const closeWord = timeText[selectedTime.value]?.close || '내일';
+      const venue = venueText[selectedVenue.value] || '기타';
+
+      const teamText = teamsClamped.map((line, index) => `${emojiList[index]} ${line}`).join('\n');
+      const lines = [
+        '여러분 안녕하세요🤗',
+        `${header} <${book}> 정모 조 공지드립니다!`,
+        '',
+        teamText,
+        '',
+        `🚗 금주 정모는 ${venue}에서 진행됩니다 🙌🏻 주차는 2시간까지만 무료인 점 참고해주세요!`,
+        '🚨주말에도 주차 단속이 있으니, 차량을 가져오시는 분들은 꼭 주변 주차 가능 구역을 확인해 주세요!',
+        selectedVenue.value === 'cafe'
+          ? '⏰ 오후 2시 50분까지 카페 도착 후 음료 주문 해주세요! (4,500원 이상 메뉴 주문)'
+          : '⏰ 오후 2시 50분까지 카페 도착 후 음료 주문 해주세요!',
+        '📝 모임 당일 메모지에 책 관련 질문 2~3개를 적어와 주세요!',
+        '',
+        `그럼 ${closeWord} 뵙겠습니다🥰`
+      ].filter((line) => line !== null && line !== undefined).join('\n');
+
+      outputEl.textContent = lines;
+      outputEl.classList.add('show');
+      copyBtn.disabled = false;
+      showMessage('ok', '공지문이 생성됐습니다.');
+    }
+
+    async function copyNotice() {
+      if (!outputEl.classList.contains('show') || !outputEl.textContent) {
+        showMessage('error', '먼저 확인 버튼으로 내용을 생성해 주세요.');
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(outputEl.textContent);
+        showMessage('ok', '공지문을 복사했습니다.');
+      } catch (error) {
+        showMessage('error', '복사에 실패했습니다. 브라우저 권한을 확인해 주세요.');
+      }
+    }
+
+    resultLinesEl.addEventListener('input', clampLines);
+    generateBtn.addEventListener('click', buildNotice);
+    copyBtn.addEventListener('click', copyNotice);
+  </script>
+</body>
+</html>
