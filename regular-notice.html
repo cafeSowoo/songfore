@@ -709,15 +709,10 @@
       showMessage('ok', '공지문이 생성됐습니다. 제목과 내용을 각각 복사하거나 전체 복사해 사용하세요.');
     }
 
-    /* 카카오톡 붙여넷기 깨짐 방지: 복사 전 U+FE0F(이모지 변형 선택자) 제거 */
-    function stripVS(str) {
-      return str.replace(/️/g, '');
-    }
-
     /* ─── 복사 ─── */
     async function copyText(text, label) {
       try {
-        await navigator.clipboard.writeText(stripVS(text));
+        await navigator.clipboard.writeText(text);
         showMessage('ok', `${label}을(를) 복사했습니다.`);
       } catch {
         showMessage('error', '복사에 실패했습니다. 브라우저 권한을 확인해 주세요.');
