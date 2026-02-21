@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,160 +8,374 @@
   <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png" />
   <link rel="manifest" href="assets/favicon/site.webmanifest" />
-  <meta name="theme-color" content="#3f67ff" />
+  <meta name="theme-color" content="#1a3c34" />
   <title>독서모임 조 랜덤 배정기</title>
   <style>
     :root {
-      --bg: #f5f7ff;
-      --card: #ffffff;
-      --line: #d9dff3;
-      --text: #1a2450;
-      --muted: #5a6494;
-      --primary: #3f67ff;
-      --primary-dark: #2d4fd1;
+      /* Forest & Wisdom Theme Colors */
+      --bg-light: #f4f9f5;
+      --bg-dark: #12261e;
+      --primary: #2e5c4d;
+      --primary-light: #4a8270;
+      --primary-dark: #1a3c34;
+
+      --text-main: #1c2b26;
+      --text-muted: #5e736a;
+
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.5);
+      --glass-shadow: 0 16px 40px rgba(18, 38, 30, 0.08);
+
+      --disabled-bg: rgba(230, 235, 232, 0.4);
+      --disabled-text: #9eb0a8;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
       font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      color: var(--text);
+      color: var(--text-main);
+      overflow-x: hidden;
+      /* Dynamic & Deep Forest Background with Blur */
       background:
-        radial-gradient(circle at 12% -20%, #dbe5ff 0 240px, transparent 240px),
-        radial-gradient(circle at 85% 0%, #ffe2f0 0 180px, transparent 180px),
-        linear-gradient(180deg, #edf2ff 0, var(--bg) 55%, #f0f4ff 100%);
+        radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
+        radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
+        linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
+      background-attachment: fixed;
     }
 
+    /* Ambient background shapes for premium feel */
+    .bg-shape {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      opacity: 0.5;
+      animation: float 20s ease-in-out infinite alternate;
+    }
+
+    .shape-1 {
+      width: 400px;
+      height: 400px;
+      background: #b6d9c8;
+      top: -100px;
+      right: -50px;
+    }
+
+    .shape-2 {
+      width: 500px;
+      height: 500px;
+      background: #cce0d6;
+      bottom: -150px;
+      left: -100px;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(-30px, 40px) scale(1.1);
+      }
+    }
+
+    /* Main Container */
     .wrap {
-      width: min(980px, 92vw);
+      width: min(1000px, 92vw);
       margin: 0 auto;
-      padding: 36px 0 56px;
+      padding: 60px 0 80px;
       display: grid;
-      gap: 20px;
+      gap: 36px;
+      position: relative;
     }
 
+    /* Micro-interactions: Fade In Up */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-item {
+      animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      opacity: 0;
+    }
+
+    .delay-1 {
+      animation-delay: 0.1s;
+    }
+
+    .delay-2 {
+      animation-delay: 0.2s;
+    }
+
+    .delay-3 {
+      animation-delay: 0.3s;
+    }
+
+    .delay-4 {
+      animation-delay: 0.4s;
+    }
+
+    /* Hero Section (Glassmorphism) */
     .hero {
-      background: linear-gradient(135deg, #ffffffcc, #f4f7ff);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 20px;
-      box-shadow: 0 10px 28px rgba(28, 44, 100, 0.06);
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: var(--glass-shadow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle shimmer over hero */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transform: skewX(-20deg);
+      animation: shimmer 6s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        left: -100%;
+      }
+
+      20% {
+        left: 200%;
+      }
+
+      100% {
+        left: 200%;
+      }
     }
 
     .hero h1 {
       margin: 0;
-      font-size: clamp(1.5rem, 2.2vw, 2rem);
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      font-weight: 800;
+      color: var(--primary-dark);
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      gap: 12px;
+      letter-spacing: -0.5px;
     }
 
     .hero-title-icon {
-      width: 1.25em;
-      height: 1.25em;
-      display: inline-block;
-      flex: 0 0 auto;
+      width: 1.1em;
+      height: 1.1em;
     }
 
     .hero p {
-      margin: 10px 0 0;
-      color: var(--muted);
+      margin: 16px 0 0;
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      font-weight: 500;
     }
 
+    /* Menu Grid */
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
     }
 
+    /* Cards (Glassmorphism + Advanced Hover) */
     .menu-card {
-      display: block;
+      position: relative;
+      display: flex;
+      flex-direction: column;
       text-decoration: none;
       color: inherit;
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 10px 24px rgba(25, 41, 88, 0.06);
-      transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 28px 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
     }
 
-    .menu-card:hover {
-      transform: translateY(-3px);
-      border-color: #b4c1f2;
-      box-shadow: 0 14px 28px rgba(22, 44, 104, 0.13);
+    /* Hover Glow Border Effect */
+    .menu-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      border: 2px solid transparent;
+      background: linear-gradient(130deg, var(--primary-light), transparent) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .menu-card:not(.disabled):hover {
+      transform: translateY(-5px) scale(1.01);
+      box-shadow: 0 20px 40px rgba(46, 92, 77, 0.12);
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .menu-card:not(.disabled):hover::after {
+      opacity: 1;
     }
 
     .menu-card h2 {
       margin: 0;
-      font-size: 1.08rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      transition: color 0.3s ease;
     }
 
     .menu-card p {
-      margin: 10px 0 0;
-      color: var(--muted);
-      line-height: 1.45;
-      font-size: 0.93rem;
+      margin: 12px 0 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+      flex-grow: 1;
     }
 
+    /* Badge Design */
     .badge {
-      margin-top: 12px;
-      display: inline-block;
-      background: #edf1ff;
+      margin-top: 18px;
+      display: inline-flex;
+      align-self: flex-start;
+      background: rgba(46, 92, 77, 0.08);
       color: var(--primary);
+      border: 1px solid rgba(46, 92, 77, 0.15);
       border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 0.84rem;
+      padding: 6px 14px;
+      font-size: 0.85rem;
       font-weight: 700;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+    }
+
+    .menu-card:not(.disabled):hover .badge {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Disabled (공사중) State */
+    .menu-card.disabled {
+      background: var(--disabled-bg);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: none;
+      cursor: not-allowed;
+      pointer-events: none;
+      /* disables clicking while keeping semantic meaning */
+    }
+
+    .menu-card.disabled h2 {
+      color: var(--disabled-text);
+    }
+
+    .menu-card.disabled p {
+      color: rgba(158, 176, 168, 0.8);
+    }
+
+    .menu-card.disabled .badge {
+      background: transparent;
+      color: var(--disabled-text);
+      border-color: var(--disabled-text);
     }
 
     .footer {
-      color: #7380a7;
-      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
       text-align: center;
+      margin-top: 20px;
+      font-weight: 500;
     }
 
-    @media (max-width: 680px) {
-      .wrap { padding-top: 22px; }
-      .hero { padding: 16px; }
+    @media (max-width: 768px) {
+      .wrap {
+        padding: 40px 0 60px;
+        gap: 24px;
+      }
+
+      .hero {
+        padding: 30px 20px;
+      }
+
+      .menu-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
+  <!-- Ambient Background Shapes -->
+  <div class="bg-shape shape-1"></div>
+  <div class="bg-shape shape-2"></div>
+
   <main class="wrap">
-    <section class="hero">
+    <section class="hero animate-item">
       <h1>
         <img class="hero-title-icon" src="assets/favicon/favicon.svg" alt="" aria-hidden="true">
         송도 독서 포레스트
       </h1>
-      <p>내 마음의 작은 숲을 가꾸는 독서 모임입니다.</p>
+      <p>내 마음의 작은 숲을 가꾸는 지성의 공간입니다.</p>
     </section>
 
     <section class="menu-grid" aria-label="메인 메뉴">
-      <a class="menu-card" href="./tools/grouping-dnd-v2/index.html">
+      <!-- Item 1 -->
+      <a class="menu-card animate-item delay-1" href="./tools/grouping-dnd-v2/index.html">
         <h2>독서모임 조 랜덤 배정기</h2>
-        <p>쉽습니다 :) </p>
+        <p>참여자 명단을 입력하여 빠르고 공정하게 독서 조를 편성합니다.</p>
         <span class="badge">개선</span>
       </a>
-      <a class="menu-card" href="./notice-mail.html">
+
+      <!-- Item 2 -->
+      <a class="menu-card animate-item delay-2" href="./notice-mail.html">
         <h2>조모임 공지용 메일 쓰기</h2>
-        <p>조 배정 결과, 장소, 책 제목으로 공지문을 바로 생성합니다.</p>
+        <p>조 배정 결과, 장소, 책 제목을 바탕으로 깔끔한 형식의 공지문을 자동 생성합니다.</p>
         <span class="badge">신규</span>
       </a>
-      <a class="menu-card" href="./tools/board/index.html">
+
+      <!-- Item 3 (Disabled) -->
+      <a class="menu-card disabled animate-item delay-3" href="./tools/board/index.html">
         <h2>모임 히스토리</h2>
-        <p>현재 공사중입니다.</p>
+        <p>지나온 독서 모임의 발자취와 기록들을 열람할 수 있는 공간을 준비 중입니다.</p>
         <span class="badge">공사중</span>
       </a>
-      <a class="menu-card" href="./tools/admin/index.html">
+
+      <!-- Item 4 (Disabled) -->
+      <a class="menu-card disabled animate-item delay-4" href="./tools/admin/index.html">
         <h2>관리 메뉴</h2>
-        <p>현재 공사중입니다.</p>
+        <p>원활한 운영을 돕는 모임장 전용 관리 도구를 준비하고 있습니다.</p>
         <span class="badge">공사중</span>
       </a>
     </section>
 
-    <p class="footer">원하시는 메뉴를 선택해 진행하세요.</p>
+    <p class="footer animate-item delay-4">원하시는 메뉴를 선택해 진행해 주세요.</p>
   </main>
 </body>
+
 </html>

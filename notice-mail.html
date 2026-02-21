@@ -1,113 +1,240 @@
 ﻿<!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="assets/favicon/favicon.ico" type="image/x-icon" />
   <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png" />
-  <meta name="theme-color" content="#3f67ff" />
+  <meta name="theme-color" content="#1a3c34" />
   <title>조모임 공지용 메일 쓰기</title>
   <style>
     :root {
-      --bg: #f5f7ff;
-      --card: #ffffff;
-      --line: #d9dff3;
-      --text: #1a2450;
-      --muted: #5a6494;
-      --primary: #3f67ff;
-      --primary-dark: #2d4fd1;
+      /* Forest & Wisdom Theme Colors */
+      --bg-light: #f4f9f5;
+      --primary: #2e5c4d;
+      --primary-light: #4a8270;
+      --primary-dark: #1a3c34;
+
+      --text-main: #1c2b26;
+      --text-muted: #5e736a;
+
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.5);
+      --glass-shadow: 0 16px 40px rgba(18, 38, 30, 0.08);
+
+      --disabled-bg: rgba(230, 235, 232, 0.4);
+      --disabled-text: #9eb0a8;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
       font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-      color: var(--text);
+      color: var(--text-main);
+      overflow-x: hidden;
+      /* Dynamic & Deep Forest Background with Blur */
       background:
-        radial-gradient(circle at 12% -20%, #dbe5ff 0 240px, transparent 240px),
-        radial-gradient(circle at 85% 0%, #ffe2f0 0 180px, transparent 180px),
-        linear-gradient(180deg, #edf2ff 0, var(--bg) 55%, #f0f4ff 100%);
+        radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
+        radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
+        linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
+      background-attachment: fixed;
+    }
+
+    /* Ambient background shapes for premium feel */
+    .bg-shape {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      opacity: 0.5;
+      animation: float 20s ease-in-out infinite alternate;
+    }
+
+    .shape-1 {
+      width: 400px;
+      height: 400px;
+      background: #b6d9c8;
+      top: -100px;
+      right: -50px;
+    }
+
+    .shape-2 {
+      width: 500px;
+      height: 500px;
+      background: #cce0d6;
+      bottom: -150px;
+      left: -100px;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(-30px, 40px) scale(1.1);
+      }
     }
 
     .wrap {
       width: min(980px, 92vw);
       margin: 0 auto;
-      padding: 36px 0 56px;
+      padding: 60px 0 80px;
       display: grid;
-      gap: 16px;
+      gap: 24px;
+      position: relative;
+    }
+
+    /* Micro-interactions: Fade In Up */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-item {
+      animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      opacity: 0;
+    }
+
+    .delay-1 {
+      animation-delay: 0.1s;
+    }
+
+    .delay-2 {
+      animation-delay: 0.2s;
+    }
+
+    .delay-3 {
+      animation-delay: 0.3s;
     }
 
     .hero {
-      background: linear-gradient(135deg, #ffffffcc, #f4f7ff);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 10px 28px rgba(28, 44, 100, 0.06);
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: var(--glass-shadow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
     }
 
     .hero h1 {
       margin: 0;
-      font-size: clamp(1.3rem, 2vw, 1.9rem);
+      font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: -0.5px;
     }
 
     .hero p {
-      margin: 10px 0 0;
-      color: var(--muted);
+      margin: 12px 0 0;
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 1.05rem;
     }
 
     .panel {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 10px 24px rgba(25, 41, 88, 0.06);
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
       display: grid;
-      gap: 10px;
+      gap: 16px;
+      position: relative;
     }
 
-    label { color: var(--muted); font-size: 0.96rem; }
+    label {
+      color: var(--primary-dark);
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
 
     input[type="text"],
     textarea {
       width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px 12px;
+      border: 1px solid rgba(46, 92, 77, 0.2);
+      border-radius: 12px;
+      padding: 12px 14px;
       font-size: 0.96rem;
-      background: #fff;
-      color: var(--text);
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--text-main);
       font-family: inherit;
       resize: vertical;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(46, 92, 77, 0.1);
+      background: #ffffff;
     }
 
     textarea {
       min-height: 160px;
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
     .toggle-group {
       display: grid;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.5);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+    }
+
+    .toggle-group label {
+      font-weight: 500;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
       gap: 8px;
     }
 
     .btn-row {
       display: flex;
-      gap: 8px;
+      gap: 12px;
       flex-wrap: wrap;
-      margin-top: 8px;
+      margin-top: 12px;
     }
 
     button {
-      border: 1px solid #d9dff3;
-      border-radius: 10px;
-      padding: 10px 14px;
+      border: 1px solid rgba(46, 92, 77, 0.2);
+      border-radius: 12px;
+      padding: 12px 20px;
       font-weight: 700;
       cursor: pointer;
-      background: #e9edff;
-      color: #2a3a8a;
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--primary-dark);
+      transition: all 0.3s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(46, 92, 77, 0.1);
     }
 
     button.primary {
@@ -116,57 +243,116 @@
       border-color: var(--primary);
     }
 
+    button.primary:hover:not(:disabled) {
+      background: var(--primary-light);
+    }
+
     button:disabled {
       cursor: not-allowed;
       opacity: 0.55;
+      background: var(--disabled-bg);
+      color: var(--disabled-text);
+      border-color: transparent;
     }
 
     .output {
       white-space: pre-wrap;
-      background: #fbfcff;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 12px;
-      line-height: 1.55;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(46, 92, 77, 0.15);
+      border-radius: 12px;
+      padding: 16px;
+      line-height: 1.6;
       min-height: 180px;
       display: none;
+      color: var(--text-main);
+      font-size: 0.96rem;
     }
 
-    .output.show { display: block; }
+    .output.show {
+      display: block;
+      animation: fadeInUp 0.5s ease forwards;
+    }
 
     .message {
       border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 0.92rem;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      font-weight: 500;
       display: none;
       white-space: pre-wrap;
       line-height: 1.45;
     }
 
-    .message.show { display: block; }
-    .message.error { background: #ffebee; color: #b3261e; }
-    .message.ok { background: #e7f6ed; color: #0f8a48; }
+    .message.show {
+      display: block;
+      animation: fadeInUp 0.3s ease forwards;
+    }
 
-    .footer { color: #7380a7; font-size: 0.9rem; text-align: center; }
+    .message.error {
+      background: #fce8e6;
+      color: #b3261e;
+      border: 1px solid #f9d0c4;
+    }
+
+    .message.ok {
+      background: #e6f4ea;
+      color: #0d652d;
+      border: 1px solid #ceead6;
+    }
+
+    .footer {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      text-align: center;
+      margin-top: 20px;
+      font-weight: 500;
+    }
+
+    .back-link {
+      display: inline-block;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 700;
+      margin-top: 10px;
+      transition: opacity 0.3s ease;
+    }
+
+    .back-link:hover {
+      opacity: 0.8;
+    }
 
     @media (max-width: 680px) {
-      .wrap { padding-top: 22px; }
-      .hero { padding: 14px; }
+      .wrap {
+        padding: 40px 0 60px;
+      }
+
+      .hero {
+        padding: 24px;
+      }
+
+      .panel {
+        padding: 20px;
+      }
     }
   </style>
 </head>
+
 <body>
+  <!-- Ambient Background Shapes -->
+  <div class="bg-shape shape-1"></div>
+  <div class="bg-shape shape-2"></div>
+
   <main class="wrap">
-    <section class="hero">
+    <section class="hero animate-item">
       <h1>조모임 공지용 메일 쓰기</h1>
       <p>입력한 값으로 공지문을 바로 생성합니다.</p>
     </section>
 
-    <section class="panel">
+    <section class="panel animate-item delay-1">
       <label for="resultLines">1. 조 배정 결과 입력 칸 (최대 4줄)</label>
       <textarea id="resultLines" rows="5" placeholder="1조: 홍길동, 김영희\n2조: ..."></textarea>
 
-      <p class="sub" style="margin:0;color:var(--muted);font-size:0.9rem">2. 조모임 장소 토글</p>
+      <p class="sub" style="margin:0;color:var(--text-muted);font-size:0.9rem">2. 조모임 장소 토글</p>
       <div class="toggle-group" role="radiogroup" aria-label="조모임 장소">
         <label><input type="radio" name="venue" value="cafe" /> 가. 카페 와안 2층</label>
         <label><input type="radio" name="venue" value="hollys" /> 나. 할리스 인천대입구역점</label>
@@ -176,7 +362,7 @@
       <label for="bookTitle">3. 책 제목 입력칸</label>
       <input id="bookTitle" type="text" />
 
-      <p class="sub" style="margin:0;color:var(--muted);font-size:0.9rem">4. 배포 시점 토글</p>
+      <p class="sub" style="margin:0;color:var(--text-muted);font-size:0.9rem">4. 배포 시점 토글</p>
       <div class="toggle-group" role="radiogroup" aria-label="배포 시점">
         <label><input type="radio" name="releaseTime" value="thu" /> 가. 목요일</label>
         <label><input type="radio" name="releaseTime" value="fri" /> 나. 금요일</label>
@@ -190,8 +376,8 @@
       <pre id="noticeOutput" class="output" aria-live="polite"></pre>
     </section>
 
-    <a href="index.html">← 홈으로</a>
-    <p class="footer">원하시면 출력 문구 포맷만 수정해 드릴게요.</p>
+    <a href="index.html" class="back-link animate-item delay-2">← 홈으로</a>
+    <p class="footer animate-item delay-2">원하시면 출력 문구 포맷만 수정해 드릴게요.</p>
   </main>
 
   <script>
@@ -327,4 +513,5 @@
     copyBtn.addEventListener('click', copyNotice);
   </script>
 </body>
+
 </html>
