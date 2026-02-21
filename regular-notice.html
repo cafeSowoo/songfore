@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="assets/favicon/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png" />
+  <meta name="theme-color" content="#1a3c34" />
+  <title>정기모임 공지 쓰기</title>
+  <style>
+    :root {
+      --bg-light: #f4f9f5;
+      --primary: #2e5c4d;
+      --primary-light: #4a8270;
+      --primary-dark: #1a3c34;
+
+      --text-main: #1c2b26;
+      --text-muted: #5e736a;
+
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.5);
+      --glass-shadow: 0 16px 40px rgba(18, 38, 30, 0.08);
+
+      --disabled-bg: rgba(230, 235, 232, 0.4);
+      --disabled-text: #9eb0a8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text-main);
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
+        radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
+        linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
+      background-attachment: fixed;
+    }
+
+    .bg-shape {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      opacity: 0.5;
+      animation: float 20s ease-in-out infinite alternate;
+    }
+
+    .shape-1 {
+      width: 400px;
+      height: 400px;
+      background: #b6d9c8;
+      top: -100px;
+      right: -50px;
+    }
+
+    .shape-2 {
+      width: 500px;
+      height: 500px;
+      background: #cce0d6;
+      bottom: -150px;
+      left: -100px;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(-30px, 40px) scale(1.1);
+      }
+    }
+
+    .wrap {
+      width: min(980px, 92vw);
+      margin: 0 auto;
+      padding: 60px 0 80px;
+      display: grid;
+      gap: 24px;
+      position: relative;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-item {
+      animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      opacity: 0;
+    }
+
+    .delay-1 {
+      animation-delay: 0.1s;
+    }
+
+    .delay-2 {
+      animation-delay: 0.2s;
+    }
+
+    .delay-3 {
+      animation-delay: 0.3s;
+    }
+
+    .hero {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: var(--glass-shadow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: -0.5px;
+    }
+
+    .hero p {
+      margin: 12px 0 0;
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 1.05rem;
+    }
+
+    .panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
+      display: grid;
+      gap: 16px;
+      position: relative;
+    }
+
+    .panel-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin: 0 0 4px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(46, 92, 77, 0.1);
+    }
+
+    label {
+      color: var(--primary-dark);
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
+
+    .field-group {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"] {
+      width: 100%;
+      border: 1px solid rgba(46, 92, 77, 0.2);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.96rem;
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--text-main);
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="date"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(46, 92, 77, 0.1);
+      background: #ffffff;
+    }
+
+    /* Number hint preview */
+    .korean-preview {
+      font-size: 0.88rem;
+      color: var(--primary);
+      font-weight: 600;
+      min-height: 1.2em;
+      padding: 4px 2px;
+    }
+
+    /* Date calc info */
+    .date-calc-box {
+      background: rgba(46, 92, 77, 0.05);
+      border: 1px solid rgba(46, 92, 77, 0.12);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: grid;
+      gap: 6px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .date-calc-box .calc-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .date-calc-box .calc-label {
+      font-weight: 600;
+      color: var(--primary);
+      min-width: 6em;
+    }
+
+    .date-calc-box .calc-value {
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .date-calc-box.hidden {
+      display: none;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    button {
+      border: 1px solid rgba(46, 92, 77, 0.2);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-weight: 700;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--primary-dark);
+      transition: all 0.3s ease;
+      font-family: inherit;
+      font-size: 0.96rem;
+    }
+
+    button:hover:not(:disabled) {
+      background: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(46, 92, 77, 0.1);
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: var(--primary-light);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      background: var(--disabled-bg);
+      color: var(--disabled-text);
+      border-color: transparent;
+    }
+
+    .output {
+      white-space: pre-wrap;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(46, 92, 77, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      line-height: 1.7;
+      min-height: 180px;
+      display: none;
+      color: var(--text-main);
+      font-size: 0.96rem;
+    }
+
+    .output.show {
+      display: block;
+      animation: fadeInUp 0.5s ease forwards;
+    }
+
+    /* 제목/내용 구분 강조 */
+    .output-section {
+      display: none;
+    }
+
+    .output-section.show {
+      display: grid;
+      gap: 12px;
+    }
+
+    .output-block {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(46, 92, 77, 0.15);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .output-block-header {
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .output-block-body {
+      padding: 16px;
+      white-space: pre-wrap;
+      line-height: 1.75;
+      font-size: 0.96rem;
+    }
+
+    .message {
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      display: none;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .message.show {
+      display: block;
+      animation: fadeInUp 0.3s ease forwards;
+    }
+
+    .message.error {
+      background: #fce8e6;
+      color: #b3261e;
+      border: 1px solid #f9d0c4;
+    }
+
+    .message.ok {
+      background: #e6f4ea;
+      color: #0d652d;
+      border: 1px solid #ceead6;
+    }
+
+    .footer {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      text-align: center;
+      margin-top: 20px;
+      font-weight: 500;
+    }
+
+    .back-link {
+      display: inline-block;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 700;
+      margin-top: 10px;
+      transition: opacity 0.3s ease;
+    }
+
+    .back-link:hover {
+      opacity: 0.8;
+    }
+
+    @media (max-width: 680px) {
+      .wrap {
+        padding: 40px 0 60px;
+      }
+
+      .hero {
+        padding: 24px;
+      }
+
+      .panel {
+        padding: 20px;
+      }
+
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-shape shape-1"></div>
+  <div class="bg-shape shape-2"></div>
+
+  <main class="wrap">
+    <section class="hero animate-item">
+      <h1>정기모임 공지 쓰기</h1>
+      <p>입력한 값으로 정기모임 공지문을 바로 생성합니다.</p>
+    </section>
+
+    <section class="panel animate-item delay-1">
+      <p class="panel-title">모임 정보 입력</p>
+
+      <!-- 모임 순서 -->
+      <div class="field-group">
+        <label for="meetingNumber">1. 모임 순서 번호</label>
+        <input type="number" id="meetingNumber" min="1" max="999" placeholder="예: 150" />
+        <div class="korean-preview" id="koreanPreview" aria-live="polite"></div>
+      </div>
+
+      <!-- 선정도서 및 저자 -->
+      <div class="field-group">
+        <label>2. 선정도서 및 저자</label>
+        <div class="field-row">
+          <div class="field-group">
+            <label for="bookTitle" style="font-weight:500;font-size:0.9rem;color:var(--text-muted)">책 제목</label>
+            <input type="text" id="bookTitle" placeholder="예: 돈의 심리학" />
+          </div>
+          <div class="field-group">
+            <label for="bookAuthor" style="font-weight:500;font-size:0.9rem;color:var(--text-muted)">저자</label>
+            <input type="text" id="bookAuthor" placeholder="예: 모건 하우절" />
+          </div>
+        </div>
+        <div class="field-group" style="margin-top:8px;">
+          <label for="bookOneLine" style="font-weight:500;font-size:0.9rem;color:var(--text-muted)">한문장 입력</label>
+          <textarea id="bookOneLine" rows="2" placeholder="예: 오늘 엄마가 죽었다.&#10;아니, 어쩌면 어제였는지도 모른다."
+            style="width:100%;border:1px solid rgba(46,92,77,0.2);border-radius:12px;padding:10px 12px;font-size:0.95rem;resize:vertical;background:rgba(255,255,255,0.8);"></textarea>
+        </div>
+      </div>
+
+      <!-- 모임 일시 -->
+      <div class="field-group">
+        <label for="meetingDate">3. 모임 일시</label>
+        <input type="date" id="meetingDate" />
+        <div class="date-calc-box hidden" id="dateCalcBox">
+          <div class="calc-row">
+            <span class="calc-label">📅 모임일</span>
+            <span class="calc-value" id="calcMeeting">-</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">댓글 마감</span>
+            <span class="calc-value" id="calcD6">D-6 : -</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">정모 신청 오픈</span>
+            <span class="calc-value" id="calcD5">D-5 : -</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">공석 신청 가능</span>
+            <span class="calc-value" id="calcD4">D-4 : -</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">실제 참석 오픈</span>
+            <span class="calc-value" id="calcD5b">D-5 오후 8시경 : -</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" id="generateBtn" class="primary">공지문 생성</button>
+        <button type="button" id="copyTitleBtn" disabled>제목 복사</button>
+        <button type="button" id="copyBodyBtn" disabled>내용 복사</button>
+        <button type="button" id="copyAllBtn" disabled>전체 복사</button>
+      </div>
+      <div id="noticeMessage" class="message"></div>
+
+      <!-- 출력 영역 -->
+      <div class="output-section" id="outputSection">
+        <div class="output-block">
+          <div class="output-block-header">제목</div>
+          <div class="output-block-body" id="outputTitle"></div>
+        </div>
+        <div class="output-block">
+          <div class="output-block-header">내용</div>
+          <div class="output-block-body" id="outputBody"></div>
+        </div>
+      </div>
+    </section>
+
+    <a href="index.html" class="back-link animate-item delay-2">← 홈으로</a>
+    <p class="footer animate-item delay-2">2주에 한 번, 정기모임 공지를 빠르게 완성하세요.</p>
+  </main>
+
+  <script>
+    /* ─── 한국어 서수 변환 ─── */
+    const ONES = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+    const TENS = ['', '십', '이십', '삼십', '사십', '오십', '육십', '칠십', '팔십', '구십'];
+    const HUNDREDS = ['', '백', '이백', '삼백', '사백', '오백', '육백', '칠백', '팔백', '구백'];
+
+    // 한국어 기수 (1~999)
+    function toKoreanNumber(n) {
+      if (!n || n < 1 || n > 999) return '';
+      const h = Math.floor(n / 100);
+      const t = Math.floor((n % 100) / 10);
+      const o = n % 10;
+      return (HUNDREDS[h] + TENS[t] + ONES[o]) || '';
+    }
+
+    // 순우리말 서수 (한 번째, 두 번째, ...) — 복합 규칙 맵
+    const PURE_ONES = ['', '한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉'];
+    const PURE_TENS = ['', '열', '스물', '서른', '마흔', '쉰', '예순', '일흔', '여든', '아흔'];
+
+    function toPureKorean(n) {
+      if (!n || n < 1 || n > 999) return '';
+      const h = Math.floor(n / 100);
+      const t = Math.floor((n % 100) / 10);
+      const o = n % 10;
+
+      // 100 단위는 한자(백, 이백, ...)
+      const hStr = HUNDREDS[h];
+      const tStr = PURE_TENS[t];
+      const oStr = PURE_ONES[o];
+      return (hStr + tStr + oStr) || '';
+    }
+
+    // 순우리말로 표현 가능하면 사용, 아니면 한자 혼용
+    function toOrdinalKorean(n) {
+      if (!n || n < 1 || n > 999) return '';
+      const pure = toPureKorean(n);
+      return pure ? `${pure} 번째` : `${toKoreanNumber(n)} 번째`;
+    }
+
+    /* ─── 날짜 유틸 ─── */
+    const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
+
+    function offsetDate(dateStr, days) {
+      const d = new Date(dateStr);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
+
+    function formatDate(d) {
+      const m = d.getMonth() + 1;
+      const day = d.getDate();
+      const wd = WEEKDAY_KO[d.getDay()];
+      return `${m}/${day}(${wd})`;
+    }
+
+    function formatDateFull(d) {
+      const m = d.getMonth() + 1;
+      const day = d.getDate();
+      const wd = WEEKDAY_KO[d.getDay()];
+      return `${m}월 ${day}일 ${wd}요일`;
+    }
+
+    /* ─── DOM refs ─── */
+    const meetingNumberEl = document.getElementById('meetingNumber');
+    const koreanPreviewEl = document.getElementById('koreanPreview');
+    const bookTitleEl = document.getElementById('bookTitle');
+    const bookAuthorEl = document.getElementById('bookAuthor');
+    const bookOneLineEl = document.getElementById('bookOneLine');
+    const meetingDateEl = document.getElementById('meetingDate');
+    const dateCalcBox = document.getElementById('dateCalcBox');
+    const generateBtn = document.getElementById('generateBtn');
+    const copyTitleBtn = document.getElementById('copyTitleBtn');
+    const copyBodyBtn = document.getElementById('copyBodyBtn');
+    const copyAllBtn = document.getElementById('copyAllBtn');
+    const messageEl = document.getElementById('noticeMessage');
+    const outputSection = document.getElementById('outputSection');
+    const outputTitleEl = document.getElementById('outputTitle');
+    const outputBodyEl = document.getElementById('outputBody');
+    const calcMeetingEl = document.getElementById('calcMeeting');
+    const calcD6El = document.getElementById('calcD6');
+    const calcD5El = document.getElementById('calcD5');
+    const calcD4El = document.getElementById('calcD4');
+    const calcD5bEl = document.getElementById('calcD5b');
+
+    /* ─── 실시간 미리 보기 ─── */
+    meetingNumberEl.addEventListener('input', () => {
+      const n = parseInt(meetingNumberEl.value, 10);
+      if (n >= 1 && n <= 999) {
+        koreanPreviewEl.textContent = `→ ${toOrdinalKorean(n)}`;
+      } else {
+        koreanPreviewEl.textContent = '';
+      }
+    });
+
+    meetingDateEl.addEventListener('change', () => {
+      const dateStr = meetingDateEl.value;
+      if (!dateStr) {
+        dateCalcBox.classList.add('hidden');
+        return;
+      }
+      const meeting = new Date(dateStr);
+      const d6 = offsetDate(dateStr, -6);
+      const d5 = offsetDate(dateStr, -5);
+      const d4 = offsetDate(dateStr, -4);
+
+      calcMeetingEl.textContent = formatDateFull(meeting);
+      calcD6El.textContent = `${formatDate(d6)} 까지 댓글 마감`;
+      calcD5El.textContent = `${formatDate(d5)} 정모 신청 오픈`;
+      calcD4El.textContent = `${formatDate(d4)} 이후 공석 신청 가능`;
+      calcD5bEl.textContent = `${formatDate(d5)} 오후 8시경 실제 참석 오픈`;
+      dateCalcBox.classList.remove('hidden');
+    });
+
+    /* ─── 메시지 ─── */
+    function showMessage(type, text) {
+      messageEl.className = `message show ${type}`;
+      messageEl.textContent = text;
+    }
+    function hideMessage() {
+      messageEl.className = 'message';
+      messageEl.textContent = '';
+    }
+
+    /* ─── 공지문 생성 ─── */
+    function buildNotice() {
+      hideMessage();
+
+      const num = parseInt(meetingNumberEl.value, 10);
+      if (!num || num < 1 || num > 999) {
+        showMessage('error', '모임 순서 번호를 1~999 사이로 입력해 주세요.');
+        return;
+      }
+      const book = bookTitleEl.value.trim();
+      if (!book) {
+        showMessage('error', '책 제목을 입력해 주세요.');
+        return;
+      }
+      const author = bookAuthorEl.value.trim();
+      if (!author) {
+        showMessage('error', '저자를 입력해 주세요.');
+        return;
+      }
+      const oneLine = bookOneLineEl ? bookOneLineEl.value.trim() : '';
+      const dateStr = meetingDateEl.value;
+      if (!dateStr) {
+        showMessage('error', '모임 일시를 선택해 주세요.');
+        return;
+      }
+
+      const ordinal = toOrdinalKorean(num);
+      const meeting = new Date(dateStr);
+      const d6 = offsetDate(dateStr, -6);
+      const d5 = offsetDate(dateStr, -5);
+      const d4 = offsetDate(dateStr, -4);
+
+      const m = meeting.getMonth() + 1;
+      const day = meeting.getDate();
+      const wd = WEEKDAY_KO[meeting.getDay()];
+
+      // ── 제목 ──
+      const title = `📚${ordinal} 정기 모임🌲`;
+
+      // ── 내용 ──
+      const body = [
+        `안녕하세요! 송포레 회원 여러분`,
+        `${ordinal} 정기모임 안내 드립니다.`,
+        ``,
+        `👉 본 모임은 책에 대한 본인의 생각을 공유하는 모임입니다. 꼭 '완독' 후 모임 참석 부탁드립니다!`,
+        ``,
+        `1️⃣ 선정도서`,
+        `「${book}」 - ${author}`,
+        ``,
+        `${oneLine}`,
+        ``,
+        `2️⃣ 시간 및 장소`,
+        `- 일시 : ${m}월 ${day}일 ${wd}요일 15:00`,
+        `- 장소 : 송도 내 카페`,
+        ``,
+        `3️⃣ 진행순서`,
+        `- 간단한 본인소개 및 ice breaking`,
+        `- 책에서 궁금했던 질문 2~3가지를 메모지에 적어와서 공유`,
+        `- 서평 및 질문 공유, 의견 나누기`,
+        ``,
+        `4️⃣ 참고사항`,
+        `* 모임은 오후 15:00 정시에 시작이니, 시작 10분 전에 도착하시어 커피주문 및 모임준비를 해주세요.`,
+        ``,
+        `* 원활한 카페 예약을 위해 참여하시는 분들은 ${formatDate(d6)}까지 본 공지글에 참석 댓글을 달아주세요‼️`,
+        `댓글을 작성한 분에 한해 ${formatDate(d5)} 정모 신청이 가능하며, ${formatDate(d4)} 이후로 공석이 있다면 댓글 미작성하신 분도 참가 신청이 가능합니다.`,
+        ``,
+        `* 본 모임 실제참석은 ${formatDate(d5)} 오후 8시경에 오픈되며, 실제 참석자는 '정모참석'을 누르신 분에 한해서만 인정됩니다‼️`,
+        ``,
+        `* 원활한 모임 진행을 위해 신청 인원이 3인 이하일 경우 정모가 취소될 수 있으니 참고 부탁드립니다.`,
+      ].join('\n');
+
+      outputTitleEl.textContent = title;
+      outputBodyEl.textContent = body;
+      outputSection.classList.add('show');
+      copyTitleBtn.disabled = false;
+      copyBodyBtn.disabled = false;
+      copyAllBtn.disabled = false;
+      showMessage('ok', '공지문이 생성됐습니다. 제목과 내용을 각각 복사하거나 전체 복사해 사용하세요.');
+    }
+
+    /* 카카오톡 붙여넷기 깨짐 방지: 복사 전 U+FE0F(이모지 변형 선택자) 제거 */
+    function stripVS(str) {
+      return str.replace(/️/g, '');
+    }
+
+    /* ─── 복사 ─── */
+    async function copyText(text, label) {
+      try {
+        await navigator.clipboard.writeText(stripVS(text));
+        showMessage('ok', `${label}을(를) 복사했습니다.`);
+      } catch {
+        showMessage('error', '복사에 실패했습니다. 브라우저 권한을 확인해 주세요.');
+      }
+    }
+
+    generateBtn.addEventListener('click', buildNotice);
+
+    copyTitleBtn.addEventListener('click', () => {
+      copyText(outputTitleEl.textContent, '제목');
+    });
+
+    copyBodyBtn.addEventListener('click', () => {
+      copyText(outputBodyEl.textContent, '내용');
+    });
+
+    copyAllBtn.addEventListener('click', () => {
+      const all = `[제목]\n${outputTitleEl.textContent}\n\n[내용]\n${outputBodyEl.textContent}`;
+      copyText(all, '전체 공지문');
+    });
+  </script>
+</body>
+
+</html>
