@@ -192,7 +192,7 @@
     }
 
     textarea {
-      min-height: 160px;
+      min-height: 100px;
       line-height: 1.5;
     }
 
@@ -349,23 +349,27 @@
     </section>
 
     <section class="panel animate-item delay-1">
-      <label for="resultLines">1. 조 배정 결과 입력 칸 (최대 4줄)</label>
-      <textarea id="resultLines" rows="5" placeholder="1조: 홍길동, 김영희\n2조: ..."></textarea>
+      <label for="resultLines">조 배정 결과 입력</label>
+      <textarea id="resultLines" rows="3" placeholder="이름을 넣어주세요"></textarea>
 
-      <p class="sub" style="margin:0;color:var(--text-muted);font-size:0.9rem">2. 조모임 장소 토글</p>
+      <label>모임 장소</label>
       <div class="toggle-group" role="radiogroup" aria-label="조모임 장소">
-        <label><input type="radio" name="venue" value="cafe" /> 가. 카페 와안 2층</label>
-        <label><input type="radio" name="venue" value="hollys" /> 나. 할리스 인천대입구역점</label>
-        <label><input type="radio" name="venue" value="etc" /> 다. 기타</label>
+        <label><input type="radio" name="venue" value="cafe" /> 카페 와안 2층</label>
+        <label><input type="radio" name="venue" value="hollys" /> 할리스 인천대입구역점</label>
+        <label>
+          <input type="radio" name="venue" value="etc" /> 기타
+          <input id="etcVenue" type="text" placeholder="장소 직접 입력"
+            style="display:none; margin-left:8px; padding:6px 12px; border-radius:8px; height:32px; font-size:0.9rem; flex:1;" />
+        </label>
       </div>
 
-      <label for="bookTitle">3. 책 제목 입력칸</label>
+      <label for="bookTitle">책 제목 입력</label>
       <input id="bookTitle" type="text" />
 
-      <p class="sub" style="margin:0;color:var(--text-muted);font-size:0.9rem">4. 배포 시점 토글</p>
+      <label>공지 시점</label>
       <div class="toggle-group" role="radiogroup" aria-label="배포 시점">
-        <label><input type="radio" name="releaseTime" value="thu" /> 가. 목요일</label>
-        <label><input type="radio" name="releaseTime" value="fri" /> 나. 금요일</label>
+        <label><input type="radio" name="releaseTime" value="thu" /> 목요일 (이틀 전)</label>
+        <label><input type="radio" name="releaseTime" value="fri" /> 금요일 (하루 전)</label>
       </div>
 
       <div class="btn-row">
@@ -428,8 +432,8 @@
 
     function clampLines() {
       const lines = resultLinesEl.value.replace(/\r/g, '').split('\n');
-      if (lines.length <= 4) return;
-      resultLinesEl.value = lines.slice(0, 4).join('\n');
+      if (lines.length <= 5) return;
+      resultLinesEl.value = lines.slice(0, 5).join('\n');
     }
 
     function buildNotice() {
@@ -469,7 +473,17 @@
 
       const header = timeText[selectedTime.value]?.intro || '내일 토요일';
       const closeWord = timeText[selectedTime.value]?.close || '내일';
-      const venue = venueText[selectedVenue.value] || '기타';
+      const selectedVenueValue = selectedVenue.value;
+      let venue = venueText[selectedVenueValue];
+
+      if (selectedVenueValue === 'etc') {
+        const customVenue = document.getElementById('etcVenue').value.trim();
+        if (!customVenue) {
+          showMessage('error', '기타 장소를 입력해 주세요.');
+          return;
+        }
+        venue = customVenue;
+      }
 
       const teamText = teamsClamped.map((line, index) => `${emojiList[index]} ${line}`).join('\n');
       const lines = [
@@ -507,6 +521,19 @@
         showMessage('error', '복사에 실패했습니다. 브라우저 권한을 확인해 주세요.');
       }
     }
+
+    // 기타 장소 입력창 토글 제어
+    document.querySelectorAll('input[name="venue"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const etcVenueInput = document.getElementById('etcVenue');
+        if (e.target.value === 'etc') {
+          etcVenueInput.style.display = 'inline-block';
+          etcVenueInput.focus();
+        } else {
+          etcVenueInput.style.display = 'none';
+        }
+      });
+    });
 
     resultLinesEl.addEventListener('input', clampLines);
     generateBtn.addEventListener('click', buildNotice);
