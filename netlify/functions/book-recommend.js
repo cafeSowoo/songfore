@@ -86,20 +86,55 @@ export default async (req, context) => {
     });
   }
 
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_API_KEY) {
-    return new Response(JSON.stringify({ error: "Missing GEMINI_API_KEY" }), {
-      status: 500,
-      headers: { ...headers, "Content-Type": "application/json" },
-    });
-  }
-
   let body;
   try {
     body = await req.json();
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON" }), {
       status: 400,
+      headers: { ...headers, "Content-Type": "application/json" },
+    });
+  }
+
+  // ── 도서 검색 액션 ──────────────────────────────────────────
+  if (body?.action === "search") {
+    const BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
+    if (!BOOKS_API_KEY) {
+      return new Response(JSON.stringify({ error: "Missing GOOGLE_BOOKS_API_KEY" }), {
+        status: 500,
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
+    }
+    const q = (body?.q || "").trim();
+    if (!q) {
+      return new Response(JSON.stringify({ error: "Missing query" }), {
+        status: 400,
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
+    }
+    const booksUrl =
+      `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}` +
+      `&maxResults=5&key=${encodeURIComponent(BOOKS_API_KEY)}`;
+    try {
+      const bRes = await fetch(booksUrl);
+      const bData = await bRes.json().catch(() => ({}));
+      return new Response(JSON.stringify(bData), {
+        status: bRes.status,
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
+    } catch (e) {
+      return new Response(JSON.stringify({ error: String(e?.message || e) }), {
+        status: 502,
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
+    }
+  }
+
+  // ── Gemini 추천글 생성 ──────────────────────────────────────
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  if (!GEMINI_API_KEY) {
+    return new Response(JSON.stringify({ error: "Missing GEMINI_API_KEY" }), {
+      status: 500,
       headers: { ...headers, "Content-Type": "application/json" },
     });
   }

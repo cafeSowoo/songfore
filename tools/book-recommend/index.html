@@ -720,7 +720,7 @@
                 </div>
                 <p class="key-note">
                     키는 브라우저에만 저장되며, 코드/GitHub에 절대 저장되지 않습니다.<br>
-                    • Gemini: <a href="https://aistudio.google.com/app/apikey" target="_blank">AI Studio</a>
+                    • Gemini: <a href="https://aistudio.google.com/app/apikey" target="_blank">AI Studio</a><br>
                     • OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>
                 </p>
             </div>
@@ -867,42 +867,52 @@
             btn.textContent = '검색 중…';
             setStatus('info', '🔍 Google Books에서 도서를 검색 중입니다…');
 
-            const q = encodeURIComponent(`intitle:${title}${author ? '+inauthor:' + author : ''}`);
+            const q = `intitle:${title}${author ? '+inauthor:' + author : ''}`;
             try {
-                const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&langRestrict=ko&maxResults=3`);
+                const res = await fetch(FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'search', q })
+                });
                 const data = await res.json();
-                const items = data.items || [];
 
-                // description이 있는 첫 번째 결과 사용
-                const book = items.find(i => i.volumeInfo?.description) || items[0];
-
-                if (!book) {
-                    setStatus('miss', '⚠️ 검색 결과가 없습니다. 아래에 도서 소개를 직접 붙여넣어 주세요.');
+                if (!res.ok) {
+                    setStatus('miss', `⚠️ 검색 오류: ${data?.error || res.status}. 아래에 직접 붙여넣어 주세요.`);
                     hideCover();
                 } else {
-                    const info = book.volumeInfo;
-                    const desc = info.description || '';
-                    const foundTitle = info.title || title;
-                    const foundAuthor = (info.authors || []).join(', ') || author;
-                    const publisher = info.publisher || '';
-                    const publishedDate = info.publishedDate ? info.publishedDate.slice(0, 4) : '';
-                    const coverUrl = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '';
+                    const items = data.items || [];
 
-                    // 표지 이미지
-                    if (coverUrl) {
-                        showCover(upgradeImageUrl(coverUrl), foundTitle, foundAuthor, publisher, publishedDate);
-                    } else {
+                    // description이 있는 첫 번째 결과 사용
+                    const book = items.find(i => i.volumeInfo?.description) || items[0];
+
+                    if (!book) {
+                        setStatus('miss', '⚠️ 검색 결과가 없습니다. 아래에 도서 소개를 직접 붙여넣어 주세요.');
                         hideCover();
-                    }
-
-                    if (desc) {
-                        document.getElementById('book-desc').value = desc;
-                        if (!document.getElementById('book-title').value) document.getElementById('book-title').value = foundTitle;
-                        if (!document.getElementById('book-author').value) document.getElementById('book-author').value = foundAuthor;
-                        setStatus('found', `✅ "${foundTitle}" 도서 정보를 불러왔습니다. 내용이 맞는지 확인해 주세요.`);
                     } else {
-                        document.getElementById('book-desc').value = '';
-                        setStatus('miss', `⚠️ 도서는 찾았지만 소개글이 없습니다. 아래에 직접 붙여넣어 주세요.`);
+                        const info = book.volumeInfo;
+                        const desc = info.description || '';
+                        const foundTitle = info.title || title;
+                        const foundAuthor = (info.authors || []).join(', ') || author;
+                        const publisher = info.publisher || '';
+                        const publishedDate = info.publishedDate ? info.publishedDate.slice(0, 4) : '';
+                        const coverUrl = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '';
+
+                        // 표지 이미지
+                        if (coverUrl) {
+                            showCover(upgradeImageUrl(coverUrl), foundTitle, foundAuthor, publisher, publishedDate);
+                        } else {
+                            hideCover();
+                        }
+
+                        if (desc) {
+                            document.getElementById('book-desc').value = desc;
+                            if (!document.getElementById('book-title').value) document.getElementById('book-title').value = foundTitle;
+                            if (!document.getElementById('book-author').value) document.getElementById('book-author').value = foundAuthor;
+                            setStatus('found', `✅ "${foundTitle}" 도서 정보를 불러왔습니다. 내용이 맞는지 확인해 주세요.`);
+                        } else {
+                            document.getElementById('book-desc').value = '';
+                            setStatus('miss', `⚠️ 도서는 찾았지만 소개글이 없습니다. 아래에 직접 붙여넣어 주세요.`);
+                        }
                     }
                 }
             } catch (e) {
