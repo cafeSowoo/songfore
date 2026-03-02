@@ -1,4 +1,4 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+﻿import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import {
   GoogleAuthProvider,
   getAuth,
@@ -18,13 +18,13 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 const fallbackConfig = {
-  apiKey: "AIzaSyCo4VM9wfhQ1IK2fmm7nprN5Dp47IRCORE",
-  authDomain: "songfore-master.firebaseapp.com",
-  projectId: "songfore-master",
-  storageBucket: "songfore-master.firebasestorage.app",
-  messagingSenderId: "881807170656",
-  appId: "1:881807170656:web:4432db49a384d294557705",
-  measurementId: "G-FQS2ZQYZ3C"
+  apiKey: "REPLACE_WITH_FIREBASE_API_KEY",
+  authDomain: "REPLACE_WITH_FIREBASE_AUTH_DOMAIN",
+  projectId: "REPLACE_WITH_FIREBASE_PROJECT_ID",
+  storageBucket: "REPLACE_WITH_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "REPLACE_WITH_FIREBASE_MESSAGING_SENDER_ID",
+  appId: "REPLACE_WITH_FIREBASE_APP_ID",
+  measurementId: "REPLACE_WITH_FIREBASE_MEASUREMENT_ID"
 };
 
 const userConfig = window.__songforest_firebase_config__;
@@ -55,11 +55,11 @@ export async function initAuthSession() {
       await setPersistence(auth, browserLocalPersistence);
       return;
     } catch (localError) {
-      console.warn('Firebase auth persistence browserLocalPersistence 설정 실패. inMemoryPersistence로 폴백합니다.', localError);
+      console.warn('Firebase auth persistence browserLocalPersistence ?ㅼ젙 ?ㅽ뙣. inMemoryPersistence濡??대갚?⑸땲??', localError);
       await setPersistence(auth, inMemoryPersistence);
     }
   } catch (error) {
-    console.warn('Firebase auth persistence 설정 실패, 기본 동작으로 진행합니다.', error);
+    console.warn('Firebase auth persistence ?ㅼ젙 ?ㅽ뙣, 湲곕낯 ?숈옉?쇰줈 吏꾪뻾?⑸땲??', error);
   }
 }
 
@@ -102,7 +102,7 @@ export async function handleRedirectLogin() {
   try {
     return await getRedirectResult(auth);
   } catch (error) {
-    console.warn('Firebase 리디렉트 로그인 처리 실패:', error);
+    console.warn('Firebase 由щ뵒?됲듃 濡쒓렇??泥섎━ ?ㅽ뙣:', error);
     return null;
   }
 }
@@ -134,7 +134,7 @@ export async function loadUserRole(uid) {
     const role = snap.get('role');
     return normalizeRole(role);
   } catch (error) {
-    console.warn('역할 조회 중 오류 발생:', error);
+    console.warn('??븷 議고쉶 以??ㅻ쪟 諛쒖깮:', error);
     return null;
   }
 }
@@ -153,7 +153,8 @@ export async function getCurrentUserRole(user = auth.currentUser) {
     const role = await loadUserRole(user.uid);
     return normalizeRole(role);
   } catch (error) {
-    console.warn('현재 사용자 역할 조회 실패:', error);
+    console.warn('?꾩옱 ?ъ슜????븷 議고쉶 ?ㅽ뙣:', error);
     return ROLE.NONE;
   }
 }
+
