@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="../../assets/favicon/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="../../assets/favicon/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../../assets/favicon/apple-touch-icon.png" />
+    <meta name="theme-color" content="#1a3c34" />
+    <title>선정도서 추천하기 – 송도 독서 포레스트</title>
+    <style>
+        :root {
+            --primary: #2e5c4d;
+            --primary-light: #4a8270;
+            --primary-dark: #1a3c34;
+            --text-main: #1c2b26;
+            --text-muted: #5e736a;
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-shadow: 0 16px 40px rgba(18, 38, 30, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
+                radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
+                linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        .bg-shape {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.45;
+            animation: float 20s ease-in-out infinite alternate;
+        }
+
+        .shape-1 {
+            width: 400px;
+            height: 400px;
+            background: #b6d9c8;
+            top: -100px;
+            right: -50px;
+        }
+
+        .shape-2 {
+            width: 500px;
+            height: 500px;
+            background: #cce0d6;
+            bottom: -150px;
+            left: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                transform: translate(-30px, 40px) scale(1.1);
+            }
+        }
+
+        .wrap {
+            width: min(720px, 92vw);
+            margin: 0 auto;
+            padding: 48px 0 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ani {
+            animation: fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            opacity: 0;
+        }
+
+        .d1 {
+            animation-delay: 0.05s;
+        }
+
+        .d2 {
+            animation-delay: 0.15s;
+        }
+
+        .d3 {
+            animation-delay: 0.25s;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 32px 36px;
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card.hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: skewX(-20deg);
+            animation: shimmer 6s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                left: -100%;
+            }
+
+            20% {
+                left: 200%;
+            }
+
+            100% {
+                left: 200%;
+            }
+        }
+
+        .card.hero h1 {
+            font-size: clamp(1.4rem, 2.5vw, 1.9rem);
+            font-weight: 800;
+            color: var(--primary-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card.hero p {
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Step badge */
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .step-badge {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            font-size: 0.78rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--primary-dark);
+        }
+
+        /* Form */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group input[type="date"] {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1.5px solid rgba(46, 92, 77, 0.18);
+            border-radius: 12px;
+            font-size: 0.975rem;
+            font-family: inherit;
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.8);
+            outline: none;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 110px;
+            line-height: 1.65;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group input[type="date"]:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(74, 130, 112, 0.12);
+        }
+
+        .form-group input[type="date"] {
+            cursor: pointer;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #aabdb6;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        /* Inline search row */
+        .search-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .search-row .form-group {
+            flex: 1;
+        }
+
+        .btn-search {
+            flex-shrink: 0;
+            height: 48px;
+            padding: 0 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-search:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-search:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Search status */
+        .search-status {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .search-status.info {
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .search-status.found {
+            color: #2e7d32;
+            display: block;
+        }
+
+        .search-status.miss {
+            color: #b45309;
+            display: block;
+        }
+
+        /* Description hint */
+        .desc-hint {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+
+        .desc-hint a {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: rgba(46, 92, 77, 0.08);
+            margin: 4px 0;
+        }
+
+        .gap {
+            margin-top: 14px;
+        }
+
+        /* Generate button */
+        .btn-generate {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(46, 92, 77, 0.25);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .btn-generate:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(46, 92, 77, 0.35);
+        }
+
+        .btn-generate:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            width: 17px;
+            height: 17px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Result */
+        .result-card {
+            display: none;
+        }
+
+        .result-card.visible {
+            display: block;
+        }
+
+        .result-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .result-preview {
+            margin-top: 16px;
+            background: rgba(46, 92, 77, 0.04);
+            border-left: 3px solid var(--primary-light);
+            border-radius: 0 12px 12px 0;
+            padding: 18px 20px;
+            font-size: 1rem;
+            line-height: 1.95;
+            word-break: keep-all;
+            color: var(--text-main);
+        }
+
+        .result-preview .ai-highlight {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .btn-copy {
+            margin-top: 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: transparent;
+            border: 1.5px solid rgba(46, 92, 77, 0.25);
+            border-radius: 999px;
+            padding: 9px 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            font-family: inherit;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-copy:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-copy.copied {
+            background: #34a853;
+            color: white;
+            border-color: #34a853;
+        }
+
+        .error-msg {
+            display: none;
+            color: #c0392b;
+            font-size: 0.9rem;
+            background: rgba(192, 57, 43, 0.06);
+            border: 1px solid rgba(192, 57, 43, 0.15);
+            border-radius: 10px;
+            padding: 11px 15px;
+            margin-top: 10px;
+        }
+
+        .error-msg.visible {
+            display: block;
+        }
+
+        @media (max-width: 520px) {
+            .card {
+                padding: 24px 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .wrap {
+                padding: 30px 0 60px;
+            }
+
+            .search-row {
+                flex-direction: column;
+            }
+
+            .btn-search {
+                width: 100%;
+                height: 46px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <div class="wrap">
+
+        <!-- Back -->
+        <a class="back-link ani d1" href="../../index.html">← 메인으로</a>
+
+        <!-- Hero -->
+        <div class="card hero ani d1">
+            <h1>📚 선정도서 추천하기</h1>
+            <p>책 정보를 입력하면 AI가 독서모임 공지 글을 완성해 드립니다.</p>
+        </div>
+
+        <!-- STEP 1: 날짜 + 책 정보 -->
+        <div class="card ani d2">
+            <div class="step-header">
+                <div class="step-badge">1</div>
+                <span class="step-title">날짜 &amp; 도서 정보 입력</span>
+            </div>
+
+            <!-- 날짜 -->
+            <div class="form-group">
+                <label for="pick-date">📅 독서모임 날짜</label>
+                <input type="date" id="pick-date" />
+            </div>
+
+            <div class="gap"></div>
+
+            <!-- 책 검색 -->
+            <div class="search-row">
+                <div class="form-group">
+                    <label for="book-title">📖 책 제목</label>
+                    <input type="text" id="book-title" placeholder="예) 채식주의자" autocomplete="off" />
+                </div>
+                <div class="form-group">
+                    <label for="book-author">✍️ 저자</label>
+                    <input type="text" id="book-author" placeholder="예) 한강" autocomplete="off" />
+                </div>
+                <button class="btn-search" id="btn-search" onclick="searchBook()">
+                    🔍 도서 검색
+                </button>
+            </div>
+            <div class="search-status" id="search-status"></div>
+        </div>
+
+        <!-- STEP 2: 도서 소개 -->
+        <div class="card ani d2" id="desc-card">
+            <div class="step-header">
+                <div class="step-badge">2</div>
+                <span class="step-title">도서 소개 확인 / 수정</span>
+            </div>
+            <div class="form-group">
+                <label for="book-desc">도서 소개 (AI 추천글의 근거가 됩니다)</label>
+                <textarea id="book-desc" placeholder="🔍 위에서 도서를 검색하거나&#10;교보문고·알라딘 등에서 도서 소개를 복사해 붙여넣으세요."></textarea>
+            </div>
+            <p class="desc-hint">
+                💡 검색으로 불러온 내용이 부실하다면 직접 수정하거나,
+                <a id="link-kyobo" href="https://search.kyobobook.co.kr/search?keyword=" target="_blank">교보문고</a> /
+                <a id="link-aladin"
+                    href="https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=Book&SearchWord="
+                    target="_blank">알라딘</a>에서 소개글을 복사해 붙여넣으세요.
+            </p>
+        </div>
+
+        <!-- STEP 3: 생성 -->
+        <div class="card ani d3" id="gen-card">
+            <div class="step-header">
+                <div class="step-badge">3</div>
+                <span class="step-title">추천글 생성</span>
+            </div>
+            <button class="btn-generate" id="btn-gen" onclick="generate()">
+                <div class="spinner" id="spinner"></div>
+                <span id="btn-text">✨ 추천글 생성하기</span>
+            </button>
+            <div class="error-msg" id="error-msg"></div>
+        </div>
+
+        <!-- Result -->
+        <div class="card result-card ani d3" id="result-card">
+            <div class="result-label" id="result-label">✅ 생성된 추천글</div>
+            <div class="divider"></div>
+            <div class="result-preview" id="result-preview"></div>
+            <button class="btn-copy" id="btn-copy" onclick="copyText()">
+                📋 카카오톡에 공유할 텍스트 복사
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const GEMINI_API_KEY = 'AIzaSyD-npRSsWOoyItDiXk4VW62zhel_63u6Ik';
+        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+        // OpenAI 폴백 설정 (Gemini 한도 초과 시 자동 사용)
+        const OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY_HERE'; // ← 여기에 OpenAI API 키 입력
+        const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
+
+        /* ─── 날짜 초기값: 오늘 ─────────────────────────── */
+        (function () {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('pick-date').value = `${yyyy}-${mm}-${dd}`;
+        })();
+
+        /* ─── 교보문고 / 알라딘 검색 링크 동적 업데이트 ────────────────── */
+        function updateBookLinks() {
+            const titleRaw = document.getElementById('book-title').value.trim();
+            const q = encodeURIComponent(titleRaw);
+            const kyobo = document.getElementById('link-kyobo');
+            const aladin = document.getElementById('link-aladin');
+            if (titleRaw) {
+                kyobo.href = `https://search.kyobobook.co.kr/search?keyword=${q}`;
+                aladin.href = `https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=Book&SearchWord=${q}`;
+            } else {
+                kyobo.href = 'https://www.kyobobook.co.kr';
+                aladin.href = 'https://www.aladin.co.kr';
+            }
+        }
+        document.getElementById('book-title').addEventListener('input', updateBookLinks);
+
+        /* ─── Google Books 검색 ──────────────────────────── */
+        async function searchBook() {
+            const title = document.getElementById('book-title').value.trim();
+            const author = document.getElementById('book-author').value.trim();
+            const status = document.getElementById('search-status');
+            const btn = document.getElementById('btn-search');
+
+            if (!title) {
+                setStatus('info', '📌 책 제목을 먼저 입력해 주세요.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '검색 중…';
+            setStatus('info', '🔍 Google Books에서 도서를 검색 중입니다…');
+
+            const q = encodeURIComponent(`intitle:${title}${author ? '+inauthor:' + author : ''}`);
+            try {
+                const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&langRestrict=ko&maxResults=3`);
+                const data = await res.json();
+                const items = data.items || [];
+
+                // description이 있는 첫 번째 결과 사용
+                const book = items.find(i => i.volumeInfo?.description) || items[0];
+
+                if (!book) {
+                    setStatus('miss', '⚠️ 검색 결과가 없습니다. 아래에 도서 소개를 직접 붙여넣어 주세요.');
+                } else {
+                    const info = book.volumeInfo;
+                    const desc = info.description || '';
+                    const foundTitle = info.title || title;
+                    const foundAuthor = (info.authors || []).join(', ') || author;
+
+                    if (desc) {
+                        document.getElementById('book-desc').value = desc;
+                        // 제목·저자 자동 채움
+                        if (!document.getElementById('book-title').value) document.getElementById('book-title').value = foundTitle;
+                        if (!document.getElementById('book-author').value) document.getElementById('book-author').value = foundAuthor;
+                        setStatus('found', `✅ "${foundTitle}" 도서 정보를 불러왔습니다. 내용이 맞는지 확인해 주세요.`);
+                    } else {
+                        document.getElementById('book-desc').value = '';
+                        setStatus('miss', `⚠️ 도서는 찾았지만 소개글이 없습니다. 아래에 직접 붙여넣어 주세요.`);
+                    }
+                }
+            } catch (e) {
+                setStatus('miss', '⚠️ 검색 중 오류가 발생했습니다. 직접 붙여넣어 주세요.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔍 도서 검색';
+            }
+        }
+
+        function setStatus(type, msg) {
+            const el = document.getElementById('search-status');
+            el.className = 'search-status ' + type;
+            el.textContent = msg;
+        }
+
+        /* ─── Gemini 추천글 생성 ─────────────────────────── */
+        async function generate() {
+            const title = document.getElementById('book-title').value.trim();
+            const author = document.getElementById('book-author').value.trim();
+            const desc = document.getElementById('book-desc').value.trim();
+            const dateVal = document.getElementById('pick-date').value;
+            const errorEl = document.getElementById('error-msg');
+            const resultCard = document.getElementById('result-card');
+
+            // 날짜 파싱
+            const [, month, day] = dateVal ? dateVal.split('-') : ['', '', ''];
+            const parsedMonth = parseInt(month, 10);
+            const parsedDay = parseInt(day, 10);
+
+            errorEl.classList.remove('visible');
+            errorEl.textContent = '';
+
+            if (!dateVal) return showError('📌 날짜를 선택해 주세요.');
+            if (!title) return showError('📌 책 제목을 입력해 주세요.');
+            if (!author) return showError('📌 저자 이름을 입력해 주세요.');
+            if (!desc) return showError('📌 도서 소개를 입력하거나 검색으로 불러와 주세요.');
+
+            setLoading(true);
+            resultCard.classList.remove('visible');
+
+            // 도서 소개가 너무 길면 앞 500자만 사용 (출력 토큰 확보)
+            const descTrimmed = desc.length > 500 ? desc.slice(0, 500) + '…' : desc;
+
+            const prompt =
+                `아래 도서 소개를 바탕으로 독서모임 공지용 추천 본문을 작성해줘.
+
+도서 소개:
+"""
+${descTrimmed}
+"""
+
+조건:
+- 정확히 2문장으로 작성
+- 100자 이내로 작성할 것 (초과 금지)
+- 쉼표(,)와 접속어(~하며, ~하고, ~속에서)를 최소화해 단문으로 작성
+- 자연스럽게 마무리될 것 (중간에 끊기는 느낌 금지)
+- 줄바꿈 없이 한 문단으로 작성
+- 도서 소개의 실제 내용을 바탕으로 쓸 것 (내용 창작 금지)
+- 책 제목과 저자 이름은 언급하지 말 것 (앞에서 이미 소개됨)
+- 따뜻하고 진지한 독서모임 톤
+- 앞뒤 인사말·설명·따옴표 없이 본문만 출력`;
+
+            try {
+                // ① Gemini 먼저 시도
+                let aiBody = null;
+                let usedModel = 'Gemini';
+                let geminiQuotaExceeded = false;
+
+                try {
+                    const res = await fetch(GEMINI_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }],
+                            generationConfig: {
+                                temperature: 0.7,
+                                maxOutputTokens: 1200,
+                                thinkingConfig: { thinkingBudget: 0 }
+                            }
+                        })
+                    });
+
+                    if (res.status === 429 || res.status === 503) {
+                        // 할당량 초과 → OpenAI로 폴백
+                        geminiQuotaExceeded = true;
+                    } else if (!res.ok) {
+                        const e = await res.json().catch(() => ({}));
+                        const msg = e?.error?.message || '';
+                        // RESOURCE_EXHAUSTED도 폴백 처리
+                        if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota')) {
+                            geminiQuotaExceeded = true;
+                        } else {
+                            throw new Error(msg || `Gemini API 오류 (${res.status})`);
+                        }
+                    } else {
+                        const data = await res.json();
+                        const candidate = data?.candidates?.[0];
+                        const text = candidate?.content?.parts?.[0]?.text?.trim();
+                        if (candidate?.finishReason === 'MAX_TOKENS') {
+                            throw new Error('⚠️ 응답이 잘렸습니다. 도서 소개를 더 짧게 줄인 후 다시 시도해 주세요.');
+                        }
+                        if (text) aiBody = text;
+                    }
+                } catch (geminiErr) {
+                    if (geminiErr.message.startsWith('⚠️')) throw geminiErr;
+                    // 네트워크 오류 등은 폴백 시도
+                    geminiQuotaExceeded = true;
+                }
+
+                // ② Gemini 실패 시 OpenAI gpt-4o-mini로 폴백
+                if (geminiQuotaExceeded && !aiBody) {
+                    if (!OPENAI_API_KEY || OPENAI_API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
+                        throw new Error('Gemini 일일 한도 초과. OpenAI API 키를 코드에 입력해 주세요.');
+                    }
+                    setStatus && setStatus; // no-op
+                    document.getElementById('btn-text').textContent = 'ChatGPT로 재시도 중…';
+
+                    const oRes = await fetch(OPENAI_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${OPENAI_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: 'gpt-4o-mini',
+                            messages: [{ role: 'user', content: prompt }],
+                            temperature: 0.7,
+                            max_tokens: 400
+                        })
+                    });
+
+                    if (!oRes.ok) {
+                        const e = await oRes.json().catch(() => ({}));
+                        throw new Error('OpenAI 오류: ' + (e?.error?.message || oRes.status));
+                    }
+                    const oData = await oRes.json();
+                    aiBody = oData?.choices?.[0]?.message?.content?.trim();
+                    usedModel = 'ChatGPT (gpt-4o-mini)';
+                    if (!aiBody) throw new Error('OpenAI 응답이 비어있습니다.');
+                }
+
+                if (!aiBody) throw new Error('응답이 비어있습니다. 다시 시도해 주세요.');
+
+                renderResult(parsedMonth, parsedDay, title, author, aiBody, usedModel);
+
+            } catch (err) {
+                showError('❌ ' + err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        /* ─── 결과 렌더링 ────────────────────────────────── */
+        function renderResult(month, day, title, author, aiBody, usedModel = 'Gemini') {
+            // 사용 모델 표시
+            const labelEl = document.getElementById('result-label');
+            if (usedModel === 'Gemini') {
+                labelEl.innerHTML = '✅ 생성된 추천글 <span style="font-size:0.78rem;font-weight:500;opacity:0.7;margin-left:6px;">✦ Gemini</span>';
+            } else {
+                labelEl.innerHTML = '✅ 생성된 추천글 <span style="font-size:0.78rem;font-weight:500;color:#10a37f;margin-left:6px;">✦ ' + usedModel + ' (Gemini 한도 초과로 전환)</span>';
+            }
+            const plain =
+                `여러분 안녕하세요,
+${month}월 ${day}일 지정 도서 📖 ${title} - ${author} 안내드립니다.
+
+${aiBody}
+
+해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다.`;
+
+            const preview = document.getElementById('result-preview');
+            preview.dataset.plainText = plain;
+            preview.innerHTML =
+                `여러분 안녕하세요,<br>
+${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(author)} 안내드립니다.<br><br>
+<span class="ai-highlight">${esc(aiBody)}</span><br><br>
+해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다🤗`;
+
+            const btn = document.getElementById('btn-copy');
+            btn.textContent = '📋 카카오톡에 공유할 텍스트 복사';
+            btn.classList.remove('copied');
+
+            const card = document.getElementById('result-card');
+            card.classList.add('visible');
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function esc(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        /* ─── 복사 ───────────────────────────────────────── */
+        async function copyText() {
+            const el = document.getElementById('result-preview');
+            const text = el.dataset.plainText || el.innerText;
+            const btn = document.getElementById('btn-copy');
+
+            const done = () => {
+                btn.textContent = '✅ 복사 완료!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = '📋 카카오톡에 공유할 텍스트 복사';
+                    btn.classList.remove('copied');
+                }, 2500);
+            };
+            try {
+                await navigator.clipboard.writeText(text); done();
+            } catch {
+                const ta = document.createElement('textarea');
+                ta.value = text; document.body.appendChild(ta);
+                ta.select(); document.execCommand('copy');
+                document.body.removeChild(ta); done();
+            }
+        }
+
+        /* ─── 유틸 ───────────────────────────────────────── */
+        function setLoading(on) {
+            document.getElementById('btn-gen').disabled = on;
+            document.getElementById('spinner').style.display = on ? 'block' : 'none';
+            document.getElementById('btn-text').textContent = on ? 'AI가 글을 쓰는 중…' : '✨ 추천글 생성하기';
+        }
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.textContent = msg;
+            el.classList.add('visible');
+        }
+
+        // Enter 키 (select 제외)
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !['SELECT', 'TEXTAREA'].includes(e.target.tagName)) generate();
+        });
+    </script>
+</body>
+
+</html>
