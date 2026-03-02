@@ -537,6 +537,131 @@
             margin-top: 2px;
         }
 
+        /* API 키 설정 카드 */
+        .key-card {
+            border: 1.5px dashed rgba(46, 92, 77, 0.25);
+        }
+
+        .key-card.missing {
+            border-color: #e67e22;
+            background: rgba(230, 126, 34, 0.04);
+        }
+
+        .key-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .key-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .key-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            flex-shrink: 0;
+        }
+
+        .key-status-dot.ok {
+            background: #34a853;
+        }
+
+        .key-status-dot.warn {
+            background: #e67e22;
+        }
+
+        .key-toggle-arrow {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            transition: transform 0.2s;
+        }
+
+        .key-toggle-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .key-body {
+            display: none;
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .key-body.collapsed {
+            display: none;
+        }
+
+        .key-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .key-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            min-width: 5em;
+        }
+
+        .key-input {
+            flex: 1;
+            padding: 10px 13px;
+            border: 1.5px solid rgba(46, 92, 77, 0.18);
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-family: monospace;
+            background: rgba(255, 255, 255, 0.85);
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .key-input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(74, 130, 112, 0.1);
+        }
+
+        .btn-key-save {
+            flex-shrink: 0;
+            padding: 9px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-key-save:hover {
+            background: var(--primary-dark);
+        }
+
+        .key-note {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .key-note a {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
         @media (max-width: 520px) {
             .card {
                 padding: 24px 20px;
@@ -571,6 +696,35 @@
 
         <!-- Back -->
         <a class="back-link ani d1" href="../../index.html">← 메인으로</a>
+
+        <!-- API 키 설정 -->
+        <div class="card key-card ani d1" id="key-card">
+            <div class="key-header" onclick="toggleKeyPanel()">
+                <div class="key-header-left">
+                    <div class="key-status-dot" id="key-dot"></div>
+                    <span id="key-header-text">게미나이/OpenAI API 키</span>
+                </div>
+                <span class="key-toggle-arrow" id="key-arrow">▼</span>
+            </div>
+            <div class="key-body collapsed" id="key-body">
+                <div class="key-row">
+                    <span class="key-label">Gemini</span>
+                    <input class="key-input" id="input-gemini-key" type="password" placeholder="AIza..."
+                        autocomplete="off" />
+                    <button class="btn-key-save" onclick="saveKeys()">저장</button>
+                </div>
+                <div class="key-row">
+                    <span class="key-label">OpenAI</span>
+                    <input class="key-input" id="input-openai-key" type="password" placeholder="sk-proj-... (선택)"
+                        autocomplete="off" />
+                </div>
+                <p class="key-note">
+                    키는 브라우저에만 저장되며, 코드/GitHub에 절대 저장되지 않습니다.<br>
+                    • Gemini: <a href="https://aistudio.google.com/app/apikey" target="_blank">AI Studio</a>
+                    • OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>
+                </p>
+            </div>
+        </div>
 
         <!-- Hero -->
         <div class="card hero ani d1">
@@ -666,11 +820,10 @@
     </div>
 
     <script>
-        const GEMINI_API_KEY = 'AIzaSyD-npRSsWOoyItDiXk4VW62zhel_63u6Ik';
-        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        // ─── Gemini: Netlify Function 엔드포인트 (키는 서버에만 존재) ───
+        const FUNCTION_URL = '/.netlify/functions/book-recommend';
 
-        // OpenAI 폴백 설정 (Gemini 한도 초과 시 자동 사용)
-        const OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY_HERE'; // ← 여기에 OpenAI API 키 입력
+        // OpenAI 폴백 (Netlify Function 실패 시 localStorage 키로 클라이언트 직호출)
         const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 
         /* ─── 날짜 초기값: 오늘 ─────────────────────────── */
@@ -841,58 +994,46 @@ ${descTrimmed}
 - 앞뒤 인사말·설명·따옴표 없이 본문만 출력`;
 
             try {
-                // ① Gemini 먼저 시도
                 let aiBody = null;
-                let usedModel = 'Gemini';
-                let geminiQuotaExceeded = false;
+                let usedModel = '';
 
+                // ① Netlify Function을 통해 Gemini 호출 (키는 서버에 숨겨져 있음)
+                document.getElementById('btn-text').textContent = 'Gemini 분석 중…';
+                let fnRes;
                 try {
-                    const res = await fetch(GEMINI_URL, {
+                    fnRes = await fetch(FUNCTION_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts: [{ text: prompt }] }],
-                            generationConfig: {
-                                temperature: 0.7,
-                                maxOutputTokens: 1200,
-                                thinkingConfig: { thinkingBudget: 0 }
-                            }
-                        })
+                        body: JSON.stringify({ prompt })
                     });
-
-                    if (res.status === 429 || res.status === 503) {
-                        // 할당량 초과 → OpenAI로 폴백
-                        geminiQuotaExceeded = true;
-                    } else if (!res.ok) {
-                        const e = await res.json().catch(() => ({}));
-                        const msg = e?.error?.message || '';
-                        // RESOURCE_EXHAUSTED도 폴백 처리
-                        if (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota')) {
-                            geminiQuotaExceeded = true;
-                        } else {
-                            throw new Error(msg || `Gemini API 오류 (${res.status})`);
-                        }
-                    } else {
-                        const data = await res.json();
-                        const candidate = data?.candidates?.[0];
-                        const text = candidate?.content?.parts?.[0]?.text?.trim();
-                        if (candidate?.finishReason === 'MAX_TOKENS') {
-                            throw new Error('⚠️ 응답이 잘렸습니다. 도서 소개를 더 짧게 줄인 후 다시 시도해 주세요.');
-                        }
-                        if (text) aiBody = text;
-                    }
-                } catch (geminiErr) {
-                    if (geminiErr.message.startsWith('⚠️')) throw geminiErr;
-                    // 네트워크 오류 등은 폴백 시도
-                    geminiQuotaExceeded = true;
+                } catch (netErr) {
+                    fnRes = null; // 네트워크 오류 → OpenAI 폴백으로
                 }
 
-                // ② Gemini 실패 시 OpenAI gpt-4o-mini로 폴백
-                if (geminiQuotaExceeded && !aiBody) {
-                    if (!OPENAI_API_KEY || OPENAI_API_KEY === 'YOUR_OPENAI_API_KEY_HERE') {
-                        throw new Error('Gemini 일일 한도 초과. OpenAI API 키를 코드에 입력해 주세요.');
+                if (fnRes && fnRes.ok) {
+                    const fnData = await fnRes.json().catch(() => ({}));
+                    const text = (fnData?.text || '').trim();
+                    if (text) {
+                        aiBody = text;
+                        usedModel = fnData?.model || 'Gemini';
                     }
-                    setStatus && setStatus; // no-op
+                } else if (fnRes) {
+                    // Function 자체 오류 (환경변수 누락 등)
+                    const fnErr = await fnRes.json().catch(() => ({}));
+                    const msg = fnErr?.error || '';
+                    // 할당량 초과가 아닌 서버 오류면 바로 알림
+                    if (fnRes.status !== 429 && fnRes.status !== 502 && fnRes.status !== 503) {
+                        throw new Error(`서버 오류: ${msg || fnRes.status}`);
+                    }
+                    // 429/502/503 → OpenAI 폴백 시도
+                }
+
+                // ② Gemini 실패 시 → 사용자가 저장한 OpenAI 키로 폴백
+                if (!aiBody) {
+                    const OPENAI_API_KEY = getOpenAIKey();
+                    if (!OPENAI_API_KEY) {
+                        throw new Error('Gemini 서버 응답이 없습니다. 위 설정에서 OpenAI API 키를 등록하거나 잠시 후 다시 시도해 주세요.');
+                    }
                     document.getElementById('btn-text').textContent = 'ChatGPT로 재시도 중…';
 
                     const oRes = await fetch(OPENAI_URL, {
@@ -1003,6 +1144,55 @@ ${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(
             el.textContent = msg;
             el.classList.add('visible');
         }
+
+        /* ─── localStorage API 키 관리 ───────────────────── */
+        function getGeminiKey() {
+            return localStorage.getItem('songfore_gemini_key') || '';
+        }
+        function getOpenAIKey() {
+            return localStorage.getItem('songfore_openai_key') || '';
+        }
+        function saveKeys() {
+            const gKey = document.getElementById('input-gemini-key').value.trim();
+            const oKey = document.getElementById('input-openai-key').value.trim();
+            if (gKey) localStorage.setItem('songfore_gemini_key', gKey);
+            else localStorage.removeItem('songfore_gemini_key');
+            if (oKey) localStorage.setItem('songfore_openai_key', oKey);
+            else localStorage.removeItem('songfore_openai_key');
+            updateKeyStatus();
+            // 저장 후 패널 닫기
+            document.getElementById('key-body').classList.add('collapsed');
+            document.getElementById('key-arrow').classList.remove('open');
+        }
+        function toggleKeyPanel() {
+            const body = document.getElementById('key-body');
+            const arrow = document.getElementById('key-arrow');
+            body.classList.toggle('collapsed');
+            arrow.classList.toggle('open');
+        }
+        function updateKeyStatus() {
+            const dot = document.getElementById('key-dot');
+            const card = document.getElementById('key-card');
+            const headerText = document.getElementById('key-header-text');
+            // Netlify Function이 있으므로 Gemini 키 없어도 기본 동작함
+            // OpenAI 키가 있으면 폴백 가능
+            const hasOpenAI = !!getOpenAIKey();
+            // 서버 키가 있다고 가정; 상태 표시는 OpenAI 폴백 여부로
+            dot.className = 'key-status-dot ok';
+            card.classList.remove('missing');
+            headerText.textContent = hasOpenAI
+                ? 'API 설정 (Gemini 서버 + OpenAI 폴백 ✓)'
+                : 'API 설정 (Gemini 서버 운영 중)';
+        }
+        function initKeys() {
+            // 저장된 키를 입력창에 마스킹해서 표시
+            const gKey = getGeminiKey();
+            const oKey = getOpenAIKey();
+            if (gKey) document.getElementById('input-gemini-key').value = gKey;
+            if (oKey) document.getElementById('input-openai-key').value = oKey;
+            updateKeyStatus();
+        }
+        initKeys();
 
         // Enter 키 (select 제외)
         document.addEventListener('keydown', e => {
