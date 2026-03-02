@@ -487,6 +487,56 @@
             display: block;
         }
 
+        /* 책 표지 이미지 */
+        .book-cover-wrap {
+            display: none;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 14px;
+            padding: 14px 16px;
+            background: rgba(46, 92, 77, 0.04);
+            border: 1px solid rgba(46, 92, 77, 0.1);
+            border-radius: 14px;
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        .book-cover-wrap.visible {
+            display: flex;
+        }
+
+        .book-cover-img {
+            width: 80px;
+            min-width: 80px;
+            border-radius: 6px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+            object-fit: cover;
+        }
+
+        .book-cover-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .book-cover-title {
+            font-weight: 800;
+            font-size: 0.98rem;
+            color: var(--primary-dark);
+            line-height: 1.4;
+        }
+
+        .book-cover-author {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .book-cover-publisher {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
         @media (max-width: 520px) {
             .card {
                 padding: 24px 20px;
@@ -566,6 +616,17 @@
                 <div class="step-badge">2</div>
                 <span class="step-title">도서 소개 확인 / 수정</span>
             </div>
+
+            <!-- 책 표지 미리보기 -->
+            <div class="book-cover-wrap" id="book-cover-wrap">
+                <img id="book-cover-img" class="book-cover-img" src="" alt="책 표지" />
+                <div class="book-cover-info">
+                    <div class="book-cover-title" id="book-cover-title"></div>
+                    <div class="book-cover-author" id="book-cover-author"></div>
+                    <div class="book-cover-publisher" id="book-cover-publisher"></div>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="book-desc">도서 소개 (AI 추천글의 근거가 됩니다)</label>
                 <textarea id="book-desc" placeholder="🔍 위에서 도서를 검색하거나&#10;교보문고·알라딘 등에서 도서 소개를 복사해 붙여넣으세요."></textarea>
@@ -664,15 +725,25 @@
 
                 if (!book) {
                     setStatus('miss', '⚠️ 검색 결과가 없습니다. 아래에 도서 소개를 직접 붙여넣어 주세요.');
+                    hideCover();
                 } else {
                     const info = book.volumeInfo;
                     const desc = info.description || '';
                     const foundTitle = info.title || title;
                     const foundAuthor = (info.authors || []).join(', ') || author;
+                    const publisher = info.publisher || '';
+                    const publishedDate = info.publishedDate ? info.publishedDate.slice(0, 4) : '';
+                    const coverUrl = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '';
+
+                    // 표지 이미지
+                    if (coverUrl) {
+                        showCover(upgradeImageUrl(coverUrl), foundTitle, foundAuthor, publisher, publishedDate);
+                    } else {
+                        hideCover();
+                    }
 
                     if (desc) {
                         document.getElementById('book-desc').value = desc;
-                        // 제목·저자 자동 채움
                         if (!document.getElementById('book-title').value) document.getElementById('book-title').value = foundTitle;
                         if (!document.getElementById('book-author').value) document.getElementById('book-author').value = foundAuthor;
                         setStatus('found', `✅ "${foundTitle}" 도서 정보를 불러왔습니다. 내용이 맞는지 확인해 주세요.`);
@@ -693,6 +764,33 @@
             const el = document.getElementById('search-status');
             el.className = 'search-status ' + type;
             el.textContent = msg;
+        }
+
+        // Google Books URL을 고해상도로 업그레이드
+        function upgradeImageUrl(url) {
+            let u = url.replace('http://', 'https://');
+            u = u.replace(/&edge=curl/g, '');   // 말린 효과 제거
+            u = u.replace(/zoom=\d+/, 'zoom=0'); // 최대 해상도
+            return u;
+        }
+
+        function showCover(src, title, author, publisher, year) {
+            document.getElementById('book-cover-img').src = src;
+            document.getElementById('book-cover-img').alt = title + ' 표지';
+            // zoom=0이 막힌 경우 thumbnail(zoom=1)로 폴백
+            document.getElementById('book-cover-img').onerror = function () {
+                this.onerror = null;
+                this.src = src.replace('zoom=0', 'zoom=1');
+            };
+            document.getElementById('book-cover-title').textContent = title;
+            document.getElementById('book-cover-author').textContent = author;
+            document.getElementById('book-cover-publisher').textContent =
+                [publisher, year].filter(Boolean).join(' · ');
+            document.getElementById('book-cover-wrap').classList.add('visible');
+        }
+
+        function hideCover() {
+            document.getElementById('book-cover-wrap').classList.remove('visible');
         }
 
         /* ─── Gemini 추천글 생성 ─────────────────────────── */
