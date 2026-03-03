@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 
 <head>
@@ -812,9 +812,14 @@
             <div class="result-label" id="result-label">✅ 생성된 추천글</div>
             <div class="divider"></div>
             <div class="result-preview" id="result-preview"></div>
-            <button class="btn-copy" id="btn-copy" onclick="copyText()">
-                📋 카카오톡에 공유할 텍스트 복사
-            </button>
+            <div style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-copy" id="btn-copy" style="margin-top: 0;" onclick="copyText()">
+                    📋 카카오톡에 공유할 텍스트 복사
+                </button>
+                <button class="btn-copy" id="btn-download-cover" style="margin-top: 0;" onclick="downloadCover()">
+                    🖼️ 책 표지 다운로드
+                </button>
+            </div>
         </div>
 
     </div>
@@ -1117,6 +1122,35 @@ ${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(
 
         function esc(s) {
             return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        /* ─── 표지 다운로드 ───────────────────────────────── */
+        async function downloadCover() {
+            const imgEl = document.getElementById('book-cover-img');
+            const wrap = document.getElementById('book-cover-wrap');
+            if (!imgEl || !wrap.classList.contains('visible') || !imgEl.src) {
+                alert('다운로드할 표지 이미지가 없습니다.');
+                return;
+            }
+            try {
+                const src = imgEl.src;
+                const res = await fetch(src);
+                if (!res.ok) throw new Error('Fetch failed');
+                const blob = await res.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const title = document.getElementById('book-cover-title').textContent.trim() || 'book_cover';
+                const safeTitle = title.replace(/[\/\\?%*:|"<>]/g, '-');
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = safeTitle + '_표지.jpg';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(blobUrl);
+            } catch (e) {
+                // CORS 등으로 fetch 실패 시 새 창에서 열기
+                window.open(imgEl.src, '_blank');
+            }
         }
 
         /* ─── 복사 ───────────────────────────────────────── */
