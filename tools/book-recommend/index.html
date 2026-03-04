@@ -864,12 +864,29 @@
         }
         document.getElementById('book-title').addEventListener('input', updateBookLinks);
 
+        /* ─── 제목 정규화 (유사도 비교용) ────────────────────── */
+        function normalizeTitle(s) {
+            return (s || '').toLowerCase()
+                .replace(/[\s\-·:,\.。、！!?？]/g, '')
+                .normalize('NFC');
+        }
+
         /* ─── 대표 판본 선택 (점수 기반) ────────────────────── */
-        function chooseBestBook(items) {
+        function chooseBestBook(items, searchTitle) {
             if (!items || items.length === 0) return null;
+            const normTarget = normalizeTitle(searchTitle);
+
             const scored = items.map(item => {
                 const info = item.volumeInfo || {};
                 let score = 0;
+
+                // 제목 유사도: 엉뚱한 책 방지 (핵심)
+                if (info.title) {
+                    const normTitle = normalizeTitle(info.title);
+                    if (normTitle === normTarget) score += 20;           // 완전 일치
+                    else if (normTitle.includes(normTarget) ||
+                        normTarget.includes(normTitle)) score += 10; // 포함 관계
+                }
 
                 // 소개글: 가장 중요 (없으면 쓸모없음)
                 if (info.description) {
@@ -901,7 +918,7 @@
                 if (item.accessInfo?.viewability === 'ALL_PAGES') score += 2;
                 else if (item.accessInfo?.viewability === 'PARTIAL') score += 1;
 
-                // 이북 강한 감점 (한국어 소개 없는 경우 많음)
+                // 이북 강한 감점
                 if (item.saleInfo?.isEbook) score -= 8;
 
                 return { item, score };
@@ -942,7 +959,7 @@
                     const items = data.items || [];
 
                     // 점수 기반으로 가장 완성도 높은(대표) 판본 선택
-                    const book = chooseBestBook(items) || items[0];
+                    const book = chooseBestBook(items, title) || items[0];
 
                     if (!book) {
                         setStatus('miss', '⚠️ 검색 결과가 없습니다. 아래에 도서 소개를 직접 붙여넣어 주세요.');
@@ -954,11 +971,37 @@
                         const foundAuthor = (info.authors || []).join(', ') || author;
                         const publisher = info.publisher || '';
                         const publishedDate = info.publishedDate ? info.publishedDate.slice(0, 4) : '';
-                        const coverUrl = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '';
 
-                        // ISBN 추출: 선택된 book에서 직접 가져옴
-                        // (items 전체에서 첫 번째 실물 판본을 고르면 엉뚱한 책 ISBN이 사용될 수 있음)
-                        const identifiers = (book.volumeInfo?.industryIdentifiers) || [];
+                        // 표지: 선택된 판본에 없으면 같은 제목의 다른 판본에서 가져옴
+                        let coverUrl = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '';
+                        if (!coverUrl) {
+                            const normFound = normalizeTitle(foundTitle);
+                            const fallbackItem = items.find(it =>
+                                it !== book &&
+                                (it.volumeInfo?.imageLinks?.thumbnail || it.volumeInfo?.imageLinks?.smallThumbnail) &&
+                                normalizeTitle(it.volumeInfo?.title) === normFound
+                            );
+                            if (fallbackItem) {
+                                coverUrl = fallbackItem.volumeInfo.imageLinks?.thumbnail ||
+                                    fallbackItem.volumeInfo.imageLinks?.smallThumbnail || '';
+                            }
+                        }
+
+                        // ISBN: 선택된 판본이 ebook이면 같은 제목의 실물 판본 ISBN 우선 사용
+                        let isbnSource = book;
+                        if (book.saleInfo?.isEbook) {
+                            const normFound = normalizeTitle(foundTitle);
+                            const physicalBook = items.find(it =>
+                                it !== book &&
+                                !it.saleInfo?.isEbook &&
+                                normalizeTitle(it.volumeInfo?.title) === normFound &&
+                                (it.volumeInfo?.industryIdentifiers || []).some(
+                                    x => x.type === 'ISBN_13' || x.type === 'ISBN_10'
+                                )
+                            );
+                            if (physicalBook) isbnSource = physicalBook;
+                        }
+                        const identifiers = (isbnSource.volumeInfo?.industryIdentifiers) || [];
                         const isbn13 = identifiers.find(x => x.type === 'ISBN_13');
                         const isbn10 = identifiers.find(x => x.type === 'ISBN_10');
                         currentIsbn = (isbn13 || isbn10)?.identifier || '';
