@@ -831,6 +831,9 @@
         // OpenAI 폴백 (Netlify Function 실패 시 localStorage 키로 클라이언트 직호출)
         const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 
+        // 검색된 도서의 ISBN (알라딘 링크 생성에 활용)
+        let currentIsbn = '';
+
         /* ─── 날짜 초기값: 오늘 ─────────────────────────── */
         (function () {
             const today = new Date();
@@ -901,6 +904,12 @@
                         const publisher = info.publisher || '';
                         const publishedDate = info.publishedDate ? info.publishedDate.slice(0, 4) : '';
                         const coverUrl = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || '';
+
+                        // ISBN 추출 (ISBN-13 우선, 없으면 ISBN-10)
+                        const identifiers = info.industryIdentifiers || [];
+                        const isbn13 = identifiers.find(x => x.type === 'ISBN_13');
+                        const isbn10 = identifiers.find(x => x.type === 'ISBN_10');
+                        currentIsbn = (isbn13 || isbn10)?.identifier || '';
 
                         // 표지 이미지
                         if (coverUrl) {
@@ -1095,13 +1104,18 @@ ${descTrimmed}
             } else {
                 labelEl.innerHTML = '✅ 생성된 추천글 <span style="font-size:0.78rem;font-weight:500;color:#10a37f;margin-left:6px;">✦ ' + usedModel + ' (Gemini 한도 초과로 전환)</span>';
             }
+            const aladinUrl = currentIsbn
+                ? `https://www.aladin.co.kr/shop/wproduct.aspx?ISBN=${currentIsbn}`
+                : `https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=Book&SearchWord=${encodeURIComponent(title)}`;
+
             const plain =
                 `여러분 안녕하세요,
 ${month}월 ${day}일 지정 도서 📖 ${title} - ${author} 안내드립니다.
 
 ${aiBody}
 
-해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다🤗`;
+해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다🤗
+${aladinUrl}`;
 
             const preview = document.getElementById('result-preview');
             preview.dataset.plainText = plain;
@@ -1109,7 +1123,8 @@ ${aiBody}
                 `여러분 안녕하세요,<br>
 ${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(author)} 안내드립니다.<br><br>
 <span class="ai-highlight">${esc(aiBody)}</span><br><br>
-해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다🤗`;
+해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다🤗<br>
+<a href="${esc(aladinUrl)}" target="_blank" style="color:var(--primary);font-size:0.88rem;word-break:break-all;">${esc(aladinUrl)}</a>`;
 
             const btn = document.getElementById('btn-copy');
             btn.textContent = '📋 카카오톡에 공유할 텍스트 복사';
