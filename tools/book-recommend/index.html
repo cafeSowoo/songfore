@@ -814,7 +814,12 @@
             <div class="result-preview" id="result-preview"></div>
             <div style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
                 <button class="btn-copy" id="btn-copy" style="margin-top: 0;" onclick="copyText()">
-                    📋 카카오톡에 공유할 텍스트 복사
+                    📋 텍스트 복사
+                </button>
+                <button class="btn-copy" id="btn-kakao"
+                    style="margin-top: 0; background:#FEE500; color:#3C1E1E; border-color:#FEE500;"
+                    onclick="shareKakao()">
+                    💬 카카오톡에 공유
                 </button>
                 <button class="btn-copy" id="btn-download-cover" style="margin-top: 0;" onclick="downloadCover()">
                     🖼️ 책 표지 다운로드
@@ -1203,6 +1208,41 @@ ${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(
                 // CORS 등으로 fetch 실패 시 새 창에서 열기
                 window.open(imgEl.src, '_blank');
             }
+        }
+
+        /* ─── 카카오톡 공유 ───────────────────────────────── */
+        async function shareKakao() {
+            const el = document.getElementById('result-preview');
+            const text = el.dataset.plainText || el.innerText;
+            const btn = document.getElementById('btn-kakao');
+
+            // 텍스트 먼저 복사
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch {
+                const ta = document.createElement('textarea');
+                ta.value = text; document.body.appendChild(ta);
+                ta.select(); document.execCommand('copy');
+                document.body.removeChild(ta);
+            }
+
+            // 카카오톡 실행 (모바일: 앱, PC: 웹카카오)
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (isMobile) {
+                // 앱 실행 시도 후 300ms 안에 반응 없으면 스토어로 이동하지 않음 (이미 설치 전제)
+                window.location.href = 'kakaotalk://';
+            } else {
+                window.open('https://web.kakao.com', '_blank');
+            }
+
+            // 버튼 피드백
+            const origStyle = btn.getAttribute('style');
+            btn.textContent = '✅ 복사 완료! 카카오톡에 붙여넣으세요';
+            btn.style.cssText = 'margin-top:0; background:#34a853; color:white; border-color:#34a853;';
+            setTimeout(() => {
+                btn.textContent = '💬 카카오톡에 공유';
+                btn.setAttribute('style', origStyle);
+            }, 3000);
         }
 
         /* ─── 복사 ───────────────────────────────────────── */
