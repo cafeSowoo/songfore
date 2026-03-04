@@ -871,55 +871,101 @@
                 .normalize('NFC');
         }
 
-        /* ─── 대표 판본 선택 (점수 기반) ────────────────────── */
+        /* ─── 한국어 포함 비율 계산 ────────────────────────── */
+        function koreanRatio(text) {
+            if (!text) return 0;
+            const korean = (text.match(/[가-힣]/g) || []).length;
+            const total = text.replace(/\s/g, '').length;
+            return total === 0 ? 0 : korean / total;
+        }
+
+        /* ─── 대표 판본 선택 (필터 + 점수 기반) ──────────────── */
         function chooseBestBook(items, searchTitle) {
             if (!items || items.length === 0) return null;
             const normTarget = normalizeTitle(searchTitle);
 
-            const scored = items.map(item => {
+            // ── 1단계: 하드 필터 (조건 미달 항목 제거) ──
+            const filtered = items.filter(item => {
+                const info = item.volumeInfo || {};
+                // ① e-book 제외
+                if (item.saleInfo?.isEbook) return false;
+                // ② 한국어 출간물만 (language가 'ko'이거나 미지정)
+                if (info.language && info.language !== 'ko') return false;
+                // ③ 소개글이 한국어여야 함
+                if (!info.description) return false;
+                if (koreanRatio(info.description) < 0.15) return false;
+                return true;
+            });
+
+            // 필터 결과가 없으면 완화된 필터로 재시도
+            // (소개글 없어도 허용, 단 e-book과 비한국어는 여전히 제외)
+            const candidates = filtered.length > 0 ? filtered : items.filter(item => {
+                const info = item.volumeInfo || {};
+                if (item.saleInfo?.isEbook) return false;
+                if (info.language && info.language !== 'ko') return false;
+                return true;
+            });
+
+            if (candidates.length === 0) return null;
+
+            // ── 2단계: 점수 기반 대표 판본 선택 ──
+            const scored = candidates.map(item => {
                 const info = item.volumeInfo || {};
                 let score = 0;
 
-                // 제목 유사도: 엉뚱한 책 방지 (핵심)
+                // 제목 일치도 (엉뚱한 책 방지)
                 if (info.title) {
                     const normTitle = normalizeTitle(info.title);
-                    if (normTitle === normTarget) score += 20;           // 완전 일치
+                    if (normTitle === normTarget) score += 30;
                     else if (normTitle.includes(normTarget) ||
-                        normTarget.includes(normTitle)) score += 10; // 포함 관계
+                        normTarget.includes(normTitle)) score += 15;
                 }
 
-                // 소개글: 가장 중요 (없으면 쓸모없음)
+                // 한국어 소개글 품질
                 if (info.description) {
                     const len = info.description.length;
-                    score += 10;
-                    if (len >= 100 && len <= 600) score += 5;  // 적정 길이
-                    else if (len > 600) score -= 2;            // 너무 길면 감점 (영문+한국어 합산 등)
-
-                    // 한국어 소개글 우대 (영문 단독 설명 방지)
-                    if (/[가-힣]/.test(info.description)) score += 5;
+                    const kr = koreanRatio(info.description);
+                    score += 10;                               // 소개글 존재
+                    if (kr >= 0.5) score += 8;                 // 한국어 비중 높음
+                    else if (kr >= 0.15) score += 3;
+                    if (len >= 80 && len <= 800) score += 5;   // 적정 길이
+                    else if (len > 800) score += 2;            // 긴 소개글도 OK
                 }
 
-                // 표지 이미지 (대표 판본일수록 존재)
-                if (info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail) score += 3;
+                // 표지 이미지 (대표 판본은 거의 항상 존재)
+                if (info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail) score += 5;
+
+                // 평점 수 = 인지도(많이 알려진 판본) 대리 변수
+                if (info.ratingsCount > 0) {
+                    score += Math.min(info.ratingsCount, 20); // 최대 20점
+                }
+                // 평균 평점 보너스
+                if (info.averageRating >= 4) score += 3;
 
                 // 저자 정보
                 if (info.authors?.length) score += 2;
 
                 // 출판사
-                if (info.publisher) score += 1;
+                if (info.publisher) score += 2;
 
-                // 실물 도서 판본 (페이지 수 있음)
-                if (info.pageCount > 0) score += 1;
+                // 실물 도서 (페이지 수 존재)
+                if (info.pageCount > 0) score += 3;
 
-                // 판매 중인 실물 판본 우대 (구글이 대표 판본으로 취급)
-                if (item.saleInfo?.saleability === 'FOR_SALE') score += 4;
+                // 판매 중 = 현재 유통되는 대표 판본
+                if (item.saleInfo?.saleability === 'FOR_SALE') score += 6;
+                else if (item.saleInfo?.saleability === 'NOT_FOR_SALE') score += 1;
 
-                // 열람 가능 여부 (구글이 중요하게 다루는 책)
-                if (item.accessInfo?.viewability === 'ALL_PAGES') score += 2;
-                else if (item.accessInfo?.viewability === 'PARTIAL') score += 1;
+                // 미리보기 열람 가능 (구글이 중요하게 다루는 책)
+                if (item.accessInfo?.viewability === 'PARTIAL') score += 2;
+                else if (item.accessInfo?.viewability === 'ALL_PAGES') score += 3;
 
-                // 이북 강한 감점
-                if (item.saleInfo?.isEbook) score -= 8;
+                // 카테고리 존재 (정식 출간 도서)
+                if (info.categories?.length) score += 2;
+
+                // ISBN 존재 (정식 출판)
+                const ids = info.industryIdentifiers || [];
+                if (ids.some(x => x.type === 'ISBN_13')) score += 3;
+                else if (ids.some(x => x.type === 'ISBN_10')) score += 1;
 
                 return { item, score };
             });
