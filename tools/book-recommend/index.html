@@ -1012,7 +1012,20 @@
                         hideCover();
                     } else {
                         const info = book.volumeInfo;
-                        const desc = info.description || '';
+                        let desc = info.description || '';
+
+                        // 소개글 폴백: 선택된 판본에 한국어 소개글이 없으면
+                        // 같은 제목의 다른 판본(e-book 포함)에서 빌려옴
+                        if (!desc || koreanRatio(desc) < 0.15) {
+                            const normFound = normalizeTitle(info.title || title);
+                            const donor = items.find(it =>
+                                it !== book &&
+                                it.volumeInfo?.description &&
+                                koreanRatio(it.volumeInfo.description) >= 0.15 &&
+                                normalizeTitle(it.volumeInfo?.title).includes(normFound)
+                            );
+                            if (donor) desc = donor.volumeInfo.description;
+                        }
                         const foundTitle = info.title || title;
                         const foundAuthor = (info.authors || []).join(', ') || author;
                         const publisher = info.publisher || '';
