@@ -114,7 +114,7 @@ export default async (req, context) => {
     }
     const booksUrl =
       `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}` +
-      `&maxResults=5&key=${encodeURIComponent(BOOKS_API_KEY)}`;
+      `&maxResults=20&langRestrict=ko&key=${encodeURIComponent(BOOKS_API_KEY)}`;
     try {
       const bRes = await fetch(booksUrl);
       const bData = await bRes.json().catch(() => ({}));
