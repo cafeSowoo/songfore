@@ -859,6 +859,40 @@
         }
         document.getElementById('book-title').addEventListener('input', updateBookLinks);
 
+        /* ─── 대표 판본 선택 (점수 기반) ────────────────────── */
+        function chooseBestBook(items) {
+            if (!items || items.length === 0) return null;
+            const scored = items.map(item => {
+                const info = item.volumeInfo || {};
+                let score = 0;
+
+                // 소개글: 가장 중요 (없으면 쓸모없음)
+                if (info.description) {
+                    score += 10;
+                    if (info.description.length > 200) score += 5; // 충실한 소개글
+                }
+
+                // 표지 이미지 (대표 판본일수록 존재)
+                if (info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail) score += 3;
+
+                // 저자 정보
+                if (info.authors?.length) score += 2;
+
+                // 출판사
+                if (info.publisher) score += 1;
+
+                // 실물 도서 판본 (페이지 수 있음)
+                if (info.pageCount > 0) score += 1;
+
+                // 이북 감점 (한국어 소개 없는 경우 많음)
+                if (item.saleInfo?.isEbook) score -= 3;
+
+                return { item, score };
+            });
+            scored.sort((a, b) => b.score - a.score);
+            return scored[0]?.item || null;
+        }
+
         /* ─── Google Books 검색 ──────────────────────────── */
         async function searchBook() {
             const title = document.getElementById('book-title').value.trim();
@@ -890,8 +924,8 @@
                 } else {
                     const items = data.items || [];
 
-                    // description이 있는 첫 번째 결과 사용
-                    const book = items.find(i => i.volumeInfo?.description) || items[0];
+                    // 점수 기반으로 가장 완성도 높은(대표) 판본 선택
+                    const book = chooseBestBook(items) || items[0];
 
                     if (!book) {
                         setStatus('miss', '⚠️ 검색 결과가 없습니다. 아래에 도서 소개를 직접 붙여넣어 주세요.');
