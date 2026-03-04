@@ -873,8 +873,13 @@
 
                 // 소개글: 가장 중요 (없으면 쓸모없음)
                 if (info.description) {
+                    const len = info.description.length;
                     score += 10;
-                    if (info.description.length > 200) score += 5; // 충실한 소개글
+                    if (len >= 100 && len <= 600) score += 5;  // 적정 길이
+                    else if (len > 600) score -= 2;            // 너무 길면 감점 (영문+한국어 합산 등)
+
+                    // 한국어 소개글 우대 (영문 단독 설명 방지)
+                    if (/[가-힣]/.test(info.description)) score += 5;
                 }
 
                 // 표지 이미지 (대표 판본일수록 존재)
@@ -889,8 +894,15 @@
                 // 실물 도서 판본 (페이지 수 있음)
                 if (info.pageCount > 0) score += 1;
 
-                // 이북 감점 (한국어 소개 없는 경우 많음)
-                if (item.saleInfo?.isEbook) score -= 3;
+                // 판매 중인 실물 판본 우대 (구글이 대표 판본으로 취급)
+                if (item.saleInfo?.saleability === 'FOR_SALE') score += 4;
+
+                // 열람 가능 여부 (구글이 중요하게 다루는 책)
+                if (item.accessInfo?.viewability === 'ALL_PAGES') score += 2;
+                else if (item.accessInfo?.viewability === 'PARTIAL') score += 1;
+
+                // 이북 강한 감점 (한국어 소개 없는 경우 많음)
+                if (item.saleInfo?.isEbook) score -= 8;
 
                 return { item, score };
             });
@@ -1214,7 +1226,18 @@ ${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(
             const text = el.dataset.plainText || el.innerText;
             const btn = document.getElementById('btn-kakao');
 
-            // 텍스트 먼저 복사
+            // ① Web Share API (삼성 인터넷 · 크롬 모바일 · 사파리 지원)
+            //    OS 공유 시트가 열려 카카오톡으로 바로 전달 가능
+            if (navigator.share) {
+                try {
+                    await navigator.share({ text });
+                } catch (e) {
+                    // 사용자가 공유 시트를 닫은 경우 등 → 아무 동작 안 함
+                }
+                return;
+            }
+
+            // ② 폴백: 클립보드 복사 후 안내 (Web Share API 미지원 환경)
             try {
                 await navigator.clipboard.writeText(text);
             } catch {
@@ -1224,16 +1247,6 @@ ${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(
                 document.body.removeChild(ta);
             }
 
-            // 카카오톡 실행 (모바일: 앱, PC: 웹카카오)
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-            if (isMobile) {
-                // 앱 실행 시도 후 300ms 안에 반응 없으면 스토어로 이동하지 않음 (이미 설치 전제)
-                window.location.href = 'kakaotalk://';
-            } else {
-                window.open('https://web.kakao.com', '_blank');
-            }
-
-            // 버튼 피드백
             const origStyle = btn.getAttribute('style');
             btn.textContent = '✅ 복사 완료! 카카오톡에 붙여넣으세요';
             btn.style.cssText = 'margin-top:0; background:#34a853; color:white; border-color:#34a853;';
