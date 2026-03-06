@@ -11,21 +11,22 @@
   <title>조모임 공지용 메일 쓰기</title>
   <style>
     :root {
-      /* Forest & Wisdom Theme Colors */
-      --bg-light: #f4f9f5;
       --primary: #2e5c4d;
       --primary-light: #4a8270;
       --primary-dark: #1a3c34;
-
       --text-main: #1c2b26;
       --text-muted: #5e736a;
-
-      --glass-bg: rgba(255, 255, 255, 0.65);
-      --glass-border: rgba(255, 255, 255, 0.5);
-      --glass-shadow: 0 16px 40px rgba(18, 38, 30, 0.08);
-
+      --glass-bg: rgba(255, 255, 255, 0.82);
+      --glass-border: rgba(180, 216, 208, 0.56);
+      --glass-shadow: 0 20px 48px rgba(31, 94, 85, 0.12);
       --disabled-bg: rgba(230, 235, 232, 0.4);
       --disabled-text: #9eb0a8;
+      --title-start: #1f7468;
+      --title-mid: #177f86;
+      --title-end: #2b85b9;
+      --accent-start: #42c48f;
+      --accent-mid: #24b5a7;
+      --accent-end: #57b7e5;
     }
 
     * {
@@ -38,11 +39,10 @@
       font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
       color: var(--text-main);
       overflow-x: hidden;
-      /* Dynamic & Deep Forest Background with Blur */
       background:
-        radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
-        radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
-        linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
+        radial-gradient(circle at top left, rgba(164, 217, 190, 0.32), transparent 36%),
+        radial-gradient(circle at bottom right, rgba(120, 201, 227, 0.24), transparent 32%),
+        linear-gradient(135deg, #eef8f4 0%, #eff8f9 52%, #e7f3f7 100%);
       background-attachment: fixed;
     }
 
@@ -84,11 +84,11 @@
     }
 
     .wrap {
-      width: min(980px, 92vw);
+      width: min(1020px, calc(100vw - 40px));
       margin: 0 auto;
-      padding: 60px 0 80px;
+      padding: 28px 0 56px;
       display: grid;
-      gap: 24px;
+      gap: 20px;
       position: relative;
     }
 
@@ -122,42 +122,103 @@
       animation-delay: 0.3s;
     }
 
+    .topbar {
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(180, 216, 208, 0.56);
+      box-shadow: 0 10px 24px rgba(31, 94, 85, 0.08);
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .back-link:hover {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
     .hero {
+      display: flex;
+      align-items: center;
+      gap: 18px;
       background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
       border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 30px;
+      border-radius: 30px;
+      padding: 28px 30px;
       box-shadow: var(--glass-shadow);
-      text-align: center;
       position: relative;
       overflow: hidden;
     }
 
-    .hero h1 {
-      margin: 0;
-      font-size: clamp(1.6rem, 2.5vw, 2.2rem);
-      font-weight: 800;
-      color: var(--primary-dark);
-      letter-spacing: -0.5px;
+    .hero-mark {
+      position: relative;
+      width: 62px;
+      height: 62px;
+      border-radius: 20px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-mid) 54%, var(--accent-end));
+      box-shadow: 0 18px 30px rgba(46, 145, 132, 0.22);
     }
 
-    .hero p {
-      margin: 12px 0 0;
+    .hero-mark::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      right: -1px;
+      width: 16px;
+      height: 16px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
+    }
+
+    .hero-mark img {
+      width: 28px;
+      height: 28px;
+      filter: brightness(0) invert(1);
+    }
+
+    .hero-copy h1 {
+      margin: 0;
+      font-size: clamp(1.55rem, 2.8vw, 2.3rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      background: linear-gradient(90deg, var(--title-start), var(--title-mid), var(--title-end));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-copy p {
+      margin: 8px 0 0;
       color: var(--text-muted);
       font-weight: 500;
-      font-size: 1.05rem;
+      font-size: 0.98rem;
+      line-height: 1.6;
     }
 
     .panel {
       background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 14px 34px rgba(92, 121, 126, 0.1);
       display: grid;
       gap: 16px;
       position: relative;
@@ -238,13 +299,14 @@
     }
 
     button.primary {
-      background: var(--primary);
+      background: linear-gradient(90deg, var(--accent-start), var(--accent-mid));
       color: #fff;
-      border-color: var(--primary);
+      border-color: transparent;
+      box-shadow: 0 12px 26px rgba(39, 185, 138, 0.18);
     }
 
     button.primary:hover:not(:disabled) {
-      background: var(--primary-light);
+      background: linear-gradient(90deg, var(--accent-mid), var(--title-mid));
     }
 
     button:disabled {
@@ -308,30 +370,32 @@
       font-weight: 500;
     }
 
-    .back-link {
-      display: inline-block;
-      text-decoration: none;
-      color: var(--primary);
-      font-weight: 700;
-      margin-top: 10px;
-      transition: opacity 0.3s ease;
-    }
-
-    .back-link:hover {
-      opacity: 0.8;
-    }
-
     @media (max-width: 680px) {
       .wrap {
-        padding: 40px 0 60px;
+        width: min(calc(100vw - 20px), 1020px);
+        padding: 16px 0 34px;
+        gap: 14px;
       }
 
       .hero {
-        padding: 24px;
+        flex-direction: column;
+        text-align: center;
+        padding: 24px 18px;
+        gap: 14px;
       }
 
       .panel {
-        padding: 20px;
+        padding: 20px 16px;
+        border-radius: 22px;
+      }
+
+      .back-link {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero-copy p {
+        font-size: 0.92rem;
       }
     }
   </style>
@@ -343,9 +407,18 @@
   <div class="bg-shape shape-2"></div>
 
   <main class="wrap">
+    <div class="topbar animate-item">
+      <a href="index.html" class="back-link">← 홈으로</a>
+    </div>
+
     <section class="hero animate-item">
-      <h1>조모임 공지용 메일 쓰기</h1>
-      <p>입력한 값으로 공지문을 바로 생성합니다.</p>
+      <div class="hero-mark" aria-hidden="true">
+        <img src="assets/favicon/favicon.svg" alt="" />
+      </div>
+      <div class="hero-copy">
+        <h1>조모임 공지용 메일 쓰기</h1>
+        <p>입력한 값으로 공지문을 바로 생성합니다.</p>
+      </div>
     </section>
 
     <section class="panel animate-item delay-1">
@@ -379,8 +452,6 @@
       <div id="noticeMessage" class="message"></div>
       <pre id="noticeOutput" class="output" aria-live="polite"></pre>
     </section>
-
-    <a href="index.html" class="back-link animate-item delay-2">← 홈으로</a>
     <p class="footer animate-item delay-2">원하시면 출력 문구 포맷만 수정해 드릴게요.</p>
   </main>
 

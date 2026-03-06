@@ -8,7 +8,7 @@
   <link rel="icon" href="../assets/favicon/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="../assets/favicon/apple-touch-icon.png" />
   <link rel="manifest" href="../assets/favicon/site.webmanifest" />
-  <meta name="theme-color" content="#3f67ff" />
+  <meta name="theme-color" content="#24b5a7" />
   <title>독서모임 조 랜덤 배정기</title>
   <style>
     :root {
@@ -874,6 +874,89 @@
       backdrop-filter: blur(2px);
       background: linear-gradient(160deg, #ffffff, #f0f4ff);
       border-color: #b9c6ff;
+    }
+    .container {
+      width: min(1120px, calc(100vw - 36px));
+      margin: 18px auto 44px;
+      gap: 14px;
+    }
+
+    .hero {
+      border-radius: 24px;
+      padding: 22px 20px;
+      background: rgba(255, 255, 255, 0.82);
+      border-color: rgba(180, 216, 208, 0.56);
+      box-shadow: 0 18px 42px rgba(31, 94, 85, 0.11);
+    }
+
+    .hero h1 {
+      background: linear-gradient(90deg, #1f7468, #177f86, #2b85b9);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.04em;
+    }
+
+    .panel {
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.82);
+      border-color: rgba(180, 216, 208, 0.56);
+      box-shadow: 0 18px 42px rgba(31, 94, 85, 0.11);
+    }
+
+    .btn-row button,
+    .back-home-btn {
+      background: rgba(255, 255, 255, 0.86);
+      color: #24504a;
+      border-color: rgba(160, 201, 193, 0.8);
+      box-shadow: 0 10px 22px rgba(31, 94, 85, 0.1);
+    }
+
+    button.primary,
+    button.primary:hover {
+      background: linear-gradient(90deg, #42c48f, #24b5a7);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    button.warn {
+      background: linear-gradient(160deg, #fff4df, #ffe3b0);
+      color: #8f5200;
+    }
+
+    .back-home-btn {
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    .zone h3,
+    .count {
+      color: #24504a;
+    }
+
+    .person-chip-controls button.active {
+      background: linear-gradient(160deg, #2e5c4d, #177f86);
+      border-color: #177f86;
+    }
+
+    @media (max-width: 720px) {
+      .container {
+        width: min(calc(100vw - 20px), 1120px);
+        margin: 12px auto 28px;
+        gap: 12px;
+      }
+
+      .hero,
+      .panel {
+        border-radius: 22px;
+      }
+
+      .hero {
+        padding: 18px 16px;
+      }
+
+      .panel {
+        padding: 16px 14px;
+      }
     }
   </style>
 </head>

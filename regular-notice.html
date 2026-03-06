@@ -410,6 +410,79 @@
         grid-template-columns: 1fr;
       }
     }
+    .top-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(180, 216, 208, 0.56);
+      box-shadow: 0 10px 24px rgba(31, 94, 85, 0.08);
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .top-link:hover {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
+    .wrap>.back-link.animate-item.delay-2 {
+      display: none;
+    }
+
+    .hero h1 {
+      background: linear-gradient(90deg, #1f7468, #177f86, #2b85b9);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.04em;
+    }
+
+    .hero,
+    .panel {
+      border-color: rgba(180, 216, 208, 0.56);
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 18px 42px rgba(31, 94, 85, 0.11);
+    }
+
+    button.primary {
+      background: linear-gradient(90deg, #42c48f, #24b5a7);
+      border-color: transparent;
+      box-shadow: 0 12px 26px rgba(39, 185, 138, 0.18);
+    }
+
+    button.primary:hover:not(:disabled) {
+      background: linear-gradient(90deg, #24b5a7, #177f86);
+    }
+
+    .output-block-header {
+      background: linear-gradient(90deg, #2e5c4d, #177f86);
+    }
+
+    @media (max-width: 680px) {
+      .wrap {
+        width: min(calc(100vw - 20px), 1020px);
+        padding: 16px 0 34px;
+        gap: 14px;
+      }
+
+      .hero {
+        padding: 22px 18px;
+      }
+
+      .panel {
+        padding: 20px 16px;
+      }
+
+      .top-link {
+        width: 100%;
+        justify-content: center;
+      }
+    }
   </style>
 </head>
 
@@ -418,6 +491,7 @@
   <div class="bg-shape shape-2"></div>
 
   <main class="wrap">
+    <a href="index.html" class="top-link animate-item">← 홈으로</a>
     <section class="hero animate-item">
       <h1>정기모임 공지 쓰기</h1>
       <p>입력한 값으로 정기모임 공지문을 바로 생성합니다.</p>

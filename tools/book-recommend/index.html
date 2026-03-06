@@ -7,7 +7,7 @@
     <link rel="icon" href="../../assets/favicon/favicon.ico" type="image/x-icon" />
     <link rel="icon" href="../../assets/favicon/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="../../assets/favicon/apple-touch-icon.png" />
-    <meta name="theme-color" content="#1a3c34" />
+  <meta name="theme-color" content="#24b5a7" />
     <title>선정도서 추천하기 – 송도 독서 포레스트</title>
     <style>
         :root {
@@ -682,6 +682,73 @@
             .btn-search {
                 width: 100%;
                 height: 46px;
+                justify-content: center;
+            }
+        }
+        .wrap {
+            width: min(760px, calc(100vw - 36px));
+            padding: 22px 0 48px;
+            gap: 16px;
+        }
+
+        .back-link {
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(180, 216, 208, 0.56);
+            box-shadow: 0 10px 24px rgba(31, 94, 85, 0.08);
+            font-weight: 700;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.82);
+            border-color: rgba(180, 216, 208, 0.56);
+            box-shadow: 0 18px 42px rgba(31, 94, 85, 0.11);
+            border-radius: 28px;
+        }
+
+        .card.hero h1 {
+            background: linear-gradient(90deg, #1f7468, #177f86, #2b85b9);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.04em;
+        }
+
+        .step-badge,
+        .btn-search,
+        .btn-generate,
+        .btn-key-save {
+            background: linear-gradient(90deg, #42c48f, #24b5a7);
+            border-color: transparent;
+            box-shadow: 0 12px 26px rgba(39, 185, 138, 0.18);
+        }
+
+        .btn-search:hover,
+        .btn-generate:hover,
+        .btn-key-save:hover {
+            background: linear-gradient(90deg, #24b5a7, #177f86);
+        }
+
+        .btn-copy:hover {
+            background: linear-gradient(90deg, #2e5c4d, #177f86);
+            color: white;
+            border-color: transparent;
+        }
+
+        @media (max-width: 520px) {
+            .wrap {
+                width: min(calc(100vw - 20px), 760px);
+                padding: 14px 0 30px;
+                gap: 12px;
+            }
+
+            .card {
+                padding: 22px 16px;
+                border-radius: 22px;
+            }
+
+            .back-link {
                 justify-content: center;
             }
         }
