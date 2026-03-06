@@ -434,12 +434,57 @@
       display: none;
     }
 
+    .hero {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      text-align: left;
+      border-radius: 30px;
+      padding: 28px 30px;
+    }
+
+    .hero-mark {
+      position: relative;
+      width: 62px;
+      height: 62px;
+      border-radius: 20px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #42c48f, #24b5a7 54%, #57b7e5);
+      box-shadow: 0 18px 30px rgba(46, 145, 132, 0.22);
+    }
+
+    .hero-mark::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      right: -1px;
+      width: 16px;
+      height: 16px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
+    }
+
+    .hero-mark img {
+      width: 28px;
+      height: 28px;
+      filter: brightness(0) invert(1);
+    }
+
     .hero h1 {
       background: linear-gradient(90deg, #1f7468, #177f86, #2b85b9);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
       letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin-top: 8px;
+      font-size: 0.98rem;
+      line-height: 1.6;
     }
 
     .hero,
@@ -471,7 +516,10 @@
       }
 
       .hero {
+        flex-direction: column;
+        text-align: center;
         padding: 22px 18px;
+        gap: 14px;
       }
 
       .panel {
@@ -493,8 +541,13 @@
   <main class="wrap">
     <a href="index.html" class="top-link animate-item">← 홈으로</a>
     <section class="hero animate-item">
-      <h1>정기모임 공지 쓰기</h1>
-      <p>입력한 값으로 정기모임 공지문을 바로 생성합니다.</p>
+      <div class="hero-mark" aria-hidden="true">
+        <img src="assets/favicon/favicon.svg" alt="" />
+      </div>
+      <div class="hero-copy">
+        <h1>정기모임 공지 쓰기</h1>
+        <p>입력한 값으로 정기모임 공지문을 바로 생성합니다.</p>
+      </div>
     </section>
 
     <section class="panel animate-item delay-1">

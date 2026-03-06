@@ -881,12 +881,66 @@
       gap: 14px;
     }
 
+    .top-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      width: fit-content;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #24504a;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(180, 216, 208, 0.56);
+      box-shadow: 0 10px 24px rgba(31, 94, 85, 0.08);
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .top-link:hover {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
     .hero {
+      display: flex;
+      align-items: center;
+      gap: 18px;
       border-radius: 24px;
-      padding: 22px 20px;
+      padding: 28px 30px;
       background: rgba(255, 255, 255, 0.82);
       border-color: rgba(180, 216, 208, 0.56);
       box-shadow: 0 18px 42px rgba(31, 94, 85, 0.11);
+    }
+
+    .hero-mark {
+      position: relative;
+      width: 62px;
+      height: 62px;
+      border-radius: 20px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #42c48f, #24b5a7 54%, #57b7e5);
+      box-shadow: 0 18px 30px rgba(46, 145, 132, 0.22);
+    }
+
+    .hero-mark::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      right: -1px;
+      width: 16px;
+      height: 16px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
+    }
+
+    .hero-mark img {
+      width: 28px;
+      height: 28px;
+      filter: brightness(0) invert(1);
     }
 
     .hero h1 {
@@ -895,6 +949,13 @@
       background-clip: text;
       color: transparent;
       letter-spacing: -0.04em;
+    }
+
+    .hero-copy p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
     }
 
     .panel {
@@ -925,7 +986,7 @@
     }
 
     .back-home-btn {
-      background: rgba(255, 255, 255, 0.88);
+      display: none;
     }
 
     .zone h3,
@@ -951,11 +1012,19 @@
       }
 
       .hero {
-        padding: 18px 16px;
+        flex-direction: column;
+        text-align: center;
+        padding: 22px 18px;
+        gap: 14px;
       }
 
       .panel {
         padding: 16px 14px;
+      }
+
+      .top-link {
+        width: 100%;
+        justify-content: center;
       }
     }
   </style>
@@ -965,8 +1034,15 @@
   <div class="bg-shape shape-1"></div>
   <div class="bg-shape shape-2"></div>
   <main class="container">
+    <a class="top-link" href="/">← 홈으로</a>
     <section class="hero">
-      <h1>독서모임 조 랜덤 배정기</h1>
+      <div class="hero-mark" aria-hidden="true">
+        <img src="../../assets/favicon/favicon.svg" alt="" />
+      </div>
+      <div class="hero-copy">
+        <h1>독서모임 조 랜덤 배정기</h1>
+        <p>참석자 입력부터 조 편성까지 한 화면에서 빠르게 진행합니다.</p>
+      </div>
     </section>
 
     <section class="panel">
