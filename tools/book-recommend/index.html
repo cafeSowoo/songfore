@@ -1590,7 +1590,7 @@ ${month}월 ${day}일 지정 도서 📖 ${title} - ${author} 안내드립니다
 ${aiBody}
 
 해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다🤗
-${aladinUrl}`;
+[도서 정보] ${aladinUrl}`;
 
             const preview = document.getElementById('result-preview');
             preview.dataset.plainText = plain;
@@ -1599,7 +1599,7 @@ ${aladinUrl}`;
 ${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(author)} 안내드립니다.<br><br>
 <span class="ai-highlight">${esc(aiBody)}</span><br><br>
 해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다🤗<br>
-<a href="${esc(aladinUrl)}" target="_blank" style="color:var(--primary);font-size:0.88rem;word-break:break-all;">${esc(aladinUrl)}</a>`;
+[도서 정보] <a href="${esc(aladinUrl)}" target="_blank" style="color:var(--primary);font-size:0.88rem;word-break:break-all;">${esc(aladinUrl)}</a>`;
 
             const btn = document.getElementById('btn-copy');
             btn.textContent = '📋 카카오톡에 공유할 텍스트 복사';
