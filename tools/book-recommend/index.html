@@ -677,12 +677,25 @@
 
             .search-row {
                 flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
             }
 
             .btn-search {
                 width: 100%;
                 height: 46px;
                 justify-content: center;
+            }
+
+            .search-row .form-group {
+                width: 100%;
+                align-items: stretch;
+            }
+
+            .search-row .form-group label {
+                width: 100%;
+                text-align: left;
+                padding-left: 2px;
             }
         }
         .wrap {
@@ -692,6 +705,7 @@
         }
 
         .back-link {
+            width: fit-content;
             padding: 10px 16px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.7);
@@ -746,10 +760,11 @@
             background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
         }
 
-        .hero-mark img {
+        .hero-mark svg {
             width: 28px;
             height: 28px;
-            filter: brightness(0) invert(1);
+            color: #fff;
+            stroke-width: 2.1;
         }
 
         .hero-copy p {
@@ -790,13 +805,21 @@
             }
 
             .card.hero {
-                flex-direction: column;
-                text-align: center;
-                gap: 14px;
+                flex-direction: row;
+                text-align: left;
+                align-items: center;
+                gap: 16px;
+                padding: 20px 16px;
             }
 
             .back-link {
+                width: fit-content;
                 justify-content: center;
+            }
+
+            .hero-copy p {
+                margin-top: 6px;
+                font-size: 0.92rem;
             }
         }
     </style>
@@ -843,7 +866,13 @@
         <!-- Hero -->
         <div class="card hero ani d1">
             <div class="hero-mark" aria-hidden="true">
-                <img src="../../assets/favicon/favicon.svg" alt="" />
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M4.5 5.5A2.5 2.5 0 0 1 7 3h12.5v16H7a2.5 2.5 0 0 0-2.5 2.5z" stroke="currentColor"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M7 3v18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M9.5 7.5h7" stroke="currentColor" stroke-linecap="round" />
+                    <path d="M9.5 11h5.5" stroke="currentColor" stroke-linecap="round" />
+                </svg>
             </div>
             <div class="hero-copy">
                 <h1>선정도서 추천하기</h1>
@@ -964,12 +993,17 @@
             hideCover();
         }
 
-        /* ─── 날짜 초기값: 오늘 ─────────────────────────── */
+        /* ─── 날짜 초기값: 오늘 기준 다음주 토요일 ───────── */
         (function () {
             const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
+            const nextSaturday = new Date(today);
+            const dayOfWeek = today.getDay();
+            const daysUntilNextWeekSaturday = ((6 - dayOfWeek + 7) % 7) + 7;
+            nextSaturday.setDate(today.getDate() + daysUntilNextWeekSaturday);
+
+            const yyyy = nextSaturday.getFullYear();
+            const mm = String(nextSaturday.getMonth() + 1).padStart(2, '0');
+            const dd = String(nextSaturday.getDate()).padStart(2, '0');
             document.getElementById('pick-date').value = `${yyyy}-${mm}-${dd}`;
         })();
 

@@ -130,11 +130,10 @@
       background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
     }
 
-    .brand-mark svg {
+    .brand-mark img {
       width: 34px;
       height: 34px;
-      color: #fff;
-      stroke-width: 2.2;
+      filter: brightness(0) invert(1);
     }
 
     .hero-copy {
@@ -170,8 +169,8 @@
       position: relative;
       display: flex;
       flex-direction: column;
-      min-height: 272px;
-      padding: 28px;
+      min-height: 196px;
+      padding: 18px 22px;
       border-radius: 28px;
       background: var(--surface-strong);
       border: 1px solid rgba(223, 231, 235, 0.92);
@@ -221,41 +220,17 @@
       animation-delay: 320ms;
     }
 
-    .status-badge {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 64px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      font-size: 0.76rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      color: #fff;
-      background: linear-gradient(90deg, #2bc57a, #17b1a8);
-      box-shadow: 0 10px 20px rgba(45, 180, 129, 0.2);
-    }
-
-    .status-badge.coming {
-      background: linear-gradient(90deg, #98a3ac, #7f8a95);
-      box-shadow: 0 10px 20px rgba(121, 133, 143, 0.16);
-    }
-
     .card-icon {
       width: 60px;
       height: 60px;
       border-radius: 18px;
       display: grid;
       place-items: center;
-      margin-bottom: 22px;
       background: linear-gradient(135deg, #e7fbf0, #d9f3f2);
       transition: transform 220ms ease, background 220ms ease;
       position: relative;
       z-index: 1;
+      flex: 0 0 auto;
     }
 
     .feature-card:hover .card-icon {
@@ -275,22 +250,36 @@
       transform: scale(1.08);
     }
 
+    .card-copy {
+      position: relative;
+      z-index: 1;
+      min-width: 0;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+    }
+
+    .card-head {
+      display: grid;
+      grid-template-columns: 60px minmax(0, 1fr);
+      align-items: start;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
     .feature-card h2 {
       margin: 0;
       font-size: 1.32rem;
       line-height: 1.35;
       letter-spacing: -0.02em;
-      position: relative;
-      z-index: 1;
     }
 
     .feature-card p {
-      margin: 10px 0 0;
+      margin: 0;
       color: var(--text-subtle);
       line-height: 1.6;
-      min-height: 52px;
-      position: relative;
-      z-index: 1;
+      min-height: 0;
+      font-size: 0.93rem;
     }
 
     .cta {
@@ -425,8 +414,8 @@
       }
 
       .feature-card {
-        min-height: 228px;
-        padding: 22px 18px 18px;
+        min-height: 178px;
+        padding: 16px 16px 14px;
         border-radius: 24px;
       }
 
@@ -439,15 +428,15 @@
         margin-top: 6px;
       }
 
-      .status-badge {
-        top: 16px;
-        right: 16px;
-      }
-
       .card-icon {
         width: 54px;
         height: 54px;
-        margin-bottom: 16px;
+      }
+
+      .card-head {
+        grid-template-columns: 54px minmax(0, 1fr);
+        gap: 14px;
+        margin-bottom: 8px;
       }
 
       .feature-card h2 {
@@ -456,13 +445,13 @@
 
       .feature-card p {
         min-height: auto;
-        font-size: 0.92rem;
+        font-size: 0.88rem;
         margin-top: 8px;
       }
 
       .cta {
-        margin-top: 18px;
-        padding: 13px 16px;
+        margin-top: 8px;
+        padding: 12px 16px;
       }
 
       .footer-note {
@@ -522,9 +511,7 @@
     <main class="wrap">
       <section class="hero" aria-label="service intro">
         <div class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <use href="#icon-book"></use>
-          </svg>
+          <img src="assets/favicon/favicon.svg" alt="" />
         </div>
         <div class="hero-copy">
           <h1>&#49569;&#46020; &#46021;&#49436; &#54252;&#47112;&#49828;&#53944;</h1>
@@ -534,74 +521,92 @@
 
       <section class="card-grid" aria-label="main menu">
         <a class="feature-card delay-1" href="./tools/grouping-dnd-v2/index.html">
-          <span class="status-badge">&#49888;&#44508;</span>
-          <div class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <use href="#icon-users"></use>
-            </svg>
+          <div class="card-head">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <use href="#icon-users"></use>
+              </svg>
+            </div>
+            <div class="card-copy">
+              <h2>&#46021;&#49436;&#47784;&#51076; &#51312; &#48176;&#51221; &#46020;&#44396;</h2>
+              <p>&#51312;&#47484;&#32;&#51693;&#45768;&#45796;</p>
+            </div>
           </div>
-          <h2>&#46021;&#49436;&#47784;&#51076; &#51312; &#48176;&#51221; &#46020;&#44396;</h2>
-          <p>&#51312;&#47484;&#32;&#51693;&#45768;&#45796;</p>
-          <span class="cta">&#49888;&#44508;</span>
+          <span class="cta">&#48148;&#47196; &#44032;&#44592;</span>
         </a>
 
         <a class="feature-card delay-2" href="./notice-mail.html">
-          <span class="status-badge">&#49888;&#44508;</span>
-          <div class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <use href="#icon-bell"></use>
-            </svg>
+          <div class="card-head">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <use href="#icon-bell"></use>
+              </svg>
+            </div>
+            <div class="card-copy">
+              <h2>&#51221;&#47784; &#51312; &#44277;&#51648; &#51089;&#49457;</h2>
+              <p>&#47784;&#51076;&#32;&#51204;&#45216;&#32;&#52196;&#32;&#50732;&#47532;&#45716;&#32;&#44163;</p>
+            </div>
           </div>
-          <h2>&#51221;&#47784; &#51312; &#44277;&#51648; &#51089;&#49457;</h2>
-          <p>&#47784;&#51076;&#32;&#51204;&#45216;&#32;&#52196;&#32;&#50732;&#47532;&#45716;&#32;&#44163;</p>
-          <span class="cta">&#49888;&#44508;</span>
+          <span class="cta">&#47700;&#51068; &#51089;&#49457;</span>
         </a>
 
         <a class="feature-card delay-3" href="./regular-notice.html">
-          <span class="status-badge">&#49888;&#44508;</span>
-          <div class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <use href="#icon-calendar"></use>
-            </svg>
+          <div class="card-head">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <use href="#icon-calendar"></use>
+              </svg>
+            </div>
+            <div class="card-copy">
+              <h2>&#51221;&#44592; &#47784;&#51076; &#44277;&#51648; &#44544; &#50416;&#44592;</h2>
+              <p>&#47784;&#51076; 2&#51452; &#51204;&#50640; &#50732;&#47532;&#45716; &#44172;&#49884;&#44544;</p>
+            </div>
           </div>
-          <h2>&#51221;&#44592; &#47784;&#51076; &#44277;&#51648; &#44544; &#50416;&#44592;</h2>
-          <p>&#47784;&#51076; 2&#51452; &#51204;&#50640; &#50732;&#47532;&#45716; &#44172;&#49884;&#44544;</p>
-          <span class="cta">&#49888;&#44508;</span>
+          <span class="cta">&#44277;&#51648; &#51089;&#49457;</span>
         </a>
 
         <a class="feature-card delay-4" href="./tools/book-recommend/index.html">
-          <span class="status-badge">&#49888;&#44508;</span>
-          <div class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <use href="#icon-book"></use>
-            </svg>
+          <div class="card-head">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <use href="#icon-book"></use>
+              </svg>
+            </div>
+            <div class="card-copy">
+              <h2>&#49440;&#51221;&#46020;&#49436; &#52628;&#52380;&#54616;&#44592;</h2>
+              <p>&#45796;&#51020; &#47784;&#51076;&#50640;&#49436; &#51069;&#51012; &#52293;&#51012; &#52628;&#52380;&#54644;&#48372;&#49464;&#50836;</p>
+            </div>
           </div>
-          <h2>&#49440;&#51221;&#46020;&#49436; &#52628;&#52380;&#54616;&#44592;</h2>
-          <p>&#45796;&#51020; &#47784;&#51076;&#50640;&#49436; &#51069;&#51012; &#52293;&#51012; &#52628;&#52380;&#54644;&#48372;&#49464;&#50836;</p>
-          <span class="cta">&#49888;&#44508;</span>
+          <span class="cta">&#46020;&#49436; &#52286;&#44592;</span>
         </a>
 
         <a class="feature-card disabled delay-4" href="./tools/board/index.html" aria-disabled="true">
-          <span class="status-badge coming">&#44277;&#49324;&#51473;</span>
-          <div class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <use href="#icon-clock"></use>
-            </svg>
+          <div class="card-head">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <use href="#icon-clock"></use>
+              </svg>
+            </div>
+            <div class="card-copy">
+              <h2>&#47784;&#51076; &#55176;&#49828;&#53664;&#47532;</h2>
+              <p>&#51456;&#48708; &#51473;&#51077;&#45768;&#45796;</p>
+            </div>
           </div>
-          <h2>&#47784;&#51076; &#55176;&#49828;&#53664;&#47532;</h2>
-          <p>&#51456;&#48708; &#51473;&#51077;&#45768;&#45796;</p>
           <span class="cta">&#44277;&#49324;&#51473;</span>
         </a>
 
         <a class="feature-card disabled delay-4" href="./tools/admin/index.html" aria-disabled="true">
-          <span class="status-badge coming">&#44277;&#49324;&#51473;</span>
-          <div class="card-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <use href="#icon-settings"></use>
-            </svg>
+          <div class="card-head">
+            <div class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <use href="#icon-settings"></use>
+              </svg>
+            </div>
+            <div class="card-copy">
+              <h2>&#44288;&#47532; &#47700;&#45684;</h2>
+              <p>&#48120;&#51221;&#51077;&#45768;&#45796;</p>
+            </div>
           </div>
-          <h2>&#44288;&#47532; &#47700;&#45684;</h2>
-          <p>&#48120;&#51221;&#51077;&#45768;&#45796;</p>
           <span class="cta">&#44277;&#49324;&#51473;</span>
         </a>
       </section>

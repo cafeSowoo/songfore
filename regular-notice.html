@@ -81,11 +81,11 @@
     }
 
     .wrap {
-      width: min(980px, 92vw);
+      width: min(760px, calc(100vw - 40px));
       margin: 0 auto;
-      padding: 60px 0 80px;
+      padding: 28px 0 56px;
       display: grid;
-      gap: 24px;
+      gap: 20px;
       position: relative;
     }
 
@@ -415,6 +415,7 @@
       align-items: center;
       gap: 8px;
       padding: 10px 16px;
+      width: fit-content;
       border-radius: 999px;
       text-decoration: none;
       color: var(--primary);
@@ -467,10 +468,11 @@
       background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
     }
 
-    .hero-mark img {
+    .hero-mark svg {
       width: 28px;
       height: 28px;
-      filter: brightness(0) invert(1);
+      color: #fff;
+      stroke-width: 2.1;
     }
 
     .hero h1 {
@@ -516,10 +518,11 @@
       }
 
       .hero {
-        flex-direction: column;
-        text-align: center;
-        padding: 22px 18px;
-        gap: 14px;
+        flex-direction: row;
+        text-align: left;
+        align-items: center;
+        padding: 20px 18px;
+        gap: 16px;
       }
 
       .panel {
@@ -527,8 +530,13 @@
       }
 
       .top-link {
-        width: 100%;
+        width: fit-content;
         justify-content: center;
+      }
+
+      .hero-copy p {
+        margin-top: 6px;
+        font-size: 0.92rem;
       }
     }
   </style>
@@ -542,7 +550,11 @@
     <a href="index.html" class="top-link animate-item">← 홈으로</a>
     <section class="hero animate-item">
       <div class="hero-mark" aria-hidden="true">
-        <img src="assets/favicon/favicon.svg" alt="" />
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="3.5" y="5" width="17" height="15" rx="2.5" stroke="currentColor" />
+          <path d="M7.5 3.5v3M16.5 3.5v3M3.5 9h17" stroke="currentColor" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
       </div>
       <div class="hero-copy">
         <h1>정기모임 공지 쓰기</h1>
