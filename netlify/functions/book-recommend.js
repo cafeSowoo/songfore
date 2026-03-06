@@ -1,23 +1,14 @@
-// netlify/functions/book-recommend.js
-// Gemini API 키를 서버에서만 사용 (브라우저 노출 없음)
-
 const ALLOWED_ORIGINS = new Set([
   "https://songfore.com",
   "https://www.songfore.com",
-  // 로컬 테스트용
   "http://localhost:8888",
   "http://localhost:5173",
   "http://localhost:3000",
 ]);
 
-// 간단한 인메모리 레이트리밋 (1분당 IP당 20회 제한)
 const rateMap = new Map();
+const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
 
-/**
- * @param {string} ip
- * @param {number} limit
- * @param {number} windowMs
- */
 function isRateLimited(ip, limit = 20, windowMs = 60_000) {
   const now = Date.now();
   const key = ip || "unknown";
@@ -30,12 +21,10 @@ function isRateLimited(ip, limit = 20, windowMs = 60_000) {
 
   item.count += 1;
   rateMap.set(key, item);
-
   return item.count > limit;
 }
 
 function corsHeaders(origin) {
-  // origin이 허용 목록이면 허용, 아니면 빈 값(브라우저 차단)
   const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "";
   return {
     "Access-Control-Allow-Origin": allowOrigin,
@@ -44,119 +33,170 @@ function corsHeaders(origin) {
   };
 }
 
-// Gemini 모델 순서 (할당량 초과 시 자동 폴백)
-const GEMINI_MODELS = [
-  "gemini-2.5-flash",
-  "gemini-2.5-flash-lite",
-];
+function jsonResponse(body, status, headers) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...headers, "Content-Type": "application/json" },
+  });
+}
 
-export default async (req, context) => {
-  const origin = req.headers.get("origin") || "";
-  const headers = corsHeaders(origin);
+function readAladinKey() {
+  return (
+    process.env.ALADIN_TTB_KEY ||
+    process.env.ALADIN_TTBKEY ||
+    process.env.ALADIN_API_KEY ||
+    ""
+  ).trim();
+}
 
-  // Preflight
-  if (req.method === "OPTIONS") {
-    return new Response("", { status: 204, headers });
+function textFrom(node, selector) {
+  return node.querySelector(selector)?.textContent?.trim() || "";
+}
+
+function parseAladinXml(xmlText) {
+  const doc = new DOMParser().parseFromString(xmlText, "application/xml");
+  if (!doc || doc.querySelector("parsererror")) {
+    throw new Error("Failed to parse Aladin XML");
   }
 
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
-      status: 405,
-      headers: { ...headers, "Content-Type": "application/json" },
-    });
+  return Array.from(doc.querySelectorAll("item")).map((item) => ({
+    title: textFrom(item, "title"),
+    author: textFrom(item, "author"),
+    publisher: textFrom(item, "publisher"),
+    pubDate: textFrom(item, "pubDate"),
+    description: textFrom(item, "description"),
+    isbn: textFrom(item, "isbn"),
+    isbn13: textFrom(item, "isbn13"),
+    link: textFrom(item, "link"),
+    cover: textFrom(item, "cover"),
+    categoryName: textFrom(item, "categoryName"),
+    mallType: textFrom(item, "mallType"),
+    customerReviewRank: Number.parseInt(textFrom(item, "customerReviewRank"), 10) || 0,
+    salesPoint: Number.parseInt(textFrom(item, "salesPoint"), 10) || 0,
+  }));
+}
+
+async function fetchGoogleBooks(query, apiKey) {
+  const booksUrl =
+    `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}` +
+    `&maxResults=20&langRestrict=ko&printType=books&orderBy=relevance&key=${encodeURIComponent(apiKey)}`;
+
+  const response = await fetch(booksUrl);
+  const data = await response.json().catch(() => ({}));
+  return {
+    ok: response.ok,
+    status: response.status,
+    data,
+  };
+}
+
+async function fetchAladinBooks(title, author) {
+  const ttbKey = readAladinKey();
+  if (!ttbKey) {
+    return { enabled: false, items: [], error: "Missing ALADIN_TTB_KEY" };
   }
 
-  // CORS origin 체크
-  if (origin && !ALLOWED_ORIGINS.has(origin)) {
-    return new Response(JSON.stringify({ error: "Forbidden origin" }), {
-      status: 403,
-      headers: { ...headers, "Content-Type": "application/json" },
-    });
+  const query = [title, author].filter(Boolean).join(" ").trim();
+  if (!query) {
+    return { enabled: true, items: [] };
   }
 
-  // IP 기반 레이트리밋
-  const ip =
-    req.headers.get("x-nf-client-connection-ip") ||
-    req.headers.get("x-forwarded-for") ||
-    "";
-  if (isRateLimited(String(ip))) {
-    return new Response(JSON.stringify({ error: "Too many requests" }), {
-      status: 429,
-      headers: { ...headers, "Content-Type": "application/json" },
-    });
-  }
+  const url =
+    "https://www.aladin.co.kr/ttb/api/ItemSearch.aspx" +
+    `?ttbkey=${encodeURIComponent(ttbKey)}` +
+    `&Query=${encodeURIComponent(query)}` +
+    "&QueryType=Keyword" +
+    "&SearchTarget=Book" +
+    "&MaxResults=10" +
+    "&start=1" +
+    "&output=xml" +
+    "&Version=20131101" +
+    "&Cover=Big";
 
-  let body;
   try {
-    body = await req.json();
-  } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-      status: 400,
-      headers: { ...headers, "Content-Type": "application/json" },
-    });
+    const response = await fetch(url);
+    const xmlText = await response.text();
+    if (!response.ok) {
+      return {
+        enabled: true,
+        items: [],
+        error: `Aladin request failed (${response.status})`,
+      };
+    }
+
+    return {
+      enabled: true,
+      items: parseAladinXml(xmlText),
+    };
+  } catch (error) {
+    return {
+      enabled: true,
+      items: [],
+      error: String(error?.message || error),
+    };
+  }
+}
+
+async function handleBookSearch(body, headers) {
+  const booksApiKey = (process.env.GOOGLE_BOOKS_API_KEY || "").trim();
+  if (!booksApiKey) {
+    return jsonResponse({ error: "Missing GOOGLE_BOOKS_API_KEY" }, 500, headers);
   }
 
-  // ── 도서 검색 액션 ──────────────────────────────────────────
-  if (body?.action === "search") {
-    const BOOKS_API_KEY = process.env.GOOGLE_BOOKS_API_KEY;
-    if (!BOOKS_API_KEY) {
-      return new Response(JSON.stringify({ error: "Missing GOOGLE_BOOKS_API_KEY" }), {
-        status: 500,
-        headers: { ...headers, "Content-Type": "application/json" },
-      });
-    }
-    const q = (body?.q || "").trim();
-    if (!q) {
-      return new Response(JSON.stringify({ error: "Missing query" }), {
-        status: 400,
-        headers: { ...headers, "Content-Type": "application/json" },
-      });
-    }
-    const booksUrl =
-      `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}` +
-      `&maxResults=20&langRestrict=ko&printType=books&orderBy=relevance&key=${encodeURIComponent(BOOKS_API_KEY)}`;
-    try {
-      const bRes = await fetch(booksUrl);
-      const bData = await bRes.json().catch(() => ({}));
-      return new Response(JSON.stringify(bData), {
-        status: bRes.status,
-        headers: { ...headers, "Content-Type": "application/json" },
-      });
-    } catch (e) {
-      return new Response(JSON.stringify({ error: String(e?.message || e) }), {
-        status: 502,
-        headers: { ...headers, "Content-Type": "application/json" },
-      });
-    }
+  const query = (body?.q || "").trim();
+  const title = (body?.title || "").trim();
+  const author = (body?.author || "").trim();
+  if (!query) {
+    return jsonResponse({ error: "Missing query" }, 400, headers);
   }
 
-  // ── Gemini 추천글 생성 ──────────────────────────────────────
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_API_KEY) {
-    return new Response(JSON.stringify({ error: "Missing GEMINI_API_KEY" }), {
-      status: 500,
-      headers: { ...headers, "Content-Type": "application/json" },
-    });
+  try {
+    const [googleResult, aladinResult] = await Promise.all([
+      fetchGoogleBooks(query, booksApiKey),
+      fetchAladinBooks(title, author),
+    ]);
+
+    if (!googleResult.ok) {
+      return jsonResponse(googleResult.data, googleResult.status, headers);
+    }
+
+    return jsonResponse(
+      {
+        items: Array.isArray(googleResult.data?.items) ? googleResult.data.items : [],
+        totalItems: Number.isFinite(googleResult.data?.totalItems)
+          ? googleResult.data.totalItems
+          : 0,
+        aladin: aladinResult,
+      },
+      200,
+      headers,
+    );
+  } catch (error) {
+    return jsonResponse({ error: String(error?.message || error) }, 502, headers);
+  }
+}
+
+async function handleGeminiPrompt(body, headers) {
+  const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
+  if (!geminiApiKey) {
+    return jsonResponse({ error: "Missing GEMINI_API_KEY" }, 500, headers);
   }
 
   const prompt = (body?.prompt || "").trim();
   if (!prompt) {
-    return new Response(JSON.stringify({ error: "Missing prompt" }), {
-      status: 400,
-      headers: { ...headers, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "Missing prompt" }, 400, headers);
   }
 
-  // Gemini 모델을 순서대로 시도
   let lastError = "Unknown error";
+
   for (const modelId of GEMINI_MODELS) {
     const url =
-      `https://generativelanguage.googleapis.com/v1beta/models/` +
-      `${modelId}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+      "https://generativelanguage.googleapis.com/v1beta/models/" +
+      `${modelId}:generateContent?key=${encodeURIComponent(geminiApiKey)}`;
 
-    let r;
+    let response;
     try {
-      r = await fetch(url, {
+      response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -168,52 +208,76 @@ export default async (req, context) => {
           },
         }),
       });
-    } catch (e) {
-      lastError = String(e?.message || e);
-      continue; // 네트워크 오류 → 다음 모델
+    } catch (error) {
+      lastError = String(error?.message || error);
+      continue;
     }
 
-    // 할당량 초과 → 다음 모델
-    if (r.status === 429 || r.status === 503) {
+    if (response.status === 429 || response.status === 503) {
       lastError = `Quota exceeded (${modelId})`;
       continue;
     }
 
-    const data = await r.json().catch(() => ({}));
-
-    if (!r.ok) {
-      const msg = data?.error?.message || "";
-      if (msg.includes("RESOURCE_EXHAUSTED") || msg.includes("quota")) {
-        lastError = msg;
-        continue; // 할당량 초과 → 다음 모델
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = data?.error?.message || "";
+      if (message.includes("RESOURCE_EXHAUSTED") || message.includes("quota")) {
+        lastError = message;
+        continue;
       }
-      // 기타 오류 → 즉시 반환
-      return new Response(
-        JSON.stringify({ error: msg || `Gemini error (${r.status})` }),
-        {
-          status: r.status,
-          headers: { ...headers, "Content-Type": "application/json" },
-        }
+      return jsonResponse(
+        { error: message || `Gemini error (${response.status})` },
+        response.status,
+        headers,
       );
     }
 
-    const candidate = data?.candidates?.[0];
-    const text = candidate?.content?.parts?.[0]?.text?.trim() || "";
-
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     if (!text) {
       lastError = "Empty response from Gemini";
       continue;
     }
 
-    return new Response(JSON.stringify({ text, model: modelId }), {
-      status: 200,
-      headers: { ...headers, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ text, model: modelId }, 200, headers);
   }
 
-  // 모든 모델 실패
-  return new Response(JSON.stringify({ error: lastError }), {
-    status: 502,
-    headers: { ...headers, "Content-Type": "application/json" },
-  });
+  return jsonResponse({ error: lastError }, 502, headers);
+}
+
+export default async (req) => {
+  const origin = req.headers.get("origin") || "";
+  const headers = corsHeaders(origin);
+
+  if (req.method === "OPTIONS") {
+    return new Response("", { status: 204, headers });
+  }
+
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "Method Not Allowed" }, 405, headers);
+  }
+
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    return jsonResponse({ error: "Forbidden origin" }, 403, headers);
+  }
+
+  const ip =
+    req.headers.get("x-nf-client-connection-ip") ||
+    req.headers.get("x-forwarded-for") ||
+    "";
+  if (isRateLimited(String(ip))) {
+    return jsonResponse({ error: "Too many requests" }, 429, headers);
+  }
+
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return jsonResponse({ error: "Invalid JSON" }, 400, headers);
+  }
+
+  if (body?.action === "search") {
+    return handleBookSearch(body, headers);
+  }
+
+  return handleGeminiPrompt(body, headers);
 };
