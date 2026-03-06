@@ -924,8 +924,16 @@
             return temp.value.replace(/\s+/g, ' ').trim();
         }
 
+        function getGooglePrimaryDescription(item) {
+            return getGoogleInfo(item).description || '';
+        }
+
+        function getGoogleSnippet(item) {
+            return htmlToPlainText(item?.searchInfo?.textSnippet || '');
+        }
+
         function getGoogleDescription(item) {
-            return getGoogleInfo(item).description || htmlToPlainText(item?.searchInfo?.textSnippet || '') || '';
+            return getGooglePrimaryDescription(item) || getGoogleSnippet(item) || '';
         }
 
         function getGoogleCover(item) {
@@ -1024,14 +1032,21 @@
         }
 
         function getDescriptionScore(item, searchTitle, searchAuthor) {
-            const desc = getGoogleDescription(item);
+            const primaryDesc = getGooglePrimaryDescription(item);
+            const snippet = getGoogleSnippet(item);
+            const desc = primaryDesc || snippet;
             if (!desc) return -Infinity;
             let score = getGoogleWorkScore(item, searchTitle, searchAuthor);
             const ratio = koreanRatio(desc);
-            score += ratio >= 0.5 ? 25 : ratio >= 0.15 ? 10 : -30;
-            if (desc.length >= 80 && desc.length <= 900) score += 18;
-            else if (desc.length > 900) score += 12;
-            else if (desc.length >= 40) score += 6;
+            score += primaryDesc ? 45 : -45;
+            score += ratio >= 0.5 ? 30 : ratio >= 0.15 ? 8 : -80;
+            if (primaryDesc) {
+                if (desc.length >= 80 && desc.length <= 900) score += 18;
+                else if (desc.length > 900) score += 12;
+                else if (desc.length >= 40) score += 6;
+            } else if (desc.length >= 40) {
+                score -= 10;
+            }
             return score;
         }
 
@@ -1088,18 +1103,30 @@
             return `https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=Book&SearchWord=${encodeURIComponent(title)}`;
         }
 
-        function mergeBookData(candidates, aladinItems, fallbackTitle, fallbackAuthor) {
+        function mergeBookData(candidates, googleItems, aladinItems, fallbackTitle, fallbackAuthor) {
             const googleRepresentative = chooseGoogleRepresentative(candidates, fallbackTitle, fallbackAuthor);
-            const descriptionSource = selectBestDescription(candidates, fallbackTitle, fallbackAuthor);
+            const descriptionSource = selectBestDescription(
+                (googleItems && googleItems.length > 0) ? googleItems : candidates,
+                fallbackTitle,
+                fallbackAuthor
+            );
             const coverSource = selectBestGoogleCover(candidates, fallbackTitle, fallbackAuthor) || googleRepresentative;
             const aladinRepresentative = chooseAladinRepresentative(aladinItems, fallbackTitle, fallbackAuthor);
             const baseGoogleInfo = getGoogleInfo(googleRepresentative || descriptionSource || coverSource);
+            const googleDescription = getGoogleDescription(descriptionSource);
+            const googleHasPrimaryDescription = !!getGooglePrimaryDescription(descriptionSource);
+            const aladinDescription = aladinRepresentative?.description || '';
+            const shouldPreferAladinDescription =
+                !!aladinDescription &&
+                (!googleDescription || !googleHasPrimaryDescription || koreanRatio(googleDescription) < 0.25);
+            const description = shouldPreferAladinDescription
+                ? aladinDescription
+                : (googleDescription || aladinDescription || '');
 
             const title = aladinRepresentative?.title || baseGoogleInfo.title || fallbackTitle;
             const author = aladinRepresentative?.author || (baseGoogleInfo.authors || []).join(', ') || fallbackAuthor;
             const publisher = aladinRepresentative?.publisher || baseGoogleInfo.publisher || '';
             const publishedYear = getPublishedYear(aladinRepresentative?.pubDate || baseGoogleInfo.publishedDate);
-            const description = getGoogleDescription(descriptionSource) || aladinRepresentative?.description || '';
             const isbn = aladinRepresentative?.isbn13 || aladinRepresentative?.isbn || getGoogleIsbn(googleRepresentative) || getGoogleIsbn(descriptionSource) || '';
             const coverUrl = aladinRepresentative?.cover || getGoogleCover(coverSource) || '';
             const link = aladinRepresentative?.link ||
@@ -1116,7 +1143,9 @@
                 link,
                 source: {
                     representative: aladinRepresentative ? 'aladin' : 'google',
-                    description: descriptionSource ? 'google' : (aladinRepresentative?.description ? 'aladin' : 'none')
+                    description: shouldPreferAladinDescription
+                        ? 'aladin'
+                        : (googleDescription ? 'google' : (aladinDescription ? 'aladin' : 'none'))
                 }
             };
         }
@@ -1165,6 +1194,7 @@
                 const workCandidates = buildWorkCandidates(googleItems, title, author);
                 const merged = mergeBookData(
                     workCandidates.length > 0 ? workCandidates : googleItems,
+                    googleItems,
                     aladinItems,
                     title,
                     author
@@ -1201,8 +1231,6 @@
                     hideCover();
                 }
 
-                document.getElementById('book-title').value = merged.title || title;
-                document.getElementById('book-author').value = merged.author || author;
                 updateBookLinks();
 
                 if (merged.description) {
