@@ -838,6 +838,10 @@
 
         // 검색된 도서의 ISBN (알라딘 링크 생성에 활용)
         let currentIsbn = '';
+        function resetSelectedBookState() {
+            currentIsbn = '';
+            hideCover();
+        }
 
         /* ─── 날짜 초기값: 오늘 ─────────────────────────── */
         (function () {
@@ -862,7 +866,11 @@
                 aladin.href = 'https://www.aladin.co.kr';
             }
         }
-        document.getElementById('book-title').addEventListener('input', updateBookLinks);
+        document.getElementById('book-title').addEventListener('input', () => {
+            resetSelectedBookState();
+            updateBookLinks();
+        });
+        document.getElementById('book-author').addEventListener('input', resetSelectedBookState);
 
         /* ─── 제목 정규화 (유사도 비교용) ────────────────────── */
         function normalizeTitle(s) {
@@ -987,6 +995,7 @@
 
             btn.disabled = true;
             btn.textContent = '검색 중…';
+            resetSelectedBookState();
             setStatus('info', '🔍 Google Books에서 도서를 검색 중입니다…');
 
             const q = `intitle:${title}${author ? '+inauthor:' + author : ''}`;
@@ -999,6 +1008,7 @@
                 const data = await res.json();
 
                 if (!res.ok) {
+                    currentIsbn = '';
                     setStatus('miss', `⚠️ 검색 오류: ${data?.error || res.status}. 아래에 직접 붙여넣어 주세요.`);
                     hideCover();
                 } else {
@@ -1008,6 +1018,7 @@
                     const book = chooseBestBook(items, title) || items[0];
 
                     if (!book) {
+                        currentIsbn = '';
                         setStatus('miss', '⚠️ 검색 결과가 없습니다. 아래에 도서 소개를 직접 붙여넣어 주세요.');
                         hideCover();
                     } else {
@@ -1078,12 +1089,14 @@
                             if (!document.getElementById('book-author').value) document.getElementById('book-author').value = foundAuthor;
                             setStatus('found', `✅ "${foundTitle}" 도서 정보를 불러왔습니다. 내용이 맞는지 확인해 주세요.`);
                         } else {
+                            currentIsbn = '';
                             document.getElementById('book-desc').value = '';
                             setStatus('miss', `⚠️ 도서는 찾았지만 소개글이 없습니다. 아래에 직접 붙여넣어 주세요.`);
                         }
                     }
                 }
             } catch (e) {
+                currentIsbn = '';
                 setStatus('miss', '⚠️ 검색 중 오류가 발생했습니다. 직접 붙여넣어 주세요.');
             } finally {
                 btn.disabled = false;
@@ -1443,9 +1456,29 @@ ${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(
         }
         initKeys();
 
-        // Enter 키 (select 제외)
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !['SELECT', 'TEXTAREA'].includes(e.target.tagName)) generate();
+        document.getElementById('book-title').addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchBook();
+            }
+        });
+        document.getElementById('book-author').addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchBook();
+            }
+        });
+        document.getElementById('input-gemini-key').addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveKeys();
+            }
+        });
+        document.getElementById('input-openai-key').addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveKeys();
+            }
         });
     </script>
 </body>
