@@ -49,30 +49,45 @@ function readAladinKey() {
   ).trim();
 }
 
-function textFrom(node, selector) {
-  return node.querySelector(selector)?.textContent?.trim() || "";
+function decodeXmlText(value) {
+  return String(value || "")
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&")
+    .trim();
+}
+
+function extractXmlTag(xml, tagName) {
+  const match = String(xml || "").match(
+    new RegExp(`<${tagName}>([\\s\\S]*?)</${tagName}>`, "i"),
+  );
+  return decodeXmlText(match?.[1] || "");
 }
 
 function parseAladinXml(xmlText) {
-  const doc = new DOMParser().parseFromString(xmlText, "application/xml");
-  if (!doc || doc.querySelector("parsererror")) {
-    throw new Error("Failed to parse Aladin XML");
+  const itemBlocks = String(xmlText || "").match(/<item\b[\s\S]*?<\/item>/gi) || [];
+  if (itemBlocks.length === 0) {
+    return [];
   }
 
-  return Array.from(doc.querySelectorAll("item")).map((item) => ({
-    title: textFrom(item, "title"),
-    author: textFrom(item, "author"),
-    publisher: textFrom(item, "publisher"),
-    pubDate: textFrom(item, "pubDate"),
-    description: textFrom(item, "description"),
-    isbn: textFrom(item, "isbn"),
-    isbn13: textFrom(item, "isbn13"),
-    link: textFrom(item, "link"),
-    cover: textFrom(item, "cover"),
-    categoryName: textFrom(item, "categoryName"),
-    mallType: textFrom(item, "mallType"),
-    customerReviewRank: Number.parseInt(textFrom(item, "customerReviewRank"), 10) || 0,
-    salesPoint: Number.parseInt(textFrom(item, "salesPoint"), 10) || 0,
+  return itemBlocks.map((item) => ({
+    title: extractXmlTag(item, "title"),
+    author: extractXmlTag(item, "author"),
+    publisher: extractXmlTag(item, "publisher"),
+    pubDate: extractXmlTag(item, "pubDate"),
+    description: extractXmlTag(item, "description"),
+    isbn: extractXmlTag(item, "isbn"),
+    isbn13: extractXmlTag(item, "isbn13"),
+    link: extractXmlTag(item, "link"),
+    cover: extractXmlTag(item, "cover"),
+    categoryName: extractXmlTag(item, "categoryName"),
+    mallType: extractXmlTag(item, "mallType"),
+    customerReviewRank: Number.parseInt(extractXmlTag(item, "customerReviewRank"), 10) || 0,
+    salesPoint: Number.parseInt(extractXmlTag(item, "salesPoint"), 10) || 0,
   }));
 }
 

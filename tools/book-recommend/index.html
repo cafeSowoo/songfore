@@ -915,8 +915,17 @@
             return getGoogleInfo(item).authors || [];
         }
 
+        function htmlToPlainText(value) {
+            if (!value) return '';
+            const temp = document.createElement('textarea');
+            temp.innerHTML = String(value)
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<[^>]+>/g, ' ');
+            return temp.value.replace(/\s+/g, ' ').trim();
+        }
+
         function getGoogleDescription(item) {
-            return getGoogleInfo(item).description || '';
+            return getGoogleInfo(item).description || htmlToPlainText(item?.searchInfo?.textSnippet || '') || '';
         }
 
         function getGoogleCover(item) {
@@ -1161,6 +1170,14 @@
                     author
                 );
 
+                console.debug('[book-recommend] merged search result', {
+                    query: { title, author, q },
+                    googleItems: googleItems.length,
+                    aladinItems: aladinItems.length,
+                    aladinError: data?.aladin?.error || '',
+                    merged
+                });
+
                 if (!merged.title && !merged.description) {
                     currentIsbn = '';
                     currentBookLink = '';
@@ -1195,6 +1212,12 @@
                         : 'Google Books 기준으로 정리했습니다.';
                     setStatus('found', `✅ "${merged.title || title}" 도서 정보를 불러왔습니다. ${repSourceText}`);
                 } else {
+                    console.warn('[book-recommend] description missing after merge', {
+                        query: { title, author, q },
+                        googleItems,
+                        aladinItems,
+                        merged
+                    });
                     document.getElementById('book-desc').value = '';
                     setStatus('miss', '⚠️ 도서는 찾았지만 소개글이 없습니다. 아래에 직접 붙여넣어 주세요.');
                 }
