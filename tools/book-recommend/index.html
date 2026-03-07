@@ -1602,7 +1602,7 @@ ${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(
 [도서 정보] <a href="${esc(aladinUrl)}" target="_blank" style="color:var(--primary);font-size:0.88rem;word-break:break-all;">${esc(aladinUrl)}</a>`;
 
             const btn = document.getElementById('btn-copy');
-            btn.textContent = '📋 카카오톡에 공유할 텍스트 복사';
+            btn.textContent = '📋 텍스트 복사';
             btn.classList.remove('copied');
 
             const card = document.getElementById('result-card');
@@ -1689,7 +1689,7 @@ ${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(
                 btn.textContent = '✅ 복사 완료!';
                 btn.classList.add('copied');
                 setTimeout(() => {
-                    btn.textContent = '📋 카카오톡에 공유할 텍스트 복사';
+                    btn.textContent = '📋 텍스트 복사';
                     btn.classList.remove('copied');
                 }, 2500);
             };

@@ -282,6 +282,34 @@
       margin-top: 12px;
     }
 
+    .result-actions {
+      display: none;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .result-actions.show {
+      display: flex;
+      animation: fadeInUp 0.35s ease forwards;
+    }
+
+    .result-actions .share-copy {
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    .result-actions .share-copy.copied {
+      background: #34a853;
+      color: #fff;
+      border-color: #34a853;
+    }
+
+    .result-actions .share-kakao {
+      background: #FEE500;
+      color: #3C1E1E;
+      border-color: #FEE500;
+    }
+
     button {
       border: 1px solid rgba(46, 92, 77, 0.2);
       border-radius: 12px;
@@ -454,10 +482,13 @@
 
       <div class="btn-row">
         <button type="button" id="generateBtn" class="primary">확인</button>
-        <button type="button" id="copyBtn" disabled>복사</button>
       </div>
       <div id="noticeMessage" class="message"></div>
       <pre id="noticeOutput" class="output" aria-live="polite"></pre>
+      <div id="resultActions" class="result-actions" aria-live="polite">
+        <button type="button" id="copyBtn" class="share-copy">📋 텍스트 복사</button>
+        <button type="button" id="shareBtn" class="share-kakao">💬 카카오톡에 공유</button>
+      </div>
     </section>
     <p class="footer animate-item delay-2">원하시면 출력 문구 포맷만 수정해 드릴게요.</p>
   </main>
@@ -467,7 +498,9 @@
     const bookTitleEl = document.getElementById('bookTitle');
     const generateBtn = document.getElementById('generateBtn');
     const copyBtn = document.getElementById('copyBtn');
+    const shareBtn = document.getElementById('shareBtn');
     const outputEl = document.getElementById('noticeOutput');
+    const resultActionsEl = document.getElementById('resultActions');
     const messageEl = document.getElementById('noticeMessage');
 
     const venueText = {
@@ -582,7 +615,13 @@
 
       outputEl.textContent = lines;
       outputEl.classList.add('show');
-      copyBtn.disabled = false;
+      resultActionsEl.classList.add('show');
+      copyBtn.textContent = '📋 텍스트 복사';
+      copyBtn.classList.remove('copied');
+      shareBtn.textContent = '💬 카카오톡에 공유';
+      shareBtn.style.background = '#FEE500';
+      shareBtn.style.color = '#3C1E1E';
+      shareBtn.style.borderColor = '#FEE500';
       showMessage('ok', '공지문이 생성됐습니다.');
     }
 
@@ -594,10 +633,57 @@
 
       try {
         await navigator.clipboard.writeText(outputEl.textContent);
+        copyBtn.textContent = '✅ 복사 완료!';
+        copyBtn.classList.add('copied');
         showMessage('ok', '공지문을 복사했습니다.');
+        setTimeout(() => {
+          copyBtn.textContent = '📋 텍스트 복사';
+          copyBtn.classList.remove('copied');
+        }, 2500);
       } catch (error) {
         showMessage('error', '복사에 실패했습니다. 브라우저 권한을 확인해 주세요.');
       }
+    }
+
+    async function shareNotice() {
+      if (!outputEl.classList.contains('show') || !outputEl.textContent) {
+        showMessage('error', '먼저 확인 버튼으로 내용을 생성해 주세요.');
+        return;
+      }
+
+      const text = outputEl.textContent;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ text });
+        } catch (error) {
+          // 사용자가 공유를 취소한 경우 별도 처리하지 않음
+        }
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (error) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+
+      shareBtn.textContent = '✅ 복사 완료! 카카오톡에 붙여넣으세요';
+      shareBtn.style.background = '#34a853';
+      shareBtn.style.color = '#fff';
+      shareBtn.style.borderColor = '#34a853';
+      showMessage('ok', '카카오톡 공유용 텍스트를 복사했습니다.');
+      setTimeout(() => {
+        shareBtn.textContent = '💬 카카오톡에 공유';
+        shareBtn.style.background = '#FEE500';
+        shareBtn.style.color = '#3C1E1E';
+        shareBtn.style.borderColor = '#FEE500';
+      }, 3000);
     }
 
     // 기타 장소 입력창 토글 제어
@@ -616,6 +702,7 @@
     resultLinesEl.addEventListener('input', clampLines);
     generateBtn.addEventListener('click', buildNotice);
     copyBtn.addEventListener('click', copyNotice);
+    shareBtn.addEventListener('click', shareNotice);
   </script>
 </body>
 
