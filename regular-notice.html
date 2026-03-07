@@ -729,6 +729,19 @@
     const calcD4El = document.getElementById('calcD4');
     const calcD5bEl = document.getElementById('calcD5b');
 
+    (function setDefaultMeetingDateToNextSaturday() {
+      const today = new Date();
+      const nextSaturday = new Date(today);
+      const dayOfWeek = today.getDay();
+      const daysUntilNextWeekSaturday = ((6 - dayOfWeek + 7) % 7) + 7;
+      nextSaturday.setDate(today.getDate() + daysUntilNextWeekSaturday);
+
+      const yyyy = nextSaturday.getFullYear();
+      const mm = String(nextSaturday.getMonth() + 1).padStart(2, '0');
+      const dd = String(nextSaturday.getDate()).padStart(2, '0');
+      meetingDateEl.value = `${yyyy}-${mm}-${dd}`;
+    })();
+
     /* ─── 실시간 미리 보기 ─── */
     meetingNumberEl.addEventListener('input', () => {
       const n = parseInt(meetingNumberEl.value, 10);
@@ -759,6 +772,8 @@
     });
 
     /* ─── 메시지 ─── */
+    meetingDateEl.dispatchEvent(new Event('change'));
+
     function showMessage(type, text) {
       messageEl.className = `message show ${type}`;
       messageEl.textContent = text;
