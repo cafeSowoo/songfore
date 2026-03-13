@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
@@ -993,6 +993,12 @@
       color: #8f5200;
     }
 
+    button.share-kakao {
+      background: #FEE500;
+      color: #3C1E1E;
+      border-color: #FEE500;
+    }
+
     .back-home-btn {
       display: none;
     }
@@ -1107,6 +1113,7 @@
       <h2>3. 조 배정 결과</h2>
       <div class="btn-row">
         <button id="plainCopyBtn" type="button">결과 복사하기</button>
+        <button id="shareBtn" class="share-kakao" type="button">💬 카카오톡에 공유</button>
       </div>
 
       <div id="resultContainer" class="result-grid"></div>
@@ -1134,6 +1141,7 @@
     const reshuffleBtn = document.getElementById('reshuffleBtn');
     const resetBoardBtn = document.getElementById('resetBoardBtn');
     const plainCopyBtn = document.getElementById('plainCopyBtn');
+    const shareBtn = document.getElementById('shareBtn');
 
     const zoneElements = {};
     const zoneCountElements = {};
@@ -1156,6 +1164,25 @@
     function hideMessage(el) {
       el.className = 'message';
       el.textContent = '';
+    }
+
+    async function writeClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (error) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          return true;
+        } catch (fallbackError) {
+          return false;
+        }
+      }
     }
 
     function parseNames(text) {
@@ -1837,6 +1864,46 @@
       }
     }
 
+    async function sharePlainResult() {
+      if (!lastResult) {
+        showMessage(statusMessageEl, 'error', '먼저 배정 결과를 생성해 주세요.');
+        return;
+      }
+
+      const text = lastResult.groups
+        .map((group) => getDisplayMembers(group).map((member) => member.name).join(' '))
+        .join('\n');
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ text });
+          return;
+        } catch (error) {
+          if (error && error.name === 'AbortError') {
+            return;
+          }
+        }
+      }
+
+      const copied = await writeClipboard(text);
+      if (!copied) {
+        showMessage(statusMessageEl, 'error', '카카오톡 공유용 텍스트 복사에 실패했습니다.');
+        return;
+      }
+
+      shareBtn.textContent = '✅ 복사 완료! 카카오톡에 붙여넣으세요';
+      shareBtn.style.background = '#34a853';
+      shareBtn.style.color = '#fff';
+      shareBtn.style.borderColor = '#34a853';
+      showMessage(statusMessageEl, 'ok', '카카오톡 공유용 텍스트를 복사했습니다.');
+      setTimeout(() => {
+        shareBtn.textContent = '💬 카카오톡에 공유';
+        shareBtn.style.background = '#FEE500';
+        shareBtn.style.color = '#3C1E1E';
+        shareBtn.style.borderColor = '#FEE500';
+      }, 3000);
+    }
+
     confirmPeopleBtn.addEventListener('click', confirmPeople);
     clearAllBtn.addEventListener('click', () => {
       allPeopleEl.value = '';
@@ -1859,6 +1926,7 @@
     reshuffleBtn.addEventListener('click', runAssignment);
     resetBoardBtn.addEventListener('click', resetBoard);
     plainCopyBtn.addEventListener('click', copyPlainResult);
+    shareBtn.addEventListener('click', sharePlainResult);
 
     classifyPanelEl.hidden = true;
     resultPanelEl.hidden = true;

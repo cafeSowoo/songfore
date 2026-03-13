@@ -294,6 +294,12 @@
       border-color: transparent;
     }
 
+    button.share-kakao {
+      background: #FEE500;
+      color: #3C1E1E;
+      border-color: #FEE500;
+    }
+
     .output {
       white-space: pre-wrap;
       background: rgba(255, 255, 255, 0.85);
@@ -625,6 +631,7 @@
         <button type="button" id="copyTitleBtn" disabled>제목 복사</button>
         <button type="button" id="copyBodyBtn" disabled>내용 복사</button>
         <button type="button" id="copyAllBtn" disabled>전체 복사</button>
+        <button type="button" id="shareBtn" class="share-kakao" disabled>💬 카카오톡에 공유</button>
       </div>
       <div id="noticeMessage" class="message"></div>
 
@@ -719,6 +726,7 @@
     const copyTitleBtn = document.getElementById('copyTitleBtn');
     const copyBodyBtn = document.getElementById('copyBodyBtn');
     const copyAllBtn = document.getElementById('copyAllBtn');
+    const shareBtn = document.getElementById('shareBtn');
     const messageEl = document.getElementById('noticeMessage');
     const outputSection = document.getElementById('outputSection');
     const outputTitleEl = document.getElementById('outputTitle');
@@ -781,6 +789,25 @@
     function hideMessage() {
       messageEl.className = 'message';
       messageEl.textContent = '';
+    }
+
+    async function writeClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (error) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          return true;
+        } catch (fallbackError) {
+          return false;
+        }
+      }
     }
 
     /* ─── 공지문 생성 ─── */
@@ -860,17 +887,55 @@
       copyTitleBtn.disabled = false;
       copyBodyBtn.disabled = false;
       copyAllBtn.disabled = false;
+      shareBtn.disabled = false;
       showMessage('ok', '공지문이 생성됐습니다. 제목과 내용을 각각 복사하거나 전체 복사해 사용하세요.');
     }
 
     /* ─── 복사 ─── */
     async function copyText(text, label) {
-      try {
-        await navigator.clipboard.writeText(text);
-        showMessage('ok', `${label}을(를) 복사했습니다.`);
-      } catch {
+      if (await writeClipboard(text)) {
+        showMessage('ok', `${label}을 복사했습니다.`);
+      } else {
         showMessage('error', '복사에 실패했습니다. 브라우저 권한을 확인해 주세요.');
       }
+    }
+
+    async function shareNotice() {
+      if (shareBtn.disabled || !outputTitleEl.textContent || !outputBodyEl.textContent) {
+        showMessage('error', '먼저 공지문을 생성해 주세요.');
+        return;
+      }
+
+      const text = `[제목]\n${outputTitleEl.textContent}\n\n[내용]\n${outputBodyEl.textContent}`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ text });
+          return;
+        } catch (error) {
+          if (error && error.name === 'AbortError') {
+            return;
+          }
+        }
+      }
+
+      const copied = await writeClipboard(text);
+      if (!copied) {
+        showMessage('error', '카카오톡 공유용 텍스트 복사에 실패했습니다.');
+        return;
+      }
+
+      shareBtn.textContent = '✅ 복사 완료! 카카오톡에 붙여넣으세요';
+      shareBtn.style.background = '#34a853';
+      shareBtn.style.color = '#fff';
+      shareBtn.style.borderColor = '#34a853';
+      showMessage('ok', '카카오톡 공유용 텍스트를 복사했습니다.');
+      setTimeout(() => {
+        shareBtn.textContent = '💬 카카오톡에 공유';
+        shareBtn.style.background = '#FEE500';
+        shareBtn.style.color = '#3C1E1E';
+        shareBtn.style.borderColor = '#FEE500';
+      }, 3000);
     }
 
     generateBtn.addEventListener('click', buildNotice);
@@ -887,6 +952,8 @@
       const all = `[제목]\n${outputTitleEl.textContent}\n\n[내용]\n${outputBodyEl.textContent}`;
       copyText(all, '전체 공지문');
     });
+
+    shareBtn.addEventListener('click', shareNotice);
   </script>
 </body>
 
