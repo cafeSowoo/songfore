@@ -520,7 +520,7 @@
       background: linear-gradient(90deg, #2e5c4d, #177f86);
     }
 
-    @media (max-width: 680px) {
+    @media (max-width: 520px) {
       :root {
         --mobile-sticky-gap: 14px;
       }
@@ -562,9 +562,9 @@
       }
 
       .wrap {
-        width: min(calc(100vw - 20px), 1020px);
-        padding: 16px 0 34px;
-        gap: 14px;
+        width: min(calc(100vw - 20px), 760px);
+        padding: 14px 0 30px;
+        gap: 12px;
       }
 
       .hero {
@@ -572,9 +572,10 @@
         flex-direction: row;
         text-align: left;
         align-items: center;
-        padding: 20px 18px;
+        padding: 20px 16px;
         gap: 16px;
         transition: padding 300ms ease, gap 300ms ease, border-radius 300ms ease;
+        border-radius: 22px;
       }
 
       .hero .hero-mark {
@@ -605,7 +606,8 @@
       }
 
       .panel {
-        padding: 20px 16px;
+        padding: 22px 16px;
+        border-radius: 22px;
       }
 
       .top-link {
@@ -726,50 +728,6 @@
     <a href="index.html" class="back-link animate-item delay-2">← 홈으로</a>
     <p class="footer animate-item delay-2">2주에 한 번, 정기모임 공지를 빠르게 완성하세요.</p>
   </main>
-
-  <script>
-    (function () {
-      var heroSlot = document.querySelector('.hero-slot');
-      var hero = document.querySelector('.hero');
-      if (!heroSlot || !hero) return;
-
-      var active = false;
-      var collapsed = false;
-      var threshold = 40;
-
-      function update() {
-        if (!active) return;
-        var shouldCollapse = window.scrollY > threshold;
-        if (shouldCollapse !== collapsed) {
-          collapsed = shouldCollapse;
-          hero.classList.toggle('collapsed', collapsed);
-          heroSlot.classList.toggle('collapsed', collapsed);
-        }
-      }
-
-      function checkViewport() {
-        var isMobile = window.innerWidth <= 680;
-        if (isMobile && !active) {
-          active = true;
-          hero.classList.remove('collapsed');
-          heroSlot.classList.remove('collapsed');
-          window.addEventListener('scroll', update, { passive: true });
-          update();
-        } else if (isMobile && active) {
-          update();
-        } else if (!isMobile && active) {
-          active = false;
-          window.removeEventListener('scroll', update);
-          hero.classList.remove('collapsed');
-          heroSlot.classList.remove('collapsed');
-          collapsed = false;
-        }
-      }
-
-      checkViewport();
-      window.addEventListener('resize', checkViewport);
-    })();
-  </script>
 
   <script>
     /* ─── 한국어 서수 변환 ─── */

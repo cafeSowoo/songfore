@@ -403,51 +403,24 @@
       font-weight: 500;
     }
 
-    @media (max-width: 680px) {
+    @media (max-width: 520px) {
       :root {
         --mobile-sticky-gap: 14px;
       }
 
       .hero-slot {
         position: sticky;
-        top: var(--mobile-sticky-gap);
+        top: 0;
         z-index: 10;
-        padding-top: 0;
+        padding-top: var(--mobile-sticky-gap);
         overflow: clip;
         transition: height 300ms ease;
       }
 
-      .hero-slot.collapsed {
-        height: 112px;
-      }
-
-      .hero-slot.collapsed::before {
-        content: "";
-        position: absolute;
-        inset: 0 0 auto;
-        height: calc(var(--mobile-sticky-gap) + 10px);
-        background:
-          radial-gradient(circle at top left, rgba(164, 217, 190, 0.32), transparent 36%),
-          radial-gradient(circle at bottom right, rgba(120, 201, 227, 0.24), transparent 32%),
-          linear-gradient(135deg, #eef8f4 0%, #eff8f9 52%, #e7f3f7 100%);
-        pointer-events: none;
-      }
-
-      .hero-slot.collapsed::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 24px;
-        background: linear-gradient(180deg, rgba(231, 243, 247, 0.9) 0%, rgba(231, 243, 247, 0) 100%);
-        pointer-events: none;
-      }
-
       .wrap {
-        width: min(calc(100vw - 20px), 1020px);
-        padding: 16px 0 34px;
-        gap: 14px;
+        width: min(calc(100vw - 20px), 760px);
+        padding: 14px 0 30px;
+        gap: 12px;
       }
 
       .hero {
@@ -455,40 +428,13 @@
         flex-direction: row;
         text-align: left;
         align-items: center;
-        padding: 20px 18px;
+        padding: 20px 16px;
         gap: 16px;
-        transition: padding 300ms ease, gap 300ms ease, border-radius 300ms ease;
-      }
-
-      .hero .hero-mark {
-        transition: width 300ms ease, height 300ms ease, opacity 300ms ease, margin 300ms ease;
-        overflow: hidden;
-      }
-
-      .hero .hero-copy p {
-        transition: font-size 300ms ease, margin 300ms ease, opacity 300ms ease;
-      }
-
-      .hero.collapsed {
-        padding: 14px 18px 12px;
-        gap: 0;
         border-radius: 22px;
       }
 
-      .hero.collapsed .hero-mark {
-        width: 0;
-        height: 0;
-        opacity: 0;
-        margin: 0;
-      }
-
-      .hero.collapsed .hero-copy p {
-        font-size: 0.82rem;
-        margin-top: 2px;
-      }
-
       .panel {
-        padding: 20px 16px;
+        padding: 22px 16px;
         border-radius: 22px;
       }
 
@@ -511,9 +457,7 @@
   <div class="bg-shape shape-2"></div>
 
   <main class="wrap">
-    <div class="topbar animate-item">
-      <a href="index.html" class="back-link">← 홈으로</a>
-    </div>
+    <a href="index.html" class="back-link animate-item">← 홈으로</a>
 
     <div class="hero-slot">
       <section class="hero animate-item">
@@ -567,50 +511,6 @@
     </section>
     <p class="footer animate-item delay-2">원하시면 출력 문구 포맷만 수정해 드릴게요.</p>
   </main>
-
-  <script>
-    (function () {
-      var heroSlot = document.querySelector('.hero-slot');
-      var hero = document.querySelector('.hero');
-      if (!heroSlot || !hero) return;
-
-      var active = false;
-      var collapsed = false;
-      var threshold = 40;
-
-      function update() {
-        if (!active) return;
-        var shouldCollapse = window.scrollY > threshold;
-        if (shouldCollapse !== collapsed) {
-          collapsed = shouldCollapse;
-          hero.classList.toggle('collapsed', collapsed);
-          heroSlot.classList.toggle('collapsed', collapsed);
-        }
-      }
-
-      function checkViewport() {
-        var isMobile = window.innerWidth <= 680;
-        if (isMobile && !active) {
-          active = true;
-          hero.classList.remove('collapsed');
-          heroSlot.classList.remove('collapsed');
-          window.addEventListener('scroll', update, { passive: true });
-          update();
-        } else if (isMobile && active) {
-          update();
-        } else if (!isMobile && active) {
-          active = false;
-          window.removeEventListener('scroll', update);
-          hero.classList.remove('collapsed');
-          heroSlot.classList.remove('collapsed');
-          collapsed = false;
-        }
-      }
-
-      checkViewport();
-      window.addEventListener('resize', checkViewport);
-    })();
-  </script>
 
   <script>
     const resultLinesEl = document.getElementById('resultLines');

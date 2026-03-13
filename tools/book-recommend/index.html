@@ -1050,50 +1050,6 @@
     </div>
 
     <script>
-        (function () {
-            var heroSlot = document.querySelector('.hero-slot');
-            var hero = document.querySelector('.card.hero');
-            if (!heroSlot || !hero) return;
-
-            var active = false;
-            var collapsed = false;
-            var threshold = 40;
-
-            function update() {
-                if (!active) return;
-                var shouldCollapse = window.scrollY > threshold;
-                if (shouldCollapse !== collapsed) {
-                    collapsed = shouldCollapse;
-                    hero.classList.toggle('collapsed', collapsed);
-                    heroSlot.classList.toggle('collapsed', collapsed);
-                }
-            }
-
-            function checkViewport() {
-                var isMobile = window.innerWidth <= 520;
-                if (isMobile && !active) {
-                    active = true;
-                    hero.classList.remove('collapsed');
-                    heroSlot.classList.remove('collapsed');
-                    window.addEventListener('scroll', update, { passive: true });
-                    update();
-                } else if (isMobile && active) {
-                    update();
-                } else if (!isMobile && active) {
-                    active = false;
-                    window.removeEventListener('scroll', update);
-                    hero.classList.remove('collapsed');
-                    heroSlot.classList.remove('collapsed');
-                    collapsed = false;
-                }
-            }
-
-            checkViewport();
-            window.addEventListener('resize', checkViewport);
-        })();
-    </script>
-
-    <script>
         // ─── Gemini: Netlify Function 엔드포인트 (키는 서버에만 존재) ───
         const FUNCTION_URL = '/.netlify/functions/book-recommend';
 

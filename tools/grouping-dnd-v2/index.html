@@ -1198,50 +1198,6 @@
   <a class="back-home-btn" href="/">홈으로 돌아가기</a>
 
   <script>
-    (function () {
-      var heroSlot = document.querySelector('.hero-slot');
-      var hero = document.querySelector('.hero');
-      if (!heroSlot || !hero) return;
-
-      var active = false;
-      var collapsed = false;
-      var threshold = 40;
-
-      function update() {
-        if (!active) return;
-        var shouldCollapse = window.scrollY > threshold;
-        if (shouldCollapse !== collapsed) {
-          collapsed = shouldCollapse;
-          hero.classList.toggle('collapsed', collapsed);
-          heroSlot.classList.toggle('collapsed', collapsed);
-        }
-      }
-
-      function checkViewport() {
-        var isMobile = window.innerWidth <= 720;
-        if (isMobile && !active) {
-          active = true;
-          hero.classList.remove('collapsed');
-          heroSlot.classList.remove('collapsed');
-          window.addEventListener('scroll', update, { passive: true });
-          update();
-        } else if (isMobile && active) {
-          update();
-        } else if (!isMobile && active) {
-          active = false;
-          window.removeEventListener('scroll', update);
-          hero.classList.remove('collapsed');
-          heroSlot.classList.remove('collapsed');
-          collapsed = false;
-        }
-      }
-
-      checkViewport();
-      window.addEventListener('resize', checkViewport);
-    })();
-  </script>
-
-  <script>
     const zoneOrder = [
       'unassigned',
       'male',
