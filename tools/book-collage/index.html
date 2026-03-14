@@ -489,6 +489,7 @@
       height: auto;
       aspect-ratio: 1 / 1;
       background: #f4efe4;
+      touch-action: none;
     }
 
     .download-row {
@@ -952,6 +953,9 @@
 
       function clampTransformState(transform) {
         if (!transform) return;
+        transform.zoom = Number.isFinite(transform.zoom) ? transform.zoom : 1;
+        transform.offsetX = Number.isFinite(transform.offsetX) ? transform.offsetX : 0;
+        transform.offsetY = Number.isFinite(transform.offsetY) ? transform.offsetY : 0;
         transform.zoom = Math.min(2.4, Math.max(1, transform.zoom));
         transform.offsetX = Math.max(-100, Math.min(100, transform.offsetX));
         transform.offsetY = Math.max(-100, Math.min(100, transform.offsetY));
@@ -1309,6 +1313,7 @@
         previewCanvas.addEventListener("pointerdown", function (event) {
           const hit = getCanvasPhotoHit(event.clientX, event.clientY);
           if (!hit || !hasTargetImage(hit)) return;
+          event.preventDefault();
 
           previewCanvas.setPointerCapture(event.pointerId);
           activePointers.set(event.pointerId, {
@@ -1369,6 +1374,7 @@
             canvasWrap.classList.toggle("can-drag", canDrag);
             return;
           }
+          event.preventDefault();
 
           const existing = activePointers.get(event.pointerId);
           activePointers.set(event.pointerId, {
@@ -1401,7 +1407,17 @@
             const transform = getTargetTransform(target);
             const currentDistance = distance(points[0], points[1]);
             const currentMid = midpoint(points[0], points[1]);
+            if (
+              !Number.isFinite(currentDistance) ||
+              !Number.isFinite(currentMid.x) ||
+              !Number.isFinite(currentMid.y)
+            ) {
+              return;
+            }
             const scaleRatio = currentDistance / Math.max(1, pinchStart.distance);
+            if (!Number.isFinite(scaleRatio)) {
+              return;
+            }
             transform.zoom = pinchStart.zoom * scaleRatio;
             const zoomFactor = Math.max(1, transform.zoom);
             const dx = ((currentMid.x - pinchStart.midpoint.x) / Math.max(1, pinchStart.slotWidth)) * (DRAG_SENSITIVITY / zoomFactor);
