@@ -69,24 +69,30 @@
     .d3 { animation-delay: 0.25s; }
 
     .wrap {
-      width: min(1120px, 94vw);
+      width: min(760px, calc(100vw - 36px));
       margin: 0 auto;
-      padding: 48px 0 80px;
+      padding: 22px 0 48px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
 
     .back-link {
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      width: fit-content;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(180, 216, 208, 0.56);
+      box-shadow: 0 10px 24px rgba(31, 94, 85, 0.08);
       color: var(--primary);
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.9rem;
       text-decoration: none;
-      opacity: 0.85;
-      transition: opacity 0.2s ease;
+      opacity: 0.8;
+      transition: opacity 0.2s;
     }
 
     .back-link:hover { opacity: 1; }
@@ -182,7 +188,7 @@
 
     textarea {
       width: 100%;
-      min-height: 130px;
+      min-height: 74px;
       resize: vertical;
       padding: 16px 18px;
       line-height: 1.6;
@@ -258,15 +264,18 @@
     }
 
     .zone { min-height: 180px; border: 1.5px dashed rgba(46, 92, 77, 0.2); border-radius: 18px; padding: 14px; background: rgba(255, 255, 255, 0.62); transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease; }
-    .zone[data-zone="unassigned"] { grid-area: unassigned; }
-    .zone[data-zone="male"] { grid-area: male; }
-    .zone[data-zone="female"] { grid-area: female; }
+    .zone[data-zone="unassigned"] { grid-area: unassigned; min-height: 200px; }
+    .zone[data-zone="male"] { grid-area: male; min-height: 140px; }
+    .zone[data-zone="female"] { grid-area: female; min-height: 140px; }
+    .zone[data-zone="unassigned"].compact { min-height: 0; }
     .zone.drag-over { border-color: rgba(36, 181, 167, 0.8); background: rgba(240, 252, 249, 0.92); transform: translateY(-2px); }
 
     .zone-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
     .zone-header h3 { font-size: 0.94rem; font-weight: 800; color: var(--primary-dark); }
     .count { padding: 4px 10px; border-radius: 999px; background: rgba(36, 181, 167, 0.12); color: var(--primary); font-size: 0.8rem; font-weight: 700; }
     .chip-list { display: grid; gap: 10px; align-content: start; min-height: 80px; }
+    .zone[data-zone="unassigned"].compact .chip-list { min-height: 0; }
+    .zone[data-zone="unassigned"] .chip-list { justify-items: center; }
 
     .person-chip { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: rgba(255, 255, 255, 0.92); border: 1px solid rgba(46, 92, 77, 0.15); box-shadow: 0 8px 18px rgba(46, 92, 77, 0.1); cursor: grab; }
     .person-chip.leader { background: linear-gradient(135deg, #edf7f3, #f9fffd); border-color: rgba(36, 181, 167, 0.32); }
@@ -279,6 +288,25 @@
     .person-chip-pick-wrap { position: relative; display: inline-flex; align-items: center; }
     .person-pick-select { min-width: 56px; appearance: none; -webkit-appearance: none; -moz-appearance: none; padding-right: 24px; }
     .person-pick-arrow { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-muted); font-size: 0.72rem; }
+    .zone[data-zone="unassigned"] .person-chip {
+      width: fit-content;
+      max-width: 100%;
+      grid-template-columns: max-content auto;
+      justify-self: center;
+      align-items: center;
+    }
+    .zone[data-zone="unassigned"] .person-chip-main {
+      display: flex;
+      align-items: center;
+    }
+    .zone[data-zone="unassigned"] .person-meta {
+      display: none;
+    }
+    .zone[data-zone="unassigned"] .person-chip-controls {
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      align-items: center;
+    }
     .footer-note { text-align: center; color: var(--text-muted); font-size: 0.92rem; }
 
     @media (max-width: 520px) {
@@ -291,9 +319,40 @@
       .hero-copy p { margin-top: 6px; font-size: 0.9rem; line-height: 1.45; }
       .btn-row, .result-actions { flex-direction: column; }
       .btn-generate, .btn-copy { width: 100%; }
-      .board { grid-template-columns: 1fr; grid-template-areas: "unassigned" "male" "female"; }
+      .board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+          "unassigned unassigned"
+          "male female";
+      }
+      .zone[data-zone="unassigned"] { min-height: 190px; }
+      .zone[data-zone="unassigned"].compact { min-height: 0; }
+      .zone[data-zone="male"],
+      .zone[data-zone="female"] { min-height: 120px; }
       .person-chip { grid-template-columns: 1fr; }
       .person-chip-controls { justify-content: flex-start; }
+      .zone[data-zone="unassigned"] .chip-list {
+        justify-items: center;
+      }
+      .zone[data-zone="unassigned"] .person-chip {
+        width: fit-content;
+        max-width: 100%;
+        grid-template-columns: max-content auto;
+        justify-self: center;
+        align-items: center;
+      }
+      .zone[data-zone="unassigned"] .person-chip-main {
+        display: flex;
+        align-items: center;
+      }
+      .zone[data-zone="unassigned"] .person-meta {
+        display: none;
+      }
+      .zone[data-zone="unassigned"] .person-chip-controls {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: center;
+      }
     }
   </style>
 </head>
@@ -302,7 +361,7 @@
   <div class="bg-shape shape-2"></div>
 
   <main class="wrap">
-    <a class="back-link ani d1" href="../../index.html">메인으로 돌아가기</a>
+    <a class="back-link ani d1" href="../../index.html">← 홈으로</a>
 
     <div class="hero-slot">
       <section class="card hero ani d1">
@@ -316,7 +375,7 @@
         </div>
         <div class="hero-copy">
           <h1>조 편성 도구</h1>
-          <p>상단 카드 고정이 안정적인 틀 위에 조 편성 기능만 다시 얹은 새 미리보기 버전입니다.</p>
+          <p>참석자 입력부터 조 편성까지 한 화면에서 빠르게 진행합니다.</p>
         </div>
       </section>
     </div>
@@ -327,11 +386,10 @@
         <span class="step-title">참여자 입력</span>
       </div>
       <div class="form-group">
-        <label for="allPeople">이름 목록</label>
-        <textarea id="allPeople" rows="6" placeholder="이름을 공백, 줄바꿈, 쉼표로 구분해서 입력하세요.&#10;예) 민수 지연 태호&#10;또는&#10;민수&#10;지연&#10;태호"></textarea>
+        <textarea id="allPeople" rows="2" placeholder="이름을 띄어쓰기로 구분하거나 엔터로 구분하여 입력하세요"></textarea>
       </div>
       <div class="btn-row">
-        <button class="btn-generate" id="confirmPeopleBtn" type="button">명단 확인하기</button>
+        <button class="btn-generate" id="confirmPeopleBtn" type="button">명단 적용하기</button>
         <button class="btn-copy" id="clearAllBtn" type="button">전체 초기화</button>
       </div>
     </section>
@@ -377,7 +435,6 @@
       <div class="result-grid" id="resultContainer"></div>
     </section>
 
-    <p class="footer-note ani d3">리더 지정, 신입 분산, 성비 균형을 함께 고려해 가장 자연스러운 조합을 우선으로 맞춥니다.</p>
   </main>
 
   <script>
@@ -398,8 +455,10 @@
 
     const zoneLists = {};
     const zoneCounts = {};
+    const zonePanels = {};
     document.querySelectorAll("[data-list]").forEach((el) => { zoneLists[el.dataset.list] = el; });
     document.querySelectorAll("[data-count]").forEach((el) => { zoneCounts[el.dataset.count] = el; });
+    document.querySelectorAll(".zone").forEach((el) => { zonePanels[el.dataset.zone] = el; });
 
     let people = [];
     let duplicatedBaseNames = [];
@@ -667,7 +726,11 @@
     function renderBoard() {
       zoneOrder.forEach((zone) => { zoneLists[zone].innerHTML = ""; });
       people.forEach((person) => { zoneLists[person.zone].appendChild(createPersonChip(person)); });
-      zoneOrder.forEach((zone) => { zoneCounts[zone].textContent = String(zoneLists[zone].children.length); });
+      zoneOrder.forEach((zone) => {
+        const count = zoneLists[zone].children.length;
+        zoneCounts[zone].textContent = String(count);
+        zonePanels[zone].classList.toggle("compact", zone === "unassigned" && count <= 1);
+      });
     }
 
     function getLeaderCount() { return people.filter((person) => person.isLeader).length; }

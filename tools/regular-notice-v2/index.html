@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 
 <head>
@@ -80,12 +80,12 @@
     }
 
     .wrap {
-      width: min(720px, 92vw);
+      width: min(760px, calc(100vw - 36px));
       margin: 0 auto;
-      padding: 48px 0 80px;
+      padding: 22px 0 48px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
 
     @keyframes fadeInUp {
@@ -121,11 +121,17 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      width: fit-content;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(180, 216, 208, 0.56);
+      box-shadow: 0 10px 24px rgba(31, 94, 85, 0.08);
       color: var(--primary);
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.9rem;
       text-decoration: none;
-      opacity: 0.85;
+      opacity: 0.8;
       transition: opacity 0.2s;
     }
 
@@ -254,8 +260,9 @@
 
     .form-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 14px;
+      align-items: start;
     }
 
     .form-group {
@@ -270,9 +277,16 @@
     }
 
     .form-group label {
+      display: flex;
+      align-items: center;
+      min-height: 1.2em;
       font-size: 0.85rem;
       font-weight: 700;
       color: var(--text-muted);
+    }
+
+    .form-row .form-group {
+      margin-top: 0;
     }
 
     .form-group input,
@@ -500,15 +514,6 @@
         grid-template-columns: 1fr;
       }
 
-      .calc-row {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .calc-value {
-        text-align: left;
-      }
-
       .result-actions {
         flex-direction: column;
       }
@@ -537,7 +542,7 @@
         </div>
         <div class="hero-copy">
           <h1>정기모임 공지 쓰기</h1>
-          <p>기존 공지 생성 기능만 새 카드 틀에 옮긴 미리보기 버전입니다.</p>
+          <p>입력한 값으로 정기모임 공지문을 바로 생성합니다.</p>
         </div>
       </section>
     </div>
@@ -589,10 +594,6 @@
           <div class="calc-row">
             <span class="calc-label">공석 신청 가능</span>
             <span class="calc-value" id="calcD4">-</span>
-          </div>
-          <div class="calc-row">
-            <span class="calc-label">실제 참석 오픈</span>
-            <span class="calc-value" id="calcD5b">-</span>
           </div>
         </div>
       </div>
@@ -652,7 +653,6 @@
     const calcD6El = document.getElementById('calcD6');
     const calcD5El = document.getElementById('calcD5');
     const calcD4El = document.getElementById('calcD4');
-    const calcD5bEl = document.getElementById('calcD5b');
     const generateBtn = document.getElementById('generateBtn');
     const outputSection = document.getElementById('outputSection');
     const outputTitleEl = document.getElementById('outputTitle');
@@ -883,10 +883,9 @@
       const d4 = offsetDate(dateStr, -4);
 
       calcMeetingEl.textContent = formatDateFull(meeting);
-      calcD6El.textContent = `${formatDate(d6)}까지 댓글 마감`;
-      calcD5El.textContent = `${formatDate(d5)} 정모 신청 오픈`;
-      calcD4El.textContent = `${formatDate(d4)} 이후 공석 신청 가능`;
-      calcD5bEl.textContent = `${formatDate(d5)} 오후 8시경 실제 참석 오픈`;
+      calcD6El.textContent = formatDateFull(d6);
+      calcD5El.textContent = formatDateFull(d5);
+      calcD4El.textContent = formatDateFull(d4);
       dateCalcBox.classList.remove('hidden');
     });
 
@@ -900,3 +899,5 @@
 </body>
 
 </html>
+
+

@@ -80,12 +80,12 @@
     }
 
     .wrap {
-      width: min(720px, 92vw);
+      width: min(760px, calc(100vw - 36px));
       margin: 0 auto;
-      padding: 48px 0 80px;
+      padding: 22px 0 48px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
 
     @keyframes fadeInUp {
@@ -121,11 +121,17 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      width: fit-content;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(180, 216, 208, 0.56);
+      box-shadow: 0 10px 24px rgba(31, 94, 85, 0.08);
       color: var(--primary);
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.9rem;
       text-decoration: none;
-      opacity: 0.85;
+      opacity: 0.8;
       transition: opacity 0.2s;
     }
 
@@ -289,7 +295,7 @@
 
     .form-group textarea {
       resize: vertical;
-      min-height: 120px;
+      min-height: 92px;
       line-height: 1.65;
     }
 
@@ -533,8 +539,8 @@
           </svg>
         </div>
         <div class="hero-copy">
-          <h1>조모임 공지용 메일 쓰기</h1>
-          <p>기존 메일 생성 기능만 새 고정형 틀에 옮긴 미리보기 버전입니다.</p>
+          <h1>정모 조 공지 작성</h1>
+          <p>입력한 값으로 공지문을 바로 생성합니다.</p>
         </div>
       </section>
     </div>
@@ -547,7 +553,7 @@
 
       <div class="form-group">
         <label for="resultLines">조 배정 결과</label>
-        <textarea id="resultLines" rows="4" placeholder="한 줄에 한 조씩 입력해 주세요.&#10;예) 민수 수진 재현&#10;예) 하은 지민 태훈"></textarea>
+        <textarea id="resultLines" rows="3" placeholder="한 줄에 한 조씩 입력해 주세요.&#10;예) 민수 수진 재현&#10;      하은 지민 태훈"></textarea>
       </div>
 
       <div class="form-group">
@@ -575,15 +581,15 @@
       </div>
 
       <div class="form-group">
-        <div class="field-label">배포 시점</div>
+        <div class="field-label">공지 시점</div>
         <div class="choice-grid time-grid">
           <label class="choice-card">
             <input type="radio" name="releaseTime" value="thu" />
-            <span>목요일 발송</span>
+              <span>목요일 (모임 이틀 전)</span>
           </label>
           <label class="choice-card">
             <input type="radio" name="releaseTime" value="fri" />
-            <span>금요일 발송</span>
+              <span>금요일 (모임 하루 전)</span>
           </label>
         </div>
       </div>
@@ -592,10 +598,10 @@
     <section class="card ani d3">
       <div class="step-header">
         <div class="step-badge">2</div>
-        <span class="step-title">메일 문구 생성</span>
+        <span class="step-title">메시지 문구 생성</span>
       </div>
 
-      <button class="btn-generate" id="generateBtn" type="button">공지 메일 만들기</button>
+      <button class="btn-generate" id="generateBtn" type="button">공지 메시지 만들기</button>
       <div class="message" id="noticeMessage"></div>
     </section>
 
@@ -608,7 +614,6 @@
       </div>
     </section>
 
-    <p class="footer-note ani d3">원하시면 이 새 틀 기준으로 문구 포맷도 같이 다듬을 수 있습니다.</p>
   </main>
 
   <script>
