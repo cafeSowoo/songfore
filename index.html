@@ -338,6 +338,77 @@
       box-shadow: none;
     }
 
+    .legacy-panel {
+      margin-top: 26px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: var(--surface);
+      box-shadow: 0 12px 28px rgba(99, 126, 131, 0.08);
+      animation: fade 900ms ease both 420ms;
+    }
+
+    .legacy-panel summary {
+      cursor: pointer;
+      list-style: none;
+      font-weight: 700;
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .legacy-panel summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .legacy-panel summary::before {
+      content: "Legacy";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(36, 181, 167, 0.12);
+      color: #1f7468;
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+    }
+
+    .legacy-copy {
+      margin-top: 12px;
+      color: var(--text-subtle);
+      font-size: 0.92rem;
+    }
+
+    .legacy-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .legacy-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 11px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(170, 203, 197, 0.5);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+    }
+
+    .legacy-link:hover {
+      transform: translateY(-2px);
+      border-color: rgba(145, 209, 198, 0.9);
+      box-shadow: 0 10px 24px rgba(99, 126, 131, 0.12);
+    }
+
     .footer-wrap {
       display: flex;
       justify-content: center;
@@ -554,6 +625,20 @@
         padding: 13px 16px;
         font-size: 0.92rem;
       }
+
+      .legacy-panel {
+        margin-top: 18px;
+        padding: 14px 14px 16px;
+        border-radius: 22px;
+      }
+
+      .legacy-links {
+        flex-direction: column;
+      }
+
+      .legacy-link {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -615,7 +700,7 @@
       </div>
 
       <section class="card-grid" aria-label="main menu">
-        <a class="feature-card delay-1" href="./tools/grouping-dnd-v2/index.html">
+        <a class="feature-card delay-1" href="./tools/grouping-dnd-v4/index.html">
           <div class="card-head">
             <div class="card-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -630,7 +715,7 @@
           <span class="cta">&#48148;&#47196; &#44032;&#44592;</span>
         </a>
 
-        <a class="feature-card delay-2" href="./notice-mail.html">
+        <a class="feature-card delay-2" href="./tools/notice-mail-v2/index.html">
           <div class="card-head">
             <div class="card-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -645,7 +730,7 @@
           <span class="cta">&#47700;&#51068; &#51089;&#49457;</span>
         </a>
 
-        <a class="feature-card delay-3" href="./regular-notice.html">
+        <a class="feature-card delay-3" href="./tools/regular-notice-v2/index.html">
           <div class="card-head">
             <div class="card-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
@@ -705,6 +790,18 @@
           <span class="cta">&#44277;&#49324;&#51473;</span>
         </a>
       </section>
+
+      <details class="legacy-panel">
+        <summary>이전 버전 메뉴 보기</summary>
+        <p class="legacy-copy">
+          기존 초기 버전이 필요할 때만 여기서 열 수 있습니다.
+        </p>
+        <div class="legacy-links">
+          <a class="legacy-link" href="./tools/grouping-dnd-v2/index.html">구버전 조 편성 도구</a>
+          <a class="legacy-link" href="./notice-mail.html">구버전 정모 조 공지 작성</a>
+          <a class="legacy-link" href="./regular-notice.html">구버전 정기 모임 공지</a>
+        </div>
+      </details>
 
       <div class="footer-wrap">
         <p class="footer-note">

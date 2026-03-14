@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../../assets/favicon/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="../../assets/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../../assets/favicon/apple-touch-icon.png" />
+  <meta name="theme-color" content="#24b5a7" />
+  <title>조모임 공지용 메일 쓰기 - 새 틀</title>
+  <style>
+    :root {
+      --primary: #2e5c4d;
+      --primary-light: #4a8270;
+      --primary-dark: #1a3c34;
+      --text-main: #1c2b26;
+      --text-muted: #5e736a;
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.5);
+      --glass-shadow: 0 16px 40px rgba(18, 38, 30, 0.08);
+      --success: #0d652d;
+      --success-bg: #e6f4ea;
+      --error: #b3261e;
+      --error-bg: #ffebee;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
+        radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
+        linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
+      background-attachment: fixed;
+      overflow-x: hidden;
+    }
+
+    .bg-shape {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      opacity: 0.45;
+      animation: float 20s ease-in-out infinite alternate;
+    }
+
+    .shape-1 {
+      width: 400px;
+      height: 400px;
+      background: #b6d9c8;
+      top: -100px;
+      right: -50px;
+    }
+
+    .shape-2 {
+      width: 500px;
+      height: 500px;
+      background: #cce0d6;
+      bottom: -150px;
+      left: -100px;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(-30px, 40px) scale(1.1);
+      }
+    }
+
+    .wrap {
+      width: min(720px, 92vw);
+      margin: 0 auto;
+      padding: 48px 0 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .ani {
+      animation: fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      opacity: 0;
+    }
+
+    .d1 {
+      animation-delay: 0.05s;
+    }
+
+    .d2 {
+      animation-delay: 0.15s;
+    }
+
+    .d3 {
+      animation-delay: 0.25s;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      opacity: 0.85;
+      transition: opacity 0.2s;
+    }
+
+    .back-link:hover {
+      opacity: 1;
+    }
+
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 32px 36px;
+      box-shadow: var(--glass-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-slot {
+      position: relative;
+    }
+
+    .card.hero::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transform: skewX(-20deg);
+      animation: shimmer 6s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        left: -100%;
+      }
+
+      20% {
+        left: 200%;
+      }
+
+      100% {
+        left: 200%;
+      }
+    }
+
+    .card.hero {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .hero-mark {
+      width: 62px;
+      height: 62px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      background: linear-gradient(135deg, #42c48f, #24b5a7 54%, #57b7e5);
+      box-shadow: 0 18px 30px rgba(46, 145, 132, 0.22);
+      position: relative;
+    }
+
+    .hero-mark::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      right: -1px;
+      width: 16px;
+      height: 16px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
+    }
+
+    .hero-mark svg {
+      width: 28px;
+      height: 28px;
+      color: #fff;
+      stroke-width: 2.1;
+    }
+
+    .hero-copy h1 {
+      font-size: clamp(1.45rem, 2.5vw, 1.9rem);
+      font-weight: 800;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hero-copy p {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .step-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 14px;
+    }
+
+    .form-group:first-of-type {
+      margin-top: 0;
+    }
+
+    .form-group label,
+    .field-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1.5px solid rgba(46, 92, 77, 0.18);
+      border-radius: 12px;
+      font-size: 0.975rem;
+      font-family: inherit;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.8);
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+      line-height: 1.65;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(74, 130, 112, 0.12);
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .choice-grid.time-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .choice-card {
+      position: relative;
+    }
+
+    .choice-card input {
+      position: absolute;
+      opacity: 0;
+      inset: 0;
+    }
+
+    .choice-card span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1.5px solid rgba(46, 92, 77, 0.12);
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--text-main);
+      font-size: 0.92rem;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .choice-card input:checked + span {
+      border-color: transparent;
+      background: linear-gradient(135deg, #42c48f, #24b5a7);
+      color: #fff;
+      box-shadow: 0 12px 26px rgba(39, 185, 138, 0.18);
+    }
+
+    .inline-input {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .btn-generate,
+    .btn-copy {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(46, 92, 77, 0.25);
+    }
+
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(46, 92, 77, 0.35);
+    }
+
+    .message {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.ok {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .message.error {
+      background: var(--error-bg);
+      color: var(--error);
+    }
+
+    .result-card {
+      display: none;
+    }
+
+    .result-card.visible {
+      display: block;
+    }
+
+    .result-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .result-preview {
+      margin-top: 16px;
+      background: rgba(46, 92, 77, 0.04);
+      border-left: 3px solid var(--primary-light);
+      border-radius: 0 12px 12px 0;
+      padding: 18px 20px;
+      font-size: 1rem;
+      line-height: 1.9;
+      white-space: pre-wrap;
+      word-break: keep-all;
+    }
+
+    .result-actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-copy {
+      width: auto;
+      padding: 13px 18px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--primary-dark);
+      border: 1px solid rgba(46, 92, 77, 0.15);
+    }
+
+    .btn-copy:hover {
+      background: linear-gradient(90deg, #2e5c4d, #177f86);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .btn-kakao {
+      background: #fee500;
+      color: #3c1e1e;
+      border-color: #fee500;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 520px) {
+      :root {
+        --mobile-sticky-gap: 14px;
+      }
+
+      .hero-slot {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding-top: var(--mobile-sticky-gap);
+        overflow: clip;
+      }
+
+      .wrap {
+        width: min(calc(100vw - 20px), 760px);
+        padding: 14px 0 30px;
+        gap: 12px;
+      }
+
+      .card {
+        padding: 22px 16px;
+        border-radius: 22px;
+      }
+
+      .card.hero {
+        flex-direction: row;
+        text-align: left;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 16px;
+      }
+
+      .back-link {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero-copy p {
+        margin-top: 6px;
+        font-size: 0.92rem;
+      }
+
+      .choice-grid,
+      .choice-grid.time-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .result-actions {
+        flex-direction: column;
+      }
+
+      .btn-copy {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-shape shape-1"></div>
+  <div class="bg-shape shape-2"></div>
+
+  <main class="wrap">
+    <a class="back-link ani d1" href="../../index.html">← 홈으로</a>
+
+    <div class="hero-slot">
+      <section class="card hero ani d1">
+        <div class="hero-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M6 17h12l-1.4-1.4A2 2 0 0 1 16 14.2V10a4 4 0 1 0-8 0v4.2a2 2 0 0 1-.6 1.4z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M10.2 19a2 2 0 0 0 3.6 0" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div class="hero-copy">
+          <h1>조모임 공지용 메일 쓰기</h1>
+          <p>기존 메일 생성 기능만 새 고정형 틀에 옮긴 미리보기 버전입니다.</p>
+        </div>
+      </section>
+    </div>
+
+    <section class="card ani d2">
+      <div class="step-header">
+        <div class="step-badge">1</div>
+        <span class="step-title">조 정보와 발송 조건 입력</span>
+      </div>
+
+      <div class="form-group">
+        <label for="resultLines">조 배정 결과</label>
+        <textarea id="resultLines" rows="4" placeholder="한 줄에 한 조씩 입력해 주세요.&#10;예) 민수 수진 재현&#10;예) 하은 지민 태훈"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="bookTitle">책 제목</label>
+        <input id="bookTitle" type="text" placeholder="예: 돈의 심리학" />
+      </div>
+
+      <div class="form-group">
+        <div class="field-label">모임 장소</div>
+        <div class="choice-grid">
+          <label class="choice-card">
+            <input type="radio" name="venue" value="cafe" />
+            <span>카페 와안 2층</span>
+          </label>
+          <label class="choice-card">
+            <input type="radio" name="venue" value="hollys" />
+            <span>할리스 인천대입구역점</span>
+          </label>
+          <label class="choice-card">
+            <input type="radio" name="venue" value="etc" />
+            <span>기타 장소</span>
+          </label>
+        </div>
+        <input class="inline-input" id="etcVenue" type="text" placeholder="직접 입력할 장소를 적어 주세요." />
+      </div>
+
+      <div class="form-group">
+        <div class="field-label">배포 시점</div>
+        <div class="choice-grid time-grid">
+          <label class="choice-card">
+            <input type="radio" name="releaseTime" value="thu" />
+            <span>목요일 발송</span>
+          </label>
+          <label class="choice-card">
+            <input type="radio" name="releaseTime" value="fri" />
+            <span>금요일 발송</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section class="card ani d3">
+      <div class="step-header">
+        <div class="step-badge">2</div>
+        <span class="step-title">메일 문구 생성</span>
+      </div>
+
+      <button class="btn-generate" id="generateBtn" type="button">공지 메일 만들기</button>
+      <div class="message" id="noticeMessage"></div>
+    </section>
+
+    <section class="card result-card ani d3" id="resultCard">
+      <div class="result-label">생성된 메일 문구</div>
+      <pre class="result-preview" id="noticeOutput"></pre>
+      <div class="result-actions" id="resultActions">
+        <button class="btn-copy" id="copyBtn" type="button">📋 텍스트 복사</button>
+        <button class="btn-copy btn-kakao" id="shareBtn" type="button">💬 카카오톡에 공유</button>
+      </div>
+    </section>
+
+    <p class="footer-note ani d3">원하시면 이 새 틀 기준으로 문구 포맷도 같이 다듬을 수 있습니다.</p>
+  </main>
+
+  <script>
+    const resultLinesEl = document.getElementById('resultLines');
+    const bookTitleEl = document.getElementById('bookTitle');
+    const generateBtn = document.getElementById('generateBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const outputEl = document.getElementById('noticeOutput');
+    const resultCardEl = document.getElementById('resultCard');
+    const messageEl = document.getElementById('noticeMessage');
+    const etcVenueInput = document.getElementById('etcVenue');
+
+    const venueText = {
+      cafe: '카페 와안 2층',
+      hollys: '할리스 인천대입구역점',
+      etc: '기타'
+    };
+
+    const timeText = {
+      thu: {
+        intro: '이번주 토요일',
+        close: '토요일에'
+      },
+      fri: {
+        intro: '내일 토요일',
+        close: '내일'
+      }
+    };
+
+    const emojis = ['📙', '📘', '📗', '📕'];
+
+    function shuffle(list) {
+      const arr = [...list];
+      for (let i = arr.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function showMessage(type, text) {
+      messageEl.className = `message show ${type}`;
+      messageEl.textContent = text;
+    }
+
+    function hideMessage() {
+      messageEl.className = 'message';
+      messageEl.textContent = '';
+    }
+
+    function clampLines() {
+      const lines = resultLinesEl.value.replace(/\r/g, '').split('\n');
+      if (lines.length <= 5) return;
+      resultLinesEl.value = lines.slice(0, 5).join('\n');
+    }
+
+    function buildNotice() {
+      hideMessage();
+
+      const teams = resultLinesEl.value
+        .replace(/\r/g, '')
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+
+      if (teams.length === 0) {
+        showMessage('error', '조 배정 결과를 1줄 이상 입력해 주세요.');
+        return;
+      }
+
+      const book = bookTitleEl.value.trim();
+      if (!book) {
+        showMessage('error', '책 제목을 입력해 주세요.');
+        return;
+      }
+
+      const selectedVenue = document.querySelector('input[name="venue"]:checked');
+      if (!selectedVenue) {
+        showMessage('error', '조모임 장소를 선택해 주세요.');
+        return;
+      }
+
+      const selectedTime = document.querySelector('input[name="releaseTime"]:checked');
+      if (!selectedTime) {
+        showMessage('error', '배포 시점을 선택해 주세요.');
+        return;
+      }
+
+      const teamsClamped = teams.slice(0, 4);
+      const emojiList = shuffle(emojis).slice(0, teamsClamped.length);
+
+      const header = timeText[selectedTime.value]?.intro || '내일 토요일';
+      const closeWord = timeText[selectedTime.value]?.close || '내일';
+      const selectedVenueValue = selectedVenue.value;
+      let venue = venueText[selectedVenueValue];
+
+      if (selectedVenueValue === 'etc') {
+        const customVenue = etcVenueInput.value.trim();
+        if (!customVenue) {
+          showMessage('error', '기타 장소를 입력해 주세요.');
+          return;
+        }
+        venue = customVenue;
+      }
+
+      const teamText = teamsClamped.map((line, index) => `${emojiList[index]} ${line}`).join('\n');
+      const lines = [
+        '여러분 안녕하세요🤗',
+        `${header} <${book}> 정모 조 공지드립니다!`,
+        '',
+        teamText,
+        '',
+        `🚗 금주 정모는 ${venue}에서 진행됩니다 🙌🏻 주차는 2시간까지만 무료인 점 참고해주세요!`,
+        '🚨주말에도 주차 단속이 있으니, 차량을 가져오시는 분들은 꼭 주변 주차 가능 구역을 확인해 주세요!',
+        selectedVenueValue === 'cafe'
+          ? '⏰ 오후 2시 50분까지 카페 도착 후 음료 주문 해주세요! (4,500원 이상 메뉴 주문)'
+          : '⏰ 오후 2시 50분까지 카페 도착 후 음료 주문 해주세요!',
+        '📝 모임 당일 메모지에 책 관련 질문 2~3개를 적어와 주세요!',
+        '',
+        `그럼 ${closeWord} 뵙겠습니다🥰`
+      ].join('\n');
+
+      outputEl.textContent = lines;
+      resultCardEl.classList.add('visible');
+      copyBtn.textContent = '📋 텍스트 복사';
+      shareBtn.textContent = '💬 카카오톡에 공유';
+      shareBtn.style.background = '#FEE500';
+      shareBtn.style.color = '#3C1E1E';
+      shareBtn.style.borderColor = '#FEE500';
+      showMessage('ok', '공지문이 생성됐습니다.');
+    }
+
+    async function copyNotice() {
+      if (!resultCardEl.classList.contains('visible') || !outputEl.textContent) {
+        showMessage('error', '먼저 공지 메일을 생성해 주세요.');
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(outputEl.textContent);
+        copyBtn.textContent = '✅ 복사 완료!';
+        showMessage('ok', '공지문을 복사했습니다.');
+        setTimeout(() => {
+          copyBtn.textContent = '📋 텍스트 복사';
+        }, 2500);
+      } catch (error) {
+        showMessage('error', '복사에 실패했습니다. 브라우저 권한을 확인해 주세요.');
+      }
+    }
+
+    async function shareNotice() {
+      if (!resultCardEl.classList.contains('visible') || !outputEl.textContent) {
+        showMessage('error', '먼저 공지 메일을 생성해 주세요.');
+        return;
+      }
+
+      const text = outputEl.textContent;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ text });
+        } catch (error) {
+          // 사용자가 공유를 취소한 경우 별도 처리하지 않음
+        }
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (error) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+
+      shareBtn.textContent = '✅ 복사 완료! 카카오톡에 붙여넣으세요';
+      shareBtn.style.background = '#34a853';
+      shareBtn.style.color = '#fff';
+      shareBtn.style.borderColor = '#34a853';
+      showMessage('ok', '카카오톡 공유용 텍스트를 복사했습니다.');
+      setTimeout(() => {
+        shareBtn.textContent = '💬 카카오톡에 공유';
+        shareBtn.style.background = '#FEE500';
+        shareBtn.style.color = '#3C1E1E';
+        shareBtn.style.borderColor = '#FEE500';
+      }, 3000);
+    }
+
+    document.querySelectorAll('input[name="venue"]').forEach((radio) => {
+      radio.addEventListener('change', (event) => {
+        if (event.target.value === 'etc') {
+          etcVenueInput.style.display = 'block';
+          etcVenueInput.focus();
+        } else {
+          etcVenueInput.style.display = 'none';
+          etcVenueInput.value = '';
+        }
+      });
+    });
+
+    resultLinesEl.addEventListener('input', clampLines);
+    generateBtn.addEventListener('click', buildNotice);
+    copyBtn.addEventListener('click', copyNotice);
+    shareBtn.addEventListener('click', shareNotice);
+  </script>
+</body>
+
+</html>

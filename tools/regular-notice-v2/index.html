@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../../assets/favicon/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="../../assets/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../../assets/favicon/apple-touch-icon.png" />
+  <meta name="theme-color" content="#24b5a7" />
+  <title>정기모임 공지 쓰기 - 새 틀</title>
+  <style>
+    :root {
+      --primary: #2e5c4d;
+      --primary-light: #4a8270;
+      --primary-dark: #1a3c34;
+      --text-main: #1c2b26;
+      --text-muted: #5e736a;
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.5);
+      --glass-shadow: 0 16px 40px rgba(18, 38, 30, 0.08);
+      --success: #0d652d;
+      --success-bg: #e6f4ea;
+      --error: #b3261e;
+      --error-bg: #ffebee;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
+        radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
+        linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
+      background-attachment: fixed;
+      overflow-x: hidden;
+    }
+
+    .bg-shape {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      opacity: 0.45;
+      animation: float 20s ease-in-out infinite alternate;
+    }
+
+    .shape-1 {
+      width: 400px;
+      height: 400px;
+      background: #b6d9c8;
+      top: -100px;
+      right: -50px;
+    }
+
+    .shape-2 {
+      width: 500px;
+      height: 500px;
+      background: #cce0d6;
+      bottom: -150px;
+      left: -100px;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(-30px, 40px) scale(1.1);
+      }
+    }
+
+    .wrap {
+      width: min(720px, 92vw);
+      margin: 0 auto;
+      padding: 48px 0 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .ani {
+      animation: fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      opacity: 0;
+    }
+
+    .d1 {
+      animation-delay: 0.05s;
+    }
+
+    .d2 {
+      animation-delay: 0.15s;
+    }
+
+    .d3 {
+      animation-delay: 0.25s;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      opacity: 0.85;
+      transition: opacity 0.2s;
+    }
+
+    .back-link:hover {
+      opacity: 1;
+    }
+
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 32px 36px;
+      box-shadow: var(--glass-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-slot {
+      position: relative;
+    }
+
+    .card.hero::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transform: skewX(-20deg);
+      animation: shimmer 6s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        left: -100%;
+      }
+
+      20% {
+        left: 200%;
+      }
+
+      100% {
+        left: 200%;
+      }
+    }
+
+    .card.hero {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .hero-mark {
+      width: 62px;
+      height: 62px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      background: linear-gradient(135deg, #42c48f, #24b5a7 54%, #57b7e5);
+      box-shadow: 0 18px 30px rgba(46, 145, 132, 0.22);
+      position: relative;
+    }
+
+    .hero-mark::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      right: -1px;
+      width: 16px;
+      height: 16px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
+    }
+
+    .hero-mark svg {
+      width: 28px;
+      height: 28px;
+      color: #fff;
+      stroke-width: 2.1;
+    }
+
+    .hero-copy h1 {
+      font-size: clamp(1.45rem, 2.5vw, 1.9rem);
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
+    .hero-copy p {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .step-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 14px;
+    }
+
+    .form-group:first-of-type {
+      margin-top: 0;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1.5px solid rgba(46, 92, 77, 0.18);
+      border-radius: 12px;
+      font-size: 0.975rem;
+      font-family: inherit;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.8);
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .form-group textarea {
+      min-height: 96px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(74, 130, 112, 0.12);
+    }
+
+    .korean-preview {
+      min-height: 1.2em;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .date-calc-box {
+      margin-top: 10px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(46, 92, 77, 0.05);
+      display: grid;
+      gap: 8px;
+    }
+
+    .date-calc-box.hidden {
+      display: none;
+    }
+
+    .calc-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      font-size: 0.9rem;
+    }
+
+    .calc-label {
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .calc-value {
+      text-align: right;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    .btn-generate,
+    .btn-copy {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .btn-generate {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(46, 92, 77, 0.25);
+    }
+
+    .btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(46, 92, 77, 0.35);
+    }
+
+    .message {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.ok {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .message.error {
+      background: var(--error-bg);
+      color: var(--error);
+    }
+
+    .result-card {
+      display: none;
+    }
+
+    .result-card.visible {
+      display: block;
+    }
+
+    .output-block {
+      margin-top: 16px;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(46, 92, 77, 0.1);
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .output-block-header {
+      padding: 12px 16px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.04em;
+      background: linear-gradient(90deg, #2e5c4d, #177f86);
+    }
+
+    .output-block-body {
+      padding: 18px 20px;
+      white-space: pre-wrap;
+      line-height: 1.8;
+      word-break: keep-all;
+      color: var(--text-main);
+    }
+
+    .result-actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-copy {
+      width: auto;
+      padding: 13px 18px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--primary-dark);
+      border: 1px solid rgba(46, 92, 77, 0.15);
+    }
+
+    .btn-copy:hover {
+      background: linear-gradient(90deg, #2e5c4d, #177f86);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .btn-kakao {
+      background: #fee500;
+      color: #3c1e1e;
+      border-color: #fee500;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 520px) {
+      :root {
+        --mobile-sticky-gap: 14px;
+      }
+
+      .hero-slot {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding-top: var(--mobile-sticky-gap);
+        overflow: clip;
+      }
+
+      .wrap {
+        width: min(calc(100vw - 20px), 760px);
+        padding: 14px 0 30px;
+        gap: 12px;
+      }
+
+      .card {
+        padding: 22px 16px;
+        border-radius: 22px;
+      }
+
+      .card.hero {
+        flex-direction: row;
+        text-align: left;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 16px;
+      }
+
+      .back-link {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero-copy p {
+        margin-top: 6px;
+        font-size: 0.92rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .calc-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .calc-value {
+        text-align: left;
+      }
+
+      .result-actions {
+        flex-direction: column;
+      }
+
+      .btn-copy {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-shape shape-1"></div>
+  <div class="bg-shape shape-2"></div>
+
+  <main class="wrap">
+    <a class="back-link ani d1" href="../../index.html">← 홈으로</a>
+
+    <div class="hero-slot">
+      <section class="card hero ani d1">
+        <div class="hero-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="3.5" y="5" width="17" height="15" rx="2.5" stroke="currentColor" />
+            <path d="M7.5 3.5v3M16.5 3.5v3M3.5 9h17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div class="hero-copy">
+          <h1>정기모임 공지 쓰기</h1>
+          <p>기존 공지 생성 기능만 새 카드 틀에 옮긴 미리보기 버전입니다.</p>
+        </div>
+      </section>
+    </div>
+
+    <section class="card ani d2">
+      <div class="step-header">
+        <div class="step-badge">1</div>
+        <span class="step-title">모임 정보 입력</span>
+      </div>
+
+      <div class="form-group">
+        <label for="meetingNumber">모임 순서 번호</label>
+        <input type="number" id="meetingNumber" min="1" max="999" placeholder="예: 150" />
+        <div class="korean-preview" id="koreanPreview" aria-live="polite"></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="bookTitle">책 제목</label>
+          <input type="text" id="bookTitle" placeholder="예: 돈의 심리학" />
+        </div>
+        <div class="form-group">
+          <label for="bookAuthor">저자</label>
+          <input type="text" id="bookAuthor" placeholder="예: 모건 하우절" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="bookOneLine">한 문장 입력</label>
+        <textarea id="bookOneLine" rows="3" placeholder="예: 오늘 엄마가 죽었다.&#10;아니, 어쩌면 어제였는지도 모른다."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="meetingDate">모임 일시</label>
+        <input type="date" id="meetingDate" />
+        <div class="date-calc-box hidden" id="dateCalcBox">
+          <div class="calc-row">
+            <span class="calc-label">모임일</span>
+            <span class="calc-value" id="calcMeeting">-</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">댓글 마감</span>
+            <span class="calc-value" id="calcD6">-</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">정모 신청 오픈</span>
+            <span class="calc-value" id="calcD5">-</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">공석 신청 가능</span>
+            <span class="calc-value" id="calcD4">-</span>
+          </div>
+          <div class="calc-row">
+            <span class="calc-label">실제 참석 오픈</span>
+            <span class="calc-value" id="calcD5b">-</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card ani d3">
+      <div class="step-header">
+        <div class="step-badge">2</div>
+        <span class="step-title">공지 생성</span>
+      </div>
+
+      <button class="btn-generate" id="generateBtn" type="button">공지문 생성</button>
+      <div class="message" id="noticeMessage"></div>
+    </section>
+
+    <section class="card result-card ani d3" id="outputSection">
+      <div class="step-header">
+        <div class="step-badge">3</div>
+        <span class="step-title">생성 결과</span>
+      </div>
+
+      <div class="output-block">
+        <div class="output-block-header">제목</div>
+        <div class="output-block-body" id="outputTitle"></div>
+      </div>
+      <div class="output-block">
+        <div class="output-block-header">내용</div>
+        <div class="output-block-body" id="outputBody"></div>
+      </div>
+      <div class="result-actions">
+        <button class="btn-copy" id="copyTitleBtn" type="button">제목 복사</button>
+        <button class="btn-copy" id="copyBodyBtn" type="button">내용 복사</button>
+        <button class="btn-copy" id="copyAllBtn" type="button">전체 복사</button>
+        <button class="btn-copy btn-kakao" id="shareBtn" type="button">💬 카카오톡에 공유</button>
+      </div>
+    </section>
+
+    <p class="footer-note ani d3">2주에 한 번, 정기모임 공지를 빠르게 완성할 수 있게 새 틀로 재구성했습니다.</p>
+  </main>
+
+  <script>
+    const ONES = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+    const TENS = ['', '십', '이십', '삼십', '사십', '오십', '육십', '칠십', '팔십', '구십'];
+    const HUNDREDS = ['', '백', '이백', '삼백', '사백', '오백', '육백', '칠백', '팔백', '구백'];
+    const PURE_ONES = ['', '한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉'];
+    const PURE_TENS = ['', '열', '스물', '서른', '마흔', '쉰', '예순', '일흔', '여든', '아흔'];
+    const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
+
+    const meetingNumberEl = document.getElementById('meetingNumber');
+    const koreanPreviewEl = document.getElementById('koreanPreview');
+    const bookTitleEl = document.getElementById('bookTitle');
+    const bookAuthorEl = document.getElementById('bookAuthor');
+    const bookOneLineEl = document.getElementById('bookOneLine');
+    const meetingDateEl = document.getElementById('meetingDate');
+    const dateCalcBox = document.getElementById('dateCalcBox');
+    const calcMeetingEl = document.getElementById('calcMeeting');
+    const calcD6El = document.getElementById('calcD6');
+    const calcD5El = document.getElementById('calcD5');
+    const calcD4El = document.getElementById('calcD4');
+    const calcD5bEl = document.getElementById('calcD5b');
+    const generateBtn = document.getElementById('generateBtn');
+    const outputSection = document.getElementById('outputSection');
+    const outputTitleEl = document.getElementById('outputTitle');
+    const outputBodyEl = document.getElementById('outputBody');
+    const copyTitleBtn = document.getElementById('copyTitleBtn');
+    const copyBodyBtn = document.getElementById('copyBodyBtn');
+    const copyAllBtn = document.getElementById('copyAllBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const messageEl = document.getElementById('noticeMessage');
+
+    function toKoreanNumber(n) {
+      if (!n || n < 1 || n > 999) return '';
+      const h = Math.floor(n / 100);
+      const t = Math.floor((n % 100) / 10);
+      const o = n % 10;
+      return `${HUNDREDS[h]}${TENS[t]}${ONES[o]}`;
+    }
+
+    function toPureKorean(n) {
+      if (!n || n < 1 || n > 99) return '';
+      const t = Math.floor(n / 10);
+      const o = n % 10;
+      return `${PURE_TENS[t]}${PURE_ONES[o]}`;
+    }
+
+    function toOrdinalKorean(n) {
+      if (!n || n < 1 || n > 999) return '';
+      const pure = n < 100 ? toPureKorean(n) : '';
+      return pure ? `${pure} 번째` : `${toKoreanNumber(n)} 번째`;
+    }
+
+    function offsetDate(dateStr, days) {
+      const date = new Date(dateStr);
+      date.setDate(date.getDate() + days);
+      return date;
+    }
+
+    function formatDate(date) {
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      return `${month}월 ${day}일`;
+    }
+
+    function formatDateFull(date) {
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const weekday = WEEKDAY_KO[date.getDay()];
+      return `${month}월 ${day}일 ${weekday}요일`;
+    }
+
+    function showMessage(type, text) {
+      messageEl.className = `message show ${type}`;
+      messageEl.textContent = text;
+    }
+
+    function hideMessage() {
+      messageEl.className = 'message';
+      messageEl.textContent = '';
+    }
+
+    async function writeClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (error) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          return true;
+        } catch (fallbackError) {
+          return false;
+        }
+      }
+    }
+
+    function buildNotice() {
+      hideMessage();
+
+      const num = parseInt(meetingNumberEl.value, 10);
+      if (!num || num < 1 || num > 999) {
+        showMessage('error', '모임 순서 번호를 1~999 사이로 입력해 주세요.');
+        return;
+      }
+
+      const book = bookTitleEl.value.trim();
+      if (!book) {
+        showMessage('error', '책 제목을 입력해 주세요.');
+        return;
+      }
+
+      const author = bookAuthorEl.value.trim();
+      if (!author) {
+        showMessage('error', '저자를 입력해 주세요.');
+        return;
+      }
+
+      const dateStr = meetingDateEl.value;
+      if (!dateStr) {
+        showMessage('error', '모임 일시를 선택해 주세요.');
+        return;
+      }
+
+      const oneLine = bookOneLineEl.value.trim();
+      const ordinal = toOrdinalKorean(num);
+      const meeting = new Date(dateStr);
+      const d6 = offsetDate(dateStr, -6);
+      const d5 = offsetDate(dateStr, -5);
+      const d4 = offsetDate(dateStr, -4);
+      const month = meeting.getMonth() + 1;
+      const day = meeting.getDate();
+      const weekday = WEEKDAY_KO[meeting.getDay()];
+
+      const title = `📚${ordinal} 정기 모임🌲`;
+      const body = [
+        '안녕하세요! 송포레 회원 여러분',
+        `${ordinal} 정기모임 안내 드립니다.`,
+        '',
+        "👉 본 모임은 책에 대한 본인의 생각을 공유하는 모임입니다. 꼭 '완독' 후 모임 참석 부탁드립니다!",
+        '',
+        '1️⃣ 선정도서',
+        `「${book}」 - ${author}`,
+        '',
+        oneLine ? `'${oneLine}'` : '',
+        oneLine ? '' : null,
+        '2️⃣ 시간 및 장소',
+        `- 일시 : ${month}월 ${day}일 ${weekday}요일 15:00`,
+        '- 장소 : 송도 내 카페',
+        '',
+        '3️⃣ 진행순서',
+        '- 간단한 본인소개 및 ice breaking',
+        '- 책에서 궁금했던 질문 2~3가지를 메모지에 적어와서 공유',
+        '- 서평 및 질문 공유, 의견 나누기',
+        '',
+        '4️⃣ 참고사항',
+        '* 모임은 오후 15:00 정시에 시작이니, 시작 10분 전에 도착하시어 커피 주문 및 모임 준비를 해주세요.',
+        '',
+        `* 원활한 카페 예약을 위해 참여하시는 분들은 ${formatDate(d6)}까지 본 공지글에 참석 댓글을 달아주세요‼️`,
+        `댓글을 작성한 분에 한해 ${formatDate(d5)} 정모 신청이 가능하며, ${formatDate(d4)} 이후로 공석이 있다면 댓글 미작성하신 분도 참가 신청이 가능합니다.`,
+        '',
+        `* 본 모임 실제 참석은 ${formatDate(d5)} 오후 8시경에 오픈되며, 실제 참석자는 '정모참석'을 누르신 분에 한해서만 인정됩니다‼️`,
+        '',
+        '* 원활한 모임 진행을 위해 신청 인원이 3인 이하일 경우 정모가 취소될 수 있으니 참고 부탁드립니다.'
+      ].filter((line) => line !== null).join('\n');
+
+      outputTitleEl.textContent = title;
+      outputBodyEl.textContent = body;
+      outputSection.classList.add('visible');
+      showMessage('ok', '공지문이 생성됐습니다.');
+    }
+
+    async function copyText(text, label) {
+      if (await writeClipboard(text)) {
+        showMessage('ok', `${label}을 복사했습니다.`);
+      } else {
+        showMessage('error', '복사에 실패했습니다. 브라우저 권한을 확인해 주세요.');
+      }
+    }
+
+    async function shareNotice() {
+      if (!outputSection.classList.contains('visible')) {
+        showMessage('error', '먼저 공지문을 생성해 주세요.');
+        return;
+      }
+
+      const text = `[제목]\n${outputTitleEl.textContent}\n\n[내용]\n${outputBodyEl.textContent}`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ text });
+          return;
+        } catch (error) {
+          if (error && error.name === 'AbortError') {
+            return;
+          }
+        }
+      }
+
+      const copied = await writeClipboard(text);
+      if (!copied) {
+        showMessage('error', '카카오톡 공유용 텍스트 복사에 실패했습니다.');
+        return;
+      }
+
+      shareBtn.textContent = '✅ 복사 완료! 카카오톡에 붙여넣으세요';
+      shareBtn.style.background = '#34a853';
+      shareBtn.style.color = '#fff';
+      shareBtn.style.borderColor = '#34a853';
+      showMessage('ok', '카카오톡 공유용 텍스트를 복사했습니다.');
+      setTimeout(() => {
+        shareBtn.textContent = '💬 카카오톡에 공유';
+        shareBtn.style.background = '#FEE500';
+        shareBtn.style.color = '#3C1E1E';
+        shareBtn.style.borderColor = '#FEE500';
+      }, 3000);
+    }
+
+    (function setDefaultMeetingDate() {
+      const today = new Date();
+      const nextSaturday = new Date(today);
+      const dayOfWeek = today.getDay();
+      const daysUntilNextWeekSaturday = ((6 - dayOfWeek + 7) % 7) + 7;
+      nextSaturday.setDate(today.getDate() + daysUntilNextWeekSaturday);
+      const yyyy = nextSaturday.getFullYear();
+      const mm = String(nextSaturday.getMonth() + 1).padStart(2, '0');
+      const dd = String(nextSaturday.getDate()).padStart(2, '0');
+      meetingDateEl.value = `${yyyy}-${mm}-${dd}`;
+    })();
+
+    meetingNumberEl.addEventListener('input', () => {
+      const n = parseInt(meetingNumberEl.value, 10);
+      koreanPreviewEl.textContent = n >= 1 && n <= 999 ? `→ ${toOrdinalKorean(n)}` : '';
+    });
+
+    meetingDateEl.addEventListener('change', () => {
+      const dateStr = meetingDateEl.value;
+      if (!dateStr) {
+        dateCalcBox.classList.add('hidden');
+        return;
+      }
+
+      const meeting = new Date(dateStr);
+      const d6 = offsetDate(dateStr, -6);
+      const d5 = offsetDate(dateStr, -5);
+      const d4 = offsetDate(dateStr, -4);
+
+      calcMeetingEl.textContent = formatDateFull(meeting);
+      calcD6El.textContent = `${formatDate(d6)}까지 댓글 마감`;
+      calcD5El.textContent = `${formatDate(d5)} 정모 신청 오픈`;
+      calcD4El.textContent = `${formatDate(d4)} 이후 공석 신청 가능`;
+      calcD5bEl.textContent = `${formatDate(d5)} 오후 8시경 실제 참석 오픈`;
+      dateCalcBox.classList.remove('hidden');
+    });
+
+    meetingDateEl.dispatchEvent(new Event('change'));
+    generateBtn.addEventListener('click', buildNotice);
+    copyTitleBtn.addEventListener('click', () => copyText(outputTitleEl.textContent, '제목'));
+    copyBodyBtn.addEventListener('click', () => copyText(outputBodyEl.textContent, '내용'));
+    copyAllBtn.addEventListener('click', () => copyText(`[제목]\n${outputTitleEl.textContent}\n\n[내용]\n${outputBodyEl.textContent}`, '전체 공지문'));
+    shareBtn.addEventListener('click', shareNotice);
+  </script>
+</body>
+
+</html>

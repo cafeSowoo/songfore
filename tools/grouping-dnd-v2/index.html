@@ -1018,46 +1018,6 @@
     }
 
     @media (max-width: 720px) {
-      :root {
-        --mobile-sticky-gap: 14px;
-      }
-
-      .hero-slot {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        padding-top: var(--mobile-sticky-gap);
-        overflow: clip;
-        transition: height 300ms ease;
-      }
-
-      .hero-slot.collapsed {
-        height: 108px;
-      }
-
-      .hero-slot.collapsed::before {
-        content: "";
-        position: absolute;
-        inset: 0 0 auto;
-        height: calc(var(--mobile-sticky-gap) + 10px);
-        background:
-          radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
-          radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
-          linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
-        pointer-events: none;
-      }
-
-      .hero-slot.collapsed::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 22px;
-        background: linear-gradient(180deg, rgba(226, 237, 231, 0.88) 0%, rgba(226, 237, 231, 0) 100%);
-        pointer-events: none;
-      }
-
       .container {
         width: min(calc(100vw - 20px), 1120px);
         margin: 12px auto 28px;
@@ -1076,34 +1036,6 @@
         align-items: center;
         padding: 20px 18px;
         gap: 16px;
-        transition: padding 300ms ease, gap 300ms ease, border-radius 300ms ease;
-      }
-
-      .hero-mark {
-        transition: width 300ms ease, height 300ms ease, opacity 300ms ease, margin 300ms ease;
-        overflow: hidden;
-      }
-
-      .hero-copy p {
-        transition: font-size 300ms ease, margin 300ms ease, opacity 300ms ease;
-      }
-
-      .hero.collapsed {
-        padding: 14px 16px 12px;
-        gap: 0;
-        border-radius: 14px;
-      }
-
-      .hero.collapsed .hero-mark {
-        width: 0;
-        height: 0;
-        opacity: 0;
-        margin: 0;
-      }
-
-      .hero.collapsed .hero-copy p {
-        font-size: 0.82rem;
-        margin-top: 2px;
       }
 
       .panel {
