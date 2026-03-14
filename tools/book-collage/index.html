@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../../assets/favicon/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="../../assets/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../../assets/favicon/apple-touch-icon.png" />
+  <meta name="theme-color" content="#c19b43" />
+  <title>책 콜라주 만들기 - 송도 독서 포레스트</title>
+  <style>
+    :root {
+      --bg-1: #ebf4f0;
+      --bg-2: #e2ede7;
+      --ink: #1c2b26;
+      --muted: #5e736a;
+      --line: rgba(46, 92, 77, 0.16);
+      --card: rgba(255, 255, 255, 0.78);
+      --gold: #4a8270;
+      --gold-deep: #2e5c4d;
+      --shadow: 0 24px 60px rgba(18, 38, 30, 0.12);
+      --radius: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(182, 217, 200, 0.28), transparent 36%),
+        radial-gradient(circle at bottom right, rgba(204, 224, 214, 0.24), transparent 34%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .shell {
+      width: min(1280px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 34px 0 60px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--gold-deep);
+      opacity: 0.9;
+    }
+
+    .hero {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 28px 30px;
+      border: 1px solid rgba(74, 130, 112, 0.18);
+      border-radius: 30px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(240, 247, 243, 0.92));
+      box-shadow: var(--shadow);
+    }
+
+    .hero-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      background: linear-gradient(135deg, var(--gold), var(--gold-deep));
+      box-shadow: 0 16px 30px rgba(46, 92, 77, 0.22);
+    }
+
+    .hero-icon svg {
+      width: 34px;
+      height: 34px;
+      stroke: white;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .hero-copy h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.35rem);
+      letter-spacing: -0.04em;
+      line-height: 1.12;
+    }
+
+    .hero-copy p {
+      margin: 12px 0 0;
+      max-width: 720px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(360px, 460px) minmax(420px, 1fr);
+      gap: 22px;
+      margin-top: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+
+    .panel-body {
+      padding: 24px;
+    }
+
+    .section + .section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(46, 92, 77, 0.1);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: white;
+      background: linear-gradient(135deg, var(--gold), var(--gold-deep));
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .section-copy {
+      margin: 0 0 14px;
+      font-size: 0.9rem;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    input[type="search"],
+    input[type="file"],
+    input[type="range"] {
+      font: inherit;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(46, 92, 77, 0.16);
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--ink);
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: rgba(74, 130, 112, 0.46);
+      box-shadow: 0 0 0 4px rgba(74, 130, 112, 0.12);
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 16px;
+      font: inherit;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(135deg, var(--gold), var(--gold-deep));
+      box-shadow: 0 10px 24px rgba(46, 92, 77, 0.22);
+    }
+
+    .button:disabled {
+      cursor: default;
+      opacity: 0.45;
+      box-shadow: none;
+    }
+
+    .button.subtle {
+      color: var(--gold-deep);
+      background: rgba(74, 130, 112, 0.12);
+      box-shadow: none;
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .status {
+      min-height: 22px;
+      margin-top: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--gold-deep);
+    }
+
+    .status.error {
+      color: #a3422d;
+    }
+
+    .results {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .result-card,
+    .selected-card {
+      display: grid;
+      grid-template-columns: 84px minmax(0, 1fr);
+      gap: 14px;
+      padding: 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(46, 92, 77, 0.1);
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    .result-card.active {
+      border-color: rgba(74, 130, 112, 0.4);
+      box-shadow: 0 10px 24px rgba(46, 92, 77, 0.12);
+    }
+
+    .thumb {
+      width: 84px;
+      height: 112px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #edf5f1, #dfece5);
+      border: 1px solid rgba(46, 92, 77, 0.12);
+      object-fit: contain;
+      padding: 6px;
+    }
+
+    .meta {
+      min-width: 0;
+    }
+
+    .meta h3 {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.35;
+      letter-spacing: -0.02em;
+    }
+
+    .meta p {
+      margin: 6px 0 0;
+      font-size: 0.86rem;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .meta-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #2e5c4d;
+      background: rgba(74, 130, 112, 0.12);
+    }
+
+    .card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .upload-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .upload-card {
+      padding: 10px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(46, 92, 77, 0.1);
+      background: rgba(255, 255, 255, 0.84);
+    }
+
+    .upload-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 54px;
+    }
+
+    .upload-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+
+    .upload-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+      color: var(--gold-deep);
+      background: rgba(74, 130, 112, 0.12);
+    }
+
+    .upload-label input {
+      display: none;
+    }
+
+    .gesture-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .selected-wrap {
+      display: grid;
+      gap: 12px;
+    }
+
+    .empty-state {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px dashed rgba(46, 92, 77, 0.18);
+      background: rgba(255, 255, 255, 0.54);
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 0.9rem;
+    }
+
+    .preview-panel {
+      position: sticky;
+      top: 20px;
+    }
+
+    .preview-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .preview-title {
+      font-size: 1.02rem;
+      font-weight: 800;
+    }
+
+    .preview-frame {
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      border-radius: 26px;
+      overflow: hidden;
+      background: #eef5f1;
+      box-shadow: 0 12px 28px rgba(18, 38, 30, 0.12);
+      touch-action: none;
+      user-select: none;
+      cursor: default;
+    }
+
+    .canvas-wrap.can-drag {
+      cursor: grab;
+    }
+
+    .canvas-wrap.is-dragging {
+      cursor: grabbing;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      background: #f4efe4;
+    }
+
+    .download-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .preview-hint {
+      margin-top: 14px;
+      font-size: 0.86rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        width: min(100vw - 24px, 100%);
+        padding-top: 18px;
+      }
+
+      .hero,
+      .panel-body {
+        padding: 20px;
+      }
+
+      .hero {
+        align-items: flex-start;
+      }
+
+      .hero-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 20px;
+      }
+
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+
+      .result-card,
+      .selected-card {
+        grid-template-columns: 1fr;
+      }
+
+      .thumb {
+        width: 92px;
+        height: 122px;
+      }
+
+    }
+  </style>
+</head>
+
+<body>
+  <main class="shell">
+    <a class="back-link" href="../../index.html">← 메인으로 돌아가기</a>
+
+    <section class="hero">
+      <div class="hero-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <rect x="3.5" y="5" width="17" height="14" rx="2.5"></rect>
+          <circle cx="8.2" cy="9.2" r="1.6"></circle>
+          <path d="M6.2 16l4.2-4.4 3.1 3.3 2.8-2.6 2.2 3.7"></path>
+        </svg>
+      </div>
+      <div class="hero-copy">
+        <h1>모임 사진 콜라주 만들기</h1>
+        <p>
+          소모임 사진첩에 올릴 사진을 만듭니다.
+        </p>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="panel-body">
+          <section class="section">
+            <div class="section-header">
+              <span class="badge">1</span>
+              <div class="section-title">대표 판본 검색</div>
+            </div>
+            <p class="section-copy">
+              제목이나 저자명으로 검색하면 표지와 판본 정보를 보여드립니다. 마음에 드는 대표본을 하나 선택해 주세요.
+            </p>
+            <form id="searchForm">
+              <div class="search-row">
+                <input id="searchInput" class="search-input" type="search" placeholder="예: 인생의 역사, 신형철 인생의 역사" />
+                <button id="searchButton" class="button" type="submit">알라딘에서 찾기</button>
+              </div>
+            </form>
+            <div class="hint">같은 책의 다른 판본이 나올 수 있어서, 검색 후 직접 하나를 골라주는 흐름으로 만들었습니다.</div>
+            <div id="searchStatus" class="status" aria-live="polite"></div>
+            <div id="results" class="results"></div>
+          </section>
+
+          <section class="section">
+            <div class="section-header">
+              <span class="badge">2</span>
+              <div class="section-title">선택한 대표 판본</div>
+            </div>
+            <div id="selectedWrap" class="selected-wrap">
+              <div class="empty-state">아직 선택한 책이 없습니다. 위에서 검색한 뒤 한 권을 선택하면 여기와 미리보기에 바로 반영됩니다.</div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-header">
+              <span class="badge">3</span>
+              <div class="section-title">오른쪽 사진 2장 업로드</div>
+            </div>
+
+            <div class="upload-grid">
+              <article class="upload-card" data-slot="0">
+                <div class="upload-top">
+                  <div class="upload-title">상단 사진</div>
+                  <div class="gesture-toolbar">
+                    <label class="upload-label">
+                      사진 선택
+                      <input type="file" accept="image/*" data-file-input="0" />
+                    </label>
+                    <button class="button subtle" type="button" data-reset-photo="0">초기화</button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="upload-card" data-slot="1">
+                <div class="upload-top">
+                  <div class="upload-title">하단 사진</div>
+                  <div class="gesture-toolbar">
+                    <label class="upload-label">
+                      사진 선택
+                      <input type="file" accept="image/*" data-file-input="1" />
+                    </label>
+                    <button class="button subtle" type="button" data-reset-photo="1">초기화</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="panel preview-panel">
+        <div class="panel-body">
+          <div class="preview-top">
+            <div>
+              <div class="preview-title">콜라주 미리보기</div>
+            </div>
+          </div>
+
+          <div class="preview-frame">
+            <div class="canvas-wrap">
+              <canvas id="previewCanvas" width="1600" height="1600" aria-label="콜라주 미리보기"></canvas>
+            </div>
+          </div>
+
+          <div class="preview-hint">드래그, 핀치 줌 인을 통해 사진 조정이 가능합니다.</div>
+
+          <div class="download-row">
+            <button id="downloadSecondary" class="button subtle" type="button" disabled>현재 미리보기 다시 저장</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    (function () {
+      const FUNCTION_URL = "/.netlify/functions/book-collage";
+      const searchForm = document.getElementById("searchForm");
+      const searchInput = document.getElementById("searchInput");
+      const searchButton = document.getElementById("searchButton");
+      const searchStatus = document.getElementById("searchStatus");
+      const resultsEl = document.getElementById("results");
+      const selectedWrap = document.getElementById("selectedWrap");
+      const previewCanvas = document.getElementById("previewCanvas");
+      const canvasWrap = document.querySelector(".canvas-wrap");
+      const downloadSecondary = document.getElementById("downloadSecondary");
+      const ctx = previewCanvas.getContext("2d");
+      const DRAG_SENSITIVITY = 70;
+
+      const state = {
+        results: [],
+        selectedBook: null,
+        selectedBookImage: null,
+        selectedBookProxyUrl: "",
+        bookTransform: { zoom: 1, offsetX: 0, offsetY: 0 },
+        activeCanvasTarget: null,
+        photos: [
+          { file: null, objectUrl: "", image: null, zoom: 1, offsetX: 0, offsetY: 0 },
+          { file: null, objectUrl: "", image: null, zoom: 1, offsetX: 0, offsetY: 0 },
+        ],
+      };
+
+      function setStatus(message, isError) {
+        searchStatus.textContent = message || "";
+        searchStatus.classList.toggle("error", Boolean(isError));
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function formatDate(value) {
+        if (!value) return "출간일 정보 없음";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return new Intl.DateTimeFormat("ko-KR", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }).format(date);
+      }
+
+      function buildCoverProxyUrl(coverUrl) {
+        return `${FUNCTION_URL}?action=cover&url=${encodeURIComponent(coverUrl)}`;
+      }
+
+      function loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error("이미지를 불러오지 못했습니다."));
+          img.src = src;
+        });
+      }
+
+      function updateDownloadButtons() {
+        const ready = Boolean(state.selectedBook && state.selectedBookImage && state.photos.every((photo) => photo.image));
+        downloadSecondary.disabled = !ready;
+      }
+
+      function renderSelectedBook() {
+        if (!state.selectedBook) {
+          selectedWrap.innerHTML = '<div class="empty-state">아직 선택한 책이 없습니다. 위에서 검색한 뒤 한 권을 선택하면 여기와 미리보기에 바로 반영됩니다.</div>';
+          updateDownloadButtons();
+          return;
+        }
+
+        const book = state.selectedBook;
+        selectedWrap.innerHTML = `
+          <article class="selected-card">
+            <img class="thumb" src="${escapeHtml(state.selectedBookProxyUrl)}" alt="${escapeHtml(book.title)} 표지" />
+            <div class="meta">
+              <h3>${escapeHtml(book.title)}</h3>
+              <p>${escapeHtml(book.author || "저자 정보 없음")}</p>
+              <div class="meta-grid">
+                <span class="pill">${escapeHtml(book.publisher || "출판사 정보 없음")}</span>
+                <span class="pill">${escapeHtml(formatDate(book.pubDate))}</span>
+                <span class="pill">ISBN13 ${escapeHtml(book.isbn13 || "-")}</span>
+              </div>
+              <div class="card-actions">
+                <a class="button subtle" href="${escapeHtml(book.link || "#")}" target="_blank" rel="noreferrer">알라딘 페이지 열기</a>
+              </div>
+            </div>
+          </article>
+        `;
+        updateDownloadButtons();
+      }
+
+      function renderResults() {
+        if (!state.results.length) {
+          resultsEl.innerHTML = "";
+          return;
+        }
+
+        resultsEl.innerHTML = state.results.map((item, index) => {
+          const active = state.selectedBook && state.selectedBook.isbn13 === item.isbn13;
+          return `
+            <article class="result-card ${active ? "active" : ""}" data-index="${index}">
+              <img class="thumb" src="${escapeHtml(buildCoverProxyUrl(item.cover))}" alt="${escapeHtml(item.title)} 표지" />
+              <div class="meta">
+                <h3>${escapeHtml(item.title)}</h3>
+                <p>${escapeHtml(item.author || "저자 정보 없음")}</p>
+                <div class="meta-grid">
+                  <span class="pill">${escapeHtml(item.publisher || "출판사 정보 없음")}</span>
+                  <span class="pill">${escapeHtml(formatDate(item.pubDate))}</span>
+                  <span class="pill">ISBN13 ${escapeHtml(item.isbn13 || "-")}</span>
+                </div>
+                <div class="card-actions">
+                  <button class="button subtle" type="button" data-select-book="${index}">이 판본 선택</button>
+                  <a class="button subtle" href="${escapeHtml(item.link || "#")}" target="_blank" rel="noreferrer">상세 보기</a>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join("");
+      }
+
+      async function chooseBook(index) {
+        const item = state.results[index];
+        if (!item) return;
+
+        const proxyUrl = buildCoverProxyUrl(item.cover);
+        setStatus("선택한 판본 표지를 불러오는 중입니다...", false);
+
+        try {
+          const img = await loadImage(proxyUrl);
+          state.selectedBook = item;
+          state.selectedBookImage = img;
+          state.selectedBookProxyUrl = proxyUrl;
+          state.bookTransform = { zoom: 1, offsetX: 0, offsetY: 0 };
+          renderResults();
+          renderSelectedBook();
+          drawCanvas();
+          setStatus("대표 판본을 선택했습니다.", false);
+        } catch (error) {
+          setStatus(String(error.message || error), true);
+        }
+      }
+
+      async function searchBooks(query) {
+        setStatus("알라딘에서 판본을 찾는 중입니다...", false);
+        searchButton.disabled = true;
+
+        try {
+          const response = await fetch(FUNCTION_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "search",
+              query,
+            }),
+          });
+
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(data.error || `검색에 실패했습니다. (${response.status})`);
+          }
+
+          state.results = Array.isArray(data.items) ? data.items : [];
+          renderResults();
+
+          if (!state.results.length) {
+            setStatus("검색 결과가 없습니다. 제목과 저자명을 함께 넣어 보세요.", true);
+          } else {
+            setStatus(`${state.results.length}개의 판본 후보를 찾았습니다. 원하는 책을 골라 주세요.`, false);
+          }
+        } catch (error) {
+          state.results = [];
+          renderResults();
+          setStatus(String(error.message || error), true);
+        } finally {
+          searchButton.disabled = false;
+        }
+      }
+
+      function clampPhotoState(index) {
+        const photo = state.photos[index];
+        if (!photo) return;
+
+        photo.zoom = Math.min(2.4, Math.max(1, photo.zoom));
+        photo.offsetX = Math.max(-100, Math.min(100, photo.offsetX));
+        photo.offsetY = Math.max(-100, Math.min(100, photo.offsetY));
+      }
+
+      function updateStageTransform(index) {
+        const photo = state.photos[index];
+        if (!photo) return;
+
+        clampPhotoState(index);
+      }
+
+      function clampTransformState(transform) {
+        if (!transform) return;
+        transform.zoom = Math.min(2.4, Math.max(1, transform.zoom));
+        transform.offsetX = Math.max(-100, Math.min(100, transform.offsetX));
+        transform.offsetY = Math.max(-100, Math.min(100, transform.offsetY));
+      }
+
+      function getTargetTransform(target) {
+        if (!target) return null;
+        if (target.kind === "book") return state.bookTransform;
+        if (target.kind === "photo") return state.photos[target.index];
+        return null;
+      }
+
+      function hasTargetImage(target) {
+        if (!target) return false;
+        if (target.kind === "book") return Boolean(state.selectedBookImage);
+        if (target.kind === "photo") return Boolean(state.photos[target.index]?.objectUrl);
+        return false;
+      }
+
+      function updateTargetTransform(target) {
+        const transform = getTargetTransform(target);
+        if (!transform) return;
+        clampTransformState(transform);
+      }
+
+      function resetPhotoControl(index) {
+        const photo = state.photos[index];
+        photo.zoom = 1;
+        photo.offsetX = 0;
+        photo.offsetY = 0;
+        updateStageTransform(index);
+      }
+
+      async function handleFileChange(index, file) {
+        const photo = state.photos[index];
+        if (photo.objectUrl) {
+          URL.revokeObjectURL(photo.objectUrl);
+        }
+
+        if (!file) {
+          photo.file = null;
+          photo.objectUrl = "";
+          photo.image = null;
+          resetPhotoControl(index);
+          drawCanvas();
+          updateDownloadButtons();
+          return;
+        }
+
+        const objectUrl = URL.createObjectURL(file);
+        try {
+          const image = await loadImage(objectUrl);
+          photo.file = file;
+          photo.objectUrl = objectUrl;
+          photo.image = image;
+          resetPhotoControl(index);
+          drawCanvas();
+          updateDownloadButtons();
+        } catch (error) {
+          URL.revokeObjectURL(objectUrl);
+          setStatus(String(error.message || error), true);
+        }
+      }
+
+      function drawRoundedRect(context, x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        context.beginPath();
+        context.moveTo(x + r, y);
+        context.arcTo(x + width, y, x + width, y + height, r);
+        context.arcTo(x + width, y + height, x, y + height, r);
+        context.arcTo(x, y + height, x, y, r);
+        context.arcTo(x, y, x + width, y, r);
+        context.closePath();
+      }
+
+      function fillCoverImage(context, image, rect, zoom, offsetX, offsetY) {
+        const baseScale = Math.min(rect.width / image.width, rect.height / image.height);
+        const scale = baseScale * zoom;
+        const drawWidth = image.width * scale;
+        const drawHeight = image.height * scale;
+        const maxShiftX = Math.max(0, (drawWidth - rect.width) / 2);
+        const maxShiftY = Math.max(0, (drawHeight - rect.height) / 2);
+        const shiftX = maxShiftX * (offsetX / 100);
+        const shiftY = maxShiftY * (offsetY / 100);
+        const drawX = rect.x + (rect.width - drawWidth) / 2 + shiftX;
+        const drawY = rect.y + (rect.height - drawHeight) / 2 + shiftY;
+        context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+      }
+
+      function fillPhotoImage(context, image, rect, zoom, offsetX, offsetY) {
+        const scale = Math.max(rect.width / image.width, rect.height / image.height) * zoom;
+        const drawWidth = image.width * scale;
+        const drawHeight = image.height * scale;
+        const maxShiftX = Math.max(0, (drawWidth - rect.width) / 2);
+        const maxShiftY = Math.max(0, (drawHeight - rect.height) / 2);
+        const shiftX = maxShiftX * (offsetX / 100);
+        const shiftY = maxShiftY * (offsetY / 100);
+        const drawX = rect.x + (rect.width - drawWidth) / 2 + shiftX;
+        const drawY = rect.y + (rect.height - drawHeight) / 2 + shiftY;
+        context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+      }
+
+      function drawPhotoSlot(context, photo, rect, title, fontSizes) {
+        context.save();
+        drawRoundedRect(context, rect.x, rect.y, rect.width, rect.height, 30);
+        context.clip();
+        context.fillStyle = "#f0ebe1";
+        context.fillRect(rect.x, rect.y, rect.width, rect.height);
+
+        if (photo.image) {
+          fillPhotoImage(context, photo.image, rect, photo.zoom, photo.offsetX, photo.offsetY);
+        } else {
+          const gradient = context.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.height);
+          gradient.addColorStop(0, "#edf5f1");
+          gradient.addColorStop(1, "#d6e6de");
+          context.fillStyle = gradient;
+          context.fillRect(rect.x, rect.y, rect.width, rect.height);
+          context.fillStyle = "rgba(78, 63, 42, 0.78)";
+          context.font = `700 ${fontSizes.slotTitle}px Pretendard, sans-serif`;
+          context.textAlign = "center";
+          context.fillText(title, rect.x + rect.width / 2, rect.y + rect.height / 2 - 16);
+          context.font = `500 ${fontSizes.slotSubtitle}px Pretendard, sans-serif`;
+          context.fillStyle = "rgba(78, 63, 42, 0.58)";
+          context.fillText("사진 업로드 대기 중", rect.x + rect.width / 2, rect.y + rect.height / 2 + 26);
+        }
+        context.restore();
+      }
+
+      function getCollageLayout() {
+        const width = previewCanvas.width;
+        const height = previewCanvas.height;
+        const outer = 18;
+        const gap = 18;
+        const columnWidth = (width - outer * 2 - gap) / 2;
+        const columnHeight = height - outer * 2;
+        const photoGap = 18;
+        const photoHeight = (columnHeight - photoGap) / 2;
+
+        return {
+          width,
+          height,
+          leftRect: { x: outer, y: outer, width: columnWidth, height: columnHeight },
+          photoRects: [
+            { x: outer + columnWidth + gap, y: outer, width: columnWidth, height: photoHeight },
+            { x: outer + columnWidth + gap, y: outer + photoHeight + photoGap, width: columnWidth, height: photoHeight },
+          ],
+        };
+      }
+
+      function drawCanvas() {
+        const layout = getCollageLayout();
+        const { width, height, leftRect } = layout;
+        const topRect = layout.photoRects[0];
+        const bottomRect = layout.photoRects[1];
+        const isMobileViewport = window.innerWidth <= 640;
+        const titleFontSize = isMobileViewport ? 66 : 52;
+        const subtitleFontSize = isMobileViewport ? 34 : 30;
+        const slotTitleFontSize = isMobileViewport ? 42 : 34;
+        const slotSubtitleFontSize = isMobileViewport ? 28 : 24;
+        const fontSizes = {
+          slotTitle: slotTitleFontSize,
+          slotSubtitle: slotSubtitleFontSize,
+        };
+
+        ctx.clearRect(0, 0, width, height);
+
+        const bg = ctx.createLinearGradient(0, 0, width, height);
+        bg.addColorStop(0, "#eef6f2");
+        bg.addColorStop(1, "#dfece5");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.save();
+        ctx.shadowColor = "rgba(72, 57, 34, 0.14)";
+        ctx.shadowBlur = 18;
+        ctx.shadowOffsetY = 10;
+        drawRoundedRect(ctx, leftRect.x, leftRect.y, leftRect.width, leftRect.height, 34);
+        ctx.fillStyle = "#faf7f1";
+        ctx.fill();
+        drawRoundedRect(ctx, topRect.x, topRect.y, topRect.width, topRect.height, 30);
+        ctx.fillStyle = "#faf7f1";
+        ctx.fill();
+        drawRoundedRect(ctx, bottomRect.x, bottomRect.y, bottomRect.width, bottomRect.height, 30);
+        ctx.fillStyle = "#faf7f1";
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        drawRoundedRect(ctx, leftRect.x, leftRect.y, leftRect.width, leftRect.height, 34);
+        ctx.clip();
+        const leftGradient = ctx.createLinearGradient(leftRect.x, leftRect.y, leftRect.x, leftRect.y + leftRect.height);
+        leftGradient.addColorStop(0, "#f8f4ec");
+        leftGradient.addColorStop(1, "#f0e7d6");
+        ctx.fillStyle = leftGradient;
+        ctx.fillRect(leftRect.x, leftRect.y, leftRect.width, leftRect.height);
+
+        if (state.selectedBookImage) {
+          fillCoverImage(
+            ctx,
+            state.selectedBookImage,
+            leftRect,
+            state.bookTransform.zoom,
+            state.bookTransform.offsetX,
+            state.bookTransform.offsetY,
+          );
+        } else {
+          const placeholder = ctx.createLinearGradient(leftRect.x, leftRect.y, leftRect.x + leftRect.width, leftRect.y + leftRect.height);
+          placeholder.addColorStop(0, "#5f9d87");
+          placeholder.addColorStop(1, "#2e5c4d");
+          ctx.fillStyle = placeholder;
+          ctx.fillRect(leftRect.x, leftRect.y, leftRect.width, leftRect.height);
+          ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+          ctx.font = `800 ${titleFontSize}px Pretendard, sans-serif`;
+          ctx.textAlign = "center";
+          ctx.fillText("대표 판본", leftRect.x + leftRect.width / 2, leftRect.y + leftRect.height / 2 - 18);
+          ctx.font = `500 ${subtitleFontSize}px Pretendard, sans-serif`;
+          ctx.fillText("알라딘에서 책을 골라 주세요", leftRect.x + leftRect.width / 2, leftRect.y + leftRect.height / 2 + 36);
+        }
+        ctx.restore();
+
+        drawPhotoSlot(ctx, state.photos[0], topRect, "상단 사진", fontSizes);
+        drawPhotoSlot(ctx, state.photos[1], bottomRect, "하단 사진", fontSizes);
+
+        ctx.strokeStyle = "rgba(95, 74, 42, 0.12)";
+        ctx.lineWidth = 2;
+        drawRoundedRect(ctx, leftRect.x, leftRect.y, leftRect.width, leftRect.height, 34);
+        ctx.stroke();
+        drawRoundedRect(ctx, topRect.x, topRect.y, topRect.width, topRect.height, 30);
+        ctx.stroke();
+        drawRoundedRect(ctx, bottomRect.x, bottomRect.y, bottomRect.width, bottomRect.height, 30);
+        ctx.stroke();
+
+        if (state.activeCanvasTarget !== null) {
+          const activeRect = state.activeCanvasTarget.kind === "book"
+            ? leftRect
+            : layout.photoRects[state.activeCanvasTarget.index];
+          ctx.save();
+          ctx.strokeStyle = "rgba(66, 133, 244, 0.92)";
+          ctx.lineWidth = 8;
+          drawRoundedRect(ctx, activeRect.x + 6, activeRect.y + 6, activeRect.width - 12, activeRect.height - 12, 24);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        ctx.fillStyle = "rgba(92, 74, 44, 0.24)";
+        ctx.font = "600 18px Pretendard, sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText("Songdo Reading Forest", width - 58, height - 42);
+
+        updateDownloadButtons();
+      }
+
+      function downloadCanvas() {
+        if (downloadSecondary.disabled) return;
+        const link = document.createElement("a");
+        const date = new Date();
+        const timestamp = [
+          date.getFullYear(),
+          String(date.getMonth() + 1).padStart(2, "0"),
+          String(date.getDate()).padStart(2, "0"),
+          String(date.getHours()).padStart(2, "0"),
+          String(date.getMinutes()).padStart(2, "0"),
+        ].join("");
+        link.href = previewCanvas.toDataURL("image/png");
+        link.download = `book-collage-${timestamp}.png`;
+        link.click();
+      }
+
+      function getCanvasPhotoHit(clientX, clientY) {
+        const rect = previewCanvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return null;
+
+        const x = ((clientX - rect.left) / rect.width) * previewCanvas.width;
+        const y = ((clientY - rect.top) / rect.height) * previewCanvas.height;
+        const layout = getCollageLayout();
+        const leftRect = layout.leftRect;
+
+        const insideBook =
+          x >= leftRect.x &&
+          x <= leftRect.x + leftRect.width &&
+          y >= leftRect.y &&
+          y <= leftRect.y + leftRect.height;
+
+        if (insideBook) {
+          return {
+            kind: "book",
+            slotWidthClient: (leftRect.width / previewCanvas.width) * rect.width,
+            slotHeightClient: (leftRect.height / previewCanvas.height) * rect.height,
+          };
+        }
+
+        for (let index = 0; index < layout.photoRects.length; index += 1) {
+          const slot = layout.photoRects[index];
+          const inside =
+            x >= slot.x &&
+            x <= slot.x + slot.width &&
+            y >= slot.y &&
+            y <= slot.y + slot.height;
+
+          if (inside) {
+            return {
+              kind: "photo",
+              index,
+              slotWidthClient: (slot.width / previewCanvas.width) * rect.width,
+              slotHeightClient: (slot.height / previewCanvas.height) * rect.height,
+            };
+          }
+        }
+
+        return null;
+      }
+
+      searchForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        const query = searchInput.value.trim();
+        if (!query) {
+          setStatus("검색어를 먼저 입력해 주세요.", true);
+          return;
+        }
+        searchBooks(query);
+      });
+
+      resultsEl.addEventListener("click", function (event) {
+        const button = event.target.closest("[data-select-book]");
+        if (!button) return;
+        chooseBook(Number(button.getAttribute("data-select-book")));
+      });
+
+      function setupCanvasGesture() {
+        const activePointers = new Map();
+        let dragStart = null;
+        let pinchStart = null;
+
+        function distance(a, b) {
+          return Math.hypot(a.x - b.x, a.y - b.y);
+        }
+
+        function midpoint(a, b) {
+          return {
+            x: (a.x + b.x) / 2,
+            y: (a.y + b.y) / 2,
+          };
+        }
+
+        previewCanvas.addEventListener("pointerdown", function (event) {
+          const hit = getCanvasPhotoHit(event.clientX, event.clientY);
+          if (!hit || !hasTargetImage(hit)) return;
+
+          previewCanvas.setPointerCapture(event.pointerId);
+          activePointers.set(event.pointerId, {
+            clientX: event.clientX,
+            clientY: event.clientY,
+            kind: hit.kind,
+            index: hit.index ?? null,
+            slotWidthClient: hit.slotWidthClient,
+            slotHeightClient: hit.slotHeightClient,
+          });
+
+          if (activePointers.size === 1) {
+            const transform = getTargetTransform(hit);
+            state.activeCanvasTarget = hit;
+            dragStart = {
+              pointerId: event.pointerId,
+              kind: hit.kind,
+              index: hit.index ?? null,
+              x: event.clientX,
+              y: event.clientY,
+              offsetX: transform.offsetX,
+              offsetY: transform.offsetY,
+              slotWidth: hit.slotWidthClient,
+              slotHeight: hit.slotHeightClient,
+            };
+            canvasWrap.classList.add("is-dragging");
+            drawCanvas();
+          } else if (activePointers.size === 2) {
+            const points = Array.from(activePointers.values());
+            if (points[0].kind !== points[1].kind || points[0].index !== points[1].index) {
+              pinchStart = null;
+              return;
+            }
+            const pinchTarget = { kind: points[0].kind, index: points[0].index };
+            const transform = getTargetTransform(pinchTarget);
+            state.activeCanvasTarget = pinchTarget;
+            pinchStart = {
+              kind: points[0].kind,
+              index: points[0].index,
+              zoom: transform.zoom,
+              offsetX: transform.offsetX,
+              offsetY: transform.offsetY,
+              distance: distance(points[0], points[1]),
+              midpoint: midpoint(points[0], points[1]),
+              slotWidth: points[0].slotWidthClient,
+              slotHeight: points[0].slotHeightClient,
+            };
+            dragStart = null;
+            canvasWrap.classList.remove("is-dragging");
+            drawCanvas();
+          }
+        });
+
+        previewCanvas.addEventListener("pointermove", function (event) {
+          if (!activePointers.has(event.pointerId)) {
+            const hoverHit = getCanvasPhotoHit(event.clientX, event.clientY);
+            const canDrag = Boolean(hoverHit && hasTargetImage(hoverHit));
+            canvasWrap.classList.toggle("can-drag", canDrag);
+            return;
+          }
+
+          const existing = activePointers.get(event.pointerId);
+          activePointers.set(event.pointerId, {
+            ...existing,
+            clientX: event.clientX,
+            clientY: event.clientY,
+          });
+
+          if (activePointers.size === 1 && dragStart) {
+            const target = { kind: dragStart.kind, index: dragStart.index };
+            const transform = getTargetTransform(target);
+            const zoomFactor = Math.max(1, transform.zoom);
+            const dx = ((event.clientX - dragStart.x) / Math.max(1, dragStart.slotWidth)) * (DRAG_SENSITIVITY / zoomFactor);
+            const dy = ((event.clientY - dragStart.y) / Math.max(1, dragStart.slotHeight)) * (DRAG_SENSITIVITY / zoomFactor);
+            transform.offsetX = dragStart.offsetX + dx;
+            transform.offsetY = dragStart.offsetY + dy;
+            updateTargetTransform(target);
+            drawCanvas();
+          } else if (activePointers.size === 2 && pinchStart) {
+            const points = Array.from(activePointers.values());
+            if (
+              points[0].kind !== pinchStart.kind ||
+              points[1].kind !== pinchStart.kind ||
+              points[0].index !== pinchStart.index ||
+              points[1].index !== pinchStart.index
+            ) {
+              return;
+            }
+            const target = { kind: pinchStart.kind, index: pinchStart.index };
+            const transform = getTargetTransform(target);
+            const currentDistance = distance(points[0], points[1]);
+            const currentMid = midpoint(points[0], points[1]);
+            const scaleRatio = currentDistance / Math.max(1, pinchStart.distance);
+            transform.zoom = pinchStart.zoom * scaleRatio;
+            const zoomFactor = Math.max(1, transform.zoom);
+            const dx = ((currentMid.x - pinchStart.midpoint.x) / Math.max(1, pinchStart.slotWidth)) * (DRAG_SENSITIVITY / zoomFactor);
+            const dy = ((currentMid.y - pinchStart.midpoint.y) / Math.max(1, pinchStart.slotHeight)) * (DRAG_SENSITIVITY / zoomFactor);
+            transform.offsetX = pinchStart.offsetX + dx;
+            transform.offsetY = pinchStart.offsetY + dy;
+            updateTargetTransform(target);
+            drawCanvas();
+          }
+        });
+
+        function releasePointer(pointerId) {
+          activePointers.delete(pointerId);
+          if (activePointers.size === 0) {
+            dragStart = null;
+            pinchStart = null;
+            state.activeCanvasTarget = null;
+            canvasWrap.classList.remove("is-dragging");
+            canvasWrap.classList.remove("can-drag");
+            drawCanvas();
+            return;
+          }
+
+          if (activePointers.size === 1) {
+            const remaining = Array.from(activePointers.values())[0];
+            const target = { kind: remaining.kind, index: remaining.index };
+            const transform = getTargetTransform(target);
+            state.activeCanvasTarget = target;
+            dragStart = {
+              pointerId,
+              kind: remaining.kind,
+              index: remaining.index,
+              x: remaining.clientX,
+              y: remaining.clientY,
+              offsetX: transform.offsetX,
+              offsetY: transform.offsetY,
+              slotWidth: remaining.slotWidthClient,
+              slotHeight: remaining.slotHeightClient,
+            };
+            pinchStart = null;
+            canvasWrap.classList.add("is-dragging");
+            drawCanvas();
+          }
+        }
+
+        previewCanvas.addEventListener("pointerup", function (event) {
+          releasePointer(event.pointerId);
+        });
+
+        previewCanvas.addEventListener("pointercancel", function (event) {
+          releasePointer(event.pointerId);
+        });
+
+        previewCanvas.addEventListener("pointerleave", function () {
+          if (!activePointers.size) {
+            canvasWrap.classList.remove("can-drag");
+          }
+        });
+
+        previewCanvas.addEventListener("wheel", function (event) {
+          const hit = getCanvasPhotoHit(event.clientX, event.clientY);
+          if (!hit || !hasTargetImage(hit)) return;
+          event.preventDefault();
+          const delta = event.deltaY < 0 ? 0.12 : -0.12;
+          const transform = getTargetTransform(hit);
+          state.activeCanvasTarget = hit;
+          transform.zoom += delta;
+          updateTargetTransform(hit);
+          drawCanvas();
+        }, { passive: false });
+      }
+
+      document.querySelectorAll("[data-file-input]").forEach((input) => {
+        input.addEventListener("change", function (event) {
+          const index = Number(event.currentTarget.getAttribute("data-file-input"));
+          const file = event.currentTarget.files && event.currentTarget.files[0];
+          handleFileChange(index, file || null);
+        });
+      });
+
+      document.querySelectorAll("[data-reset-photo]").forEach((button) => {
+        button.addEventListener("click", function (event) {
+          const index = Number(event.currentTarget.getAttribute("data-reset-photo"));
+          resetPhotoControl(index);
+          drawCanvas();
+        });
+      });
+
+      downloadSecondary.addEventListener("click", downloadCanvas);
+
+      setupCanvasGesture();
+      renderSelectedBook();
+      drawCanvas();
+    })();
+  </script>
+</body>
+
+</html>
