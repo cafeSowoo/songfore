@@ -221,18 +221,19 @@
       box-shadow: none;
     }
 
-    .hint {
-      margin-top: 10px;
-      font-size: 0.82rem;
-      color: var(--muted);
-    }
-
     .status {
-      min-height: 22px;
-      margin-top: 12px;
+      min-height: 0;
+      height: 0;
+      margin-top: 8px;
       font-size: 0.9rem;
       font-weight: 700;
       color: var(--gold-deep);
+      overflow: hidden;
+    }
+
+    .status:not(:empty) {
+      min-height: 22px;
+      height: auto;
     }
 
     .status.error {
@@ -241,14 +242,14 @@
 
     .results {
       display: grid;
-      gap: 10px;
-      margin-top: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
       max-height: 420px;
       overflow: auto;
       padding-right: 2px;
     }
 
-    .result-card,
     .selected-card {
       display: grid;
       grid-template-columns: 84px minmax(0, 1fr);
@@ -259,9 +260,36 @@
       background: rgba(255, 255, 255, 0.88);
     }
 
+    .result-card {
+      display: block;
+      padding: 8px;
+      border-radius: 18px;
+      border: 1px solid rgba(46, 92, 77, 0.1);
+      background: rgba(255, 255, 255, 0.88);
+      cursor: pointer;
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .result-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(74, 130, 112, 0.4);
+      box-shadow: 0 10px 20px rgba(46, 92, 77, 0.1);
+    }
+
     .result-card.active {
       border-color: rgba(74, 130, 112, 0.4);
       box-shadow: 0 10px 24px rgba(46, 92, 77, 0.12);
+    }
+
+    .result-card .thumb {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 3 / 4;
+      display: block;
+    }
+
+    .result-card .meta {
+      display: none;
     }
 
     .thumb {
@@ -324,8 +352,8 @@
     }
 
     .upload-card {
-      padding: 10px 14px;
-      border-radius: 20px;
+      padding: 6px 14px;
+      border-radius: 18px;
       border: 1px solid rgba(46, 92, 77, 0.1);
       background: rgba(255, 255, 255, 0.84);
     }
@@ -335,11 +363,11 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      min-height: 54px;
+      min-height: 42px;
     }
 
     .upload-title {
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       font-weight: 800;
     }
 
@@ -347,10 +375,10 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 40px;
-      padding: 0 14px;
+      min-height: 36px;
+      padding: 0 12px;
       border-radius: 14px;
-      font-size: 0.9rem;
+      font-size: 0.86rem;
       font-weight: 800;
       cursor: pointer;
       color: var(--gold-deep);
@@ -375,6 +403,7 @@
     }
 
     .empty-state {
+      max-width: 320px;
       padding: 18px;
       border-radius: 18px;
       border: 1px dashed rgba(46, 92, 77, 0.18);
@@ -382,6 +411,31 @@
       color: var(--muted);
       line-height: 1.7;
       font-size: 0.9rem;
+    }
+
+    .selected-note {
+      font-size: 0.84rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .inline-upload {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 16px;
+      border-radius: 16px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      color: var(--gold-deep);
+      background: rgba(74, 130, 112, 0.12);
+      box-shadow: none;
+    }
+
+    .inline-upload input {
+      display: none;
     }
 
     .preview-panel {
@@ -490,12 +544,56 @@
 
       .result-card,
       .selected-card {
-        grid-template-columns: 1fr;
+        grid-template-columns: 84px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+      }
+
+      .results {
+        grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+        gap: 10px;
+      }
+
+      .result-card {
+        padding: 7px;
+      }
+
+      .result-card .thumb {
+        width: 100%;
+        height: auto;
       }
 
       .thumb {
-        width: 92px;
-        height: 122px;
+        width: 84px;
+        height: 112px;
+      }
+
+      .meta h3 {
+        font-size: 0.98rem;
+      }
+
+      .meta p {
+        font-size: 0.84rem;
+      }
+
+      .meta-grid {
+        margin-top: 8px;
+        gap: 6px;
+      }
+
+      .pill {
+        min-height: 26px;
+        font-size: 0.74rem;
+      }
+
+      .card-actions {
+        margin-top: 10px;
+        gap: 6px;
+      }
+
+      .card-actions .button.subtle {
+        min-height: 42px;
+        padding: 0 14px;
       }
 
     }
@@ -530,16 +628,12 @@
               <span class="badge">1</span>
               <div class="section-title">대표 판본 검색</div>
             </div>
-            <p class="section-copy">
-              제목이나 저자명으로 검색하면 표지와 판본 정보를 보여드립니다. 마음에 드는 대표본을 하나 선택해 주세요.
-            </p>
             <form id="searchForm">
               <div class="search-row">
                 <input id="searchInput" class="search-input" type="search" placeholder="예: 인생의 역사, 신형철 인생의 역사" />
                 <button id="searchButton" class="button" type="submit">알라딘에서 찾기</button>
               </div>
             </form>
-            <div class="hint">같은 책의 다른 판본이 나올 수 있어서, 검색 후 직접 하나를 골라주는 흐름으로 만들었습니다.</div>
             <div id="searchStatus" class="status" aria-live="polite"></div>
             <div id="results" class="results"></div>
           </section>
@@ -550,7 +644,8 @@
               <div class="section-title">선택한 대표 판본</div>
             </div>
             <div id="selectedWrap" class="selected-wrap">
-              <div class="empty-state">아직 선택한 책이 없습니다. 위에서 검색한 뒤 한 권을 선택하면 여기와 미리보기에 바로 반영됩니다.</div>
+              <div class="empty-state">위에서 검색한 뒤 한 권을 선택하면 여기와 미리보기에 바로 반영됩니다.</div>
+              <div class="selected-note">판본 표지 화질이 떨어지는 경우 상세보기 버튼을 눌러주세요.</div>
             </div>
           </section>
 
@@ -634,6 +729,8 @@
         selectedBook: null,
         selectedBookImage: null,
         selectedBookProxyUrl: "",
+        selectedBookBaseProxyUrl: "",
+        selectedBookCustomObjectUrl: "",
         bookTransform: { zoom: 1, offsetX: 0, offsetY: 0 },
         activeCanvasTarget: null,
         photos: [
@@ -685,9 +782,16 @@
         downloadSecondary.disabled = !ready;
       }
 
+      function clearCustomBookCover() {
+        if (state.selectedBookCustomObjectUrl) {
+          URL.revokeObjectURL(state.selectedBookCustomObjectUrl);
+          state.selectedBookCustomObjectUrl = "";
+        }
+      }
+
       function renderSelectedBook() {
         if (!state.selectedBook) {
-          selectedWrap.innerHTML = '<div class="empty-state">아직 선택한 책이 없습니다. 위에서 검색한 뒤 한 권을 선택하면 여기와 미리보기에 바로 반영됩니다.</div>';
+          selectedWrap.innerHTML = '<div class="empty-state">위에서 검색한 뒤 한 권을 선택하면 여기와 미리보기에 바로 반영됩니다.</div><div class="selected-note">판본 표지 화질이 떨어지는 경우 상세보기 버튼을 눌러주세요.</div>';
           updateDownloadButtons();
           return;
         }
@@ -702,14 +806,22 @@
               <div class="meta-grid">
                 <span class="pill">${escapeHtml(book.publisher || "출판사 정보 없음")}</span>
                 <span class="pill">${escapeHtml(formatDate(book.pubDate))}</span>
-                <span class="pill">ISBN13 ${escapeHtml(book.isbn13 || "-")}</span>
               </div>
               <div class="card-actions">
                 <a class="button subtle" href="${escapeHtml(book.link || "#")}" target="_blank" rel="noreferrer">알라딘 페이지 열기</a>
               </div>
             </div>
           </article>
+          <div class="selected-note">판본 표지 화질이 떨어지는 경우 상세보기 버튼을 눌러주세요.</div>
         `;
+        const actionsEl = selectedWrap.querySelector(".card-actions");
+        if (actionsEl && !actionsEl.querySelector("#bookCoverInput")) {
+          const uploadLabel = document.createElement("label");
+          uploadLabel.className = "inline-upload";
+          uploadLabel.innerHTML = '표지 직접 업로드<input id="bookCoverInput" type="file" accept="image/*" />';
+          actionsEl.appendChild(uploadLabel);
+        }
+
         updateDownloadButtons();
       }
 
@@ -722,7 +834,7 @@
         resultsEl.innerHTML = state.results.map((item, index) => {
           const active = state.selectedBook && state.selectedBook.isbn13 === item.isbn13;
           return `
-            <article class="result-card ${active ? "active" : ""}" data-index="${index}">
+            <article class="result-card ${active ? "active" : ""}" data-select-book="${index}" role="button" tabindex="0">
               <img class="thumb" src="${escapeHtml(buildCoverProxyUrl(item.cover))}" alt="${escapeHtml(item.title)} 표지" />
               <div class="meta">
                 <h3>${escapeHtml(item.title)}</h3>
@@ -730,7 +842,6 @@
                 <div class="meta-grid">
                   <span class="pill">${escapeHtml(item.publisher || "출판사 정보 없음")}</span>
                   <span class="pill">${escapeHtml(formatDate(item.pubDate))}</span>
-                  <span class="pill">ISBN13 ${escapeHtml(item.isbn13 || "-")}</span>
                 </div>
                 <div class="card-actions">
                   <button class="button subtle" type="button" data-select-book="${index}">이 판본 선택</button>
@@ -751,8 +862,10 @@
 
         try {
           const img = await loadImage(proxyUrl);
+          clearCustomBookCover();
           state.selectedBook = item;
           state.selectedBookImage = img;
+          state.selectedBookBaseProxyUrl = proxyUrl;
           state.selectedBookProxyUrl = proxyUrl;
           state.bookTransform = { zoom: 1, offsetX: 0, offsetY: 0 };
           renderResults();
@@ -760,6 +873,27 @@
           drawCanvas();
           setStatus("대표 판본을 선택했습니다.", false);
         } catch (error) {
+          setStatus(String(error.message || error), true);
+        }
+      }
+
+      async function handleBookCoverUpload(file) {
+        if (!state.selectedBook || !file) return;
+
+        clearCustomBookCover();
+        const objectUrl = URL.createObjectURL(file);
+
+        try {
+          const image = await loadImage(objectUrl);
+          state.selectedBookImage = image;
+          state.selectedBookProxyUrl = objectUrl;
+          state.selectedBookCustomObjectUrl = objectUrl;
+          state.bookTransform = { zoom: 1, offsetX: 0, offsetY: 0 };
+          renderSelectedBook();
+          drawCanvas();
+          setStatus("업로드한 이미지로 대표 판본 표지를 교체했습니다.", false);
+        } catch (error) {
+          URL.revokeObjectURL(objectUrl);
           setStatus(String(error.message || error), true);
         }
       }
@@ -789,7 +923,7 @@
           if (!state.results.length) {
             setStatus("검색 결과가 없습니다. 제목과 저자명을 함께 넣어 보세요.", true);
           } else {
-            setStatus(`${state.results.length}개의 판본 후보를 찾았습니다. 원하는 책을 골라 주세요.`, false);
+            setStatus(`${state.results.length}개의 판본 후보를 찾았습니다. 표지를 눌러 대표 판본을 선택해 주세요.`, false);
           }
         } catch (error) {
           state.results = [];
@@ -894,7 +1028,7 @@
       }
 
       function fillCoverImage(context, image, rect, zoom, offsetX, offsetY) {
-        const baseScale = Math.min(rect.width / image.width, rect.height / image.height);
+        const baseScale = Math.max(rect.width / image.width, rect.height / image.height);
         const scale = baseScale * zoom;
         const drawWidth = image.width * scale;
         const drawHeight = image.height * scale;
@@ -938,10 +1072,10 @@
           context.fillStyle = "rgba(78, 63, 42, 0.78)";
           context.font = `700 ${fontSizes.slotTitle}px Pretendard, sans-serif`;
           context.textAlign = "center";
-          context.fillText(title, rect.x + rect.width / 2, rect.y + rect.height / 2 - 16);
+          context.fillText(title, rect.x + rect.width / 2, rect.y + rect.height / 2 - fontSizes.slotTitleOffset);
           context.font = `500 ${fontSizes.slotSubtitle}px Pretendard, sans-serif`;
           context.fillStyle = "rgba(78, 63, 42, 0.58)";
-          context.fillText("사진 업로드 대기 중", rect.x + rect.width / 2, rect.y + rect.height / 2 + 26);
+          context.fillText("사진 업로드 대기 중", rect.x + rect.width / 2, rect.y + rect.height / 2 + fontSizes.slotSubtitleOffset);
         }
         context.restore();
       }
@@ -973,13 +1107,15 @@
         const topRect = layout.photoRects[0];
         const bottomRect = layout.photoRects[1];
         const isMobileViewport = window.innerWidth <= 640;
-        const titleFontSize = isMobileViewport ? 66 : 52;
-        const subtitleFontSize = isMobileViewport ? 34 : 30;
-        const slotTitleFontSize = isMobileViewport ? 42 : 34;
-        const slotSubtitleFontSize = isMobileViewport ? 28 : 24;
+        const titleFontSize = isMobileViewport ? 82 : 52;
+        const subtitleFontSize = isMobileViewport ? 42 : 30;
+        const slotTitleFontSize = isMobileViewport ? 54 : 34;
+        const slotSubtitleFontSize = isMobileViewport ? 34 : 24;
         const fontSizes = {
           slotTitle: slotTitleFontSize,
           slotSubtitle: slotSubtitleFontSize,
+          slotTitleOffset: isMobileViewport ? 22 : 16,
+          slotSubtitleOffset: isMobileViewport ? 34 : 26,
         };
 
         ctx.clearRect(0, 0, width, height);
@@ -1032,9 +1168,9 @@
           ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
           ctx.font = `800 ${titleFontSize}px Pretendard, sans-serif`;
           ctx.textAlign = "center";
-          ctx.fillText("대표 판본", leftRect.x + leftRect.width / 2, leftRect.y + leftRect.height / 2 - 18);
+          ctx.fillText("대표 판본", leftRect.x + leftRect.width / 2, leftRect.y + leftRect.height / 2 - (isMobileViewport ? 22 : 18));
           ctx.font = `500 ${subtitleFontSize}px Pretendard, sans-serif`;
-          ctx.fillText("알라딘에서 책을 골라 주세요", leftRect.x + leftRect.width / 2, leftRect.y + leftRect.height / 2 + 36);
+          ctx.fillText("알라딘에서 책을 골라 주세요", leftRect.x + leftRect.width / 2, leftRect.y + leftRect.height / 2 + (isMobileViewport ? 42 : 36));
         }
         ctx.restore();
 
@@ -1144,6 +1280,14 @@
         const button = event.target.closest("[data-select-book]");
         if (!button) return;
         chooseBook(Number(button.getAttribute("data-select-book")));
+      });
+
+      resultsEl.addEventListener("keydown", function (event) {
+        const card = event.target.closest("[data-select-book]");
+        if (!card) return;
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        chooseBook(Number(card.getAttribute("data-select-book")));
       });
 
       function setupCanvasGesture() {
@@ -1344,6 +1488,14 @@
           resetPhotoControl(index);
           drawCanvas();
         });
+      });
+
+      selectedWrap.addEventListener("change", function (event) {
+        const input = event.target.closest("#bookCoverInput");
+        if (!input) return;
+        const file = input.files && input.files[0];
+        handleBookCoverUpload(file || null);
+        input.value = "";
       });
 
       downloadSecondary.addEventListener("click", downloadCanvas);
