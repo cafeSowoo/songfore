@@ -1750,10 +1750,11 @@ ${descTrimmed}
                 labelEl.innerHTML = '✅ 생성된 추천글 <span style="font-size:0.78rem;font-weight:500;color:#10a37f;margin-left:6px;">✦ ' + usedModel + ' (Gemini 한도 초과로 전환)</span>';
             }
             const finalAladinUrl = aladinUrl || buildFallbackAladinUrl(title);
+            const bookHeading = `📖 ${title} - ✍️ ${author}`;
 
             const plain =
                 `여러분 안녕하세요,
-${month}월 ${day}일 지정 도서 📖 ${title} - ${author} 안내드립니다.
+${month}월 ${day}일 지정 도서 ${bookHeading} 안내드립니다.
 
 ${aiBody}
 
@@ -1764,7 +1765,7 @@ ${aiBody}
             preview.dataset.plainText = plain;
             preview.innerHTML =
                 `여러분 안녕하세요,<br>
-${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ${esc(author)} 안내드립니다.<br><br>
+${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ✍️ ${esc(author)} 안내드립니다.<br><br>
 <span class="ai-highlight">${esc(aiBody)}</span><br><br>
 해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다🤗<br>
 [도서 정보] <a href="${esc(finalAladinUrl)}" target="_blank" style="color:var(--primary);font-size:0.88rem;word-break:break-all;">${esc(finalAladinUrl)}</a>`;
