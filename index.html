@@ -39,8 +39,11 @@
     }
 
     body {
+      position: relative;
+      isolation: isolate;
       margin: 0;
       min-height: 100vh;
+      overflow-x: hidden;
       font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
       color: var(--text-main);
       background:
@@ -53,19 +56,8 @@
       color: inherit;
     }
 
-    .page-shell {
-      position: relative;
-      isolation: isolate;
-      min-height: 100vh;
-      overflow: hidden;
-    }
-
-    .page-shell-clip {
-      overflow: clip;
-    }
-
-    .page-shell::before,
-    .page-shell::after {
+    body::before,
+    body::after {
       content: "";
       position: absolute;
       border-radius: 999px;
@@ -74,7 +66,7 @@
       z-index: -1;
     }
 
-    .page-shell::before {
+    body::before {
       width: 20rem;
       height: 20rem;
       top: -5rem;
@@ -82,7 +74,7 @@
       background: rgba(135, 210, 181, 0.34);
     }
 
-    .page-shell::after {
+    body::after {
       width: 22rem;
       height: 22rem;
       right: -8rem;
@@ -480,80 +472,15 @@
       }
 
       .hero-slot {
-        position: sticky;
-        top: 0;
         z-index: 10;
         padding-top: var(--mobile-sticky-gap);
         overflow: clip;
-        transition: height 300ms ease;
-      }
-
-      .hero-slot.collapsed {
-        height: 112px;
-      }
-
-      .hero-slot.collapsed::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        height: calc(var(--mobile-sticky-gap) + 10px);
-        background:
-          radial-gradient(circle at top left, rgba(164, 217, 190, 0.32), transparent 36%),
-          radial-gradient(circle at bottom right, rgba(120, 201, 227, 0.24), transparent 32%),
-          linear-gradient(135deg, var(--bg-top) 0%, var(--bg-mid) 52%, var(--bg-bottom) 100%);
-        pointer-events: none;
-      }
-
-      .hero-slot.collapsed::after {
-        /* Sticky header gradient fade overlay to soften the seam into the scrolling cards. */
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 26px;
-        background: linear-gradient(180deg, rgba(231, 243, 247, 0.95) 0%, rgba(231, 243, 247, 0) 100%);
-        pointer-events: none;
       }
 
       .hero {
         position: relative;
         top: 0;
         z-index: 1;
-        transition: padding 300ms ease, gap 300ms ease, border-radius 300ms ease, background 300ms ease;
-      }
-
-      .hero .brand-mark {
-        transition: width 300ms ease, height 300ms ease, opacity 300ms ease, margin 300ms ease;
-        overflow: hidden;
-      }
-
-      .hero .hero-copy p {
-        transition: opacity 300ms ease, max-height 300ms ease, margin 300ms ease;
-        max-height: 3em;
-      }
-
-      .hero.collapsed {
-        gap: 6px;
-        padding: 14px 18px 12px;
-        border-radius: 18px;
-        overflow: hidden;
-        background: rgba(255, 255, 255, 0.95);
-        box-shadow: 0 4px 16px rgba(75, 124, 116, 0.12);
-      }
-
-      .hero.collapsed .brand-mark {
-        width: 0;
-        height: 0;
-        opacity: 0;
-        margin: 0;
-      }
-
-      .hero.collapsed .hero-copy p {
-        font-size: 0.82rem;
-        margin-top: 2px;
       }
 
       .wrap {
@@ -694,8 +621,7 @@
     </symbol>
   </svg>
 
-  <div class="page-shell">
-    <main class="wrap">
+  <main class="wrap">
       <div class="hero-slot">
       <section class="hero" aria-label="service intro">
         <div class="brand-mark" aria-hidden="true">
@@ -834,56 +760,7 @@
           &#45908;&#32;&#47566;&#51008;&#32;&#44592;&#45733;&#51060;&#32;&#44263;&#32;&#52628;&#44032;&#46112;&#32;&#50696;&#51221;&#51077;&#45768;&#45796;
         </p>
       </div>
-    </main>
-  </div>
-
-  <script>
-    (function () {
-      var heroSlot = document.querySelector('.hero-slot');
-      var hero = document.querySelector('.hero');
-      var cardGrid = document.querySelector('.card-grid');
-      var pageShell = document.querySelector('.page-shell');
-      if (!hero || !heroSlot || !cardGrid || !pageShell) return;
-
-      var active = false;
-      var collapsed = false;
-      var threshold = 40;
-
-      function update() {
-        if (!active) return;
-        var shouldCollapse = window.scrollY > threshold;
-        if (shouldCollapse !== collapsed) {
-          collapsed = shouldCollapse;
-          hero.classList.toggle('collapsed', collapsed);
-          heroSlot.classList.toggle('collapsed', collapsed);
-        }
-      }
-
-      function checkViewport() {
-        var isMobile = window.innerWidth <= 720;
-        if (isMobile && !active) {
-          active = true;
-          hero.classList.remove('collapsed');
-          heroSlot.classList.remove('collapsed');
-          pageShell.classList.add('page-shell-clip');
-          window.addEventListener('scroll', update, { passive: true });
-          update();
-        } else if (isMobile && active) {
-          update();
-        } else if (!isMobile && active) {
-          active = false;
-          pageShell.classList.remove('page-shell-clip');
-          window.removeEventListener('scroll', update);
-          hero.classList.remove('collapsed');
-          heroSlot.classList.remove('collapsed');
-          collapsed = false;
-        }
-      }
-
-      checkViewport();
-      window.addEventListener('resize', checkViewport);
-    })();
-  </script>
+  </main>
 </body>
 
 </html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="../../assets/favicon/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="../../assets/favicon/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../../assets/favicon/apple-touch-icon.png" />
+    <meta name="theme-color" content="#24b5a7" />
+    <title>알라딘 단축 URL 테스트</title>
+    <style>
+        :root {
+            --primary: #2e5c4d;
+            --primary-light: #4a8270;
+            --primary-dark: #1a3c34;
+            --text-main: #1c2b26;
+            --text-muted: #5e736a;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.55);
+            --glass-shadow: 0 16px 40px rgba(18, 38, 30, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
+                radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
+                linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
+        }
+
+        .wrap {
+            width: min(760px, calc(100vw - 32px));
+            margin: 0 auto;
+            padding: 26px 0 42px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+            padding: 10px 16px;
+            border-radius: 999px;
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(180, 216, 208, 0.56);
+            box-shadow: 0 10px 24px rgba(31, 94, 85, 0.08);
+        }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 26px;
+            padding: 24px 22px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .hero {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .hero-mark {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #42c48f, #24b5a7 54%, #57b7e5);
+            color: white;
+            box-shadow: 0 18px 30px rgba(46, 145, 132, 0.22);
+            flex: 0 0 auto;
+        }
+
+        .hero h1 {
+            font-size: clamp(1.45rem, 3vw, 1.95rem);
+            letter-spacing: -0.04em;
+            color: var(--primary-dark);
+        }
+
+        .hero p {
+            margin-top: 6px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .form-group input,
+        .result-box,
+        .debug-box {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid rgba(46, 92, 77, 0.18);
+            border-radius: 14px;
+            font-size: 0.96rem;
+            font-family: inherit;
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.84);
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(74, 130, 112, 0.12);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 13px 18px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .btn.primary {
+            color: white;
+            background: linear-gradient(90deg, #42c48f, #24b5a7);
+            box-shadow: 0 12px 26px rgba(39, 185, 138, 0.18);
+        }
+
+        .btn.ghost {
+            color: var(--primary);
+            background: rgba(255, 255, 255, 0.84);
+            border: 1.5px solid rgba(46, 92, 77, 0.18);
+        }
+
+        .hint,
+        .status,
+        .meta {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .status {
+            min-height: 1.6em;
+        }
+
+        .status.ok {
+            color: #2e7d32;
+        }
+
+        .status.error {
+            color: #b45309;
+        }
+
+        .result-block,
+        .debug-block {
+            display: none;
+        }
+
+        .result-block.visible,
+        .debug-block.visible {
+            display: block;
+        }
+
+        .result-box {
+            word-break: break-all;
+        }
+
+        .result-box a {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .debug-box {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.84rem;
+            white-space: pre-wrap;
+        }
+
+        @media (max-width: 520px) {
+            .wrap {
+                width: min(calc(100vw - 20px), 760px);
+                padding: 14px 0 30px;
+            }
+
+            .card {
+                padding: 20px 16px;
+                border-radius: 22px;
+            }
+
+            .hero {
+                align-items: center;
+            }
+
+            .hero-mark {
+                width: 54px;
+                height: 54px;
+                border-radius: 16px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="wrap">
+        <a class="back-link" href="../../index.html">← 홈으로</a>
+
+        <section class="card hero" aria-label="test intro">
+            <div class="hero-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" width="28" height="28">
+                    <path d="M7 7.5h10M7 12h10M7 16.5h6" stroke="currentColor" stroke-linecap="round" />
+                    <rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" />
+                </svg>
+            </div>
+            <div>
+                <h1>알라딘 단축 URL 테스트</h1>
+                <p>기존 추천도서 메뉴와 분리된 실험 화면입니다. 알라딘 상품 URL을 넣으면 공유용 단축 URL을 추출해 봅니다.</p>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="form-group">
+                <label for="product-url">알라딘 상품 URL</label>
+                <input id="product-url" type="url"
+                    value="https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=385526244"
+                    placeholder="https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=..." />
+            </div>
+            <p class="hint" style="margin-top:10px;">공유하기 레이어의 URL 복사 값이 있으면 그 값을 우선 사용하고, 없으면 HTML 안의 단축 URL 후보 중 가장 짧은 코드를 선택합니다.</p>
+            <div class="actions" style="margin-top:14px;">
+                <button class="btn primary" id="btn-run">단축 URL 추출</button>
+                <button class="btn ghost" id="btn-sample">샘플 URL 넣기</button>
+            </div>
+            <p class="status" id="status"></p>
+        </section>
+
+        <section class="card result-block" id="result-block">
+            <p class="meta">추출 결과</p>
+            <div class="result-box" id="result-box"></div>
+        </section>
+
+        <section class="card debug-block" id="debug-block">
+            <p class="meta">디버그 정보</p>
+            <div class="debug-box" id="debug-box"></div>
+        </section>
+    </main>
+
+    <script>
+        const FUNCTION_URL = '/api/aladin-shortlink';
+        const SAMPLE_URL = 'https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=385526244';
+
+        const inputEl = document.getElementById('product-url');
+        const statusEl = document.getElementById('status');
+        const resultBlockEl = document.getElementById('result-block');
+        const resultBoxEl = document.getElementById('result-box');
+        const debugBlockEl = document.getElementById('debug-block');
+        const debugBoxEl = document.getElementById('debug-box');
+        const runBtn = document.getElementById('btn-run');
+        const sampleBtn = document.getElementById('btn-sample');
+
+        function setStatus(type, message) {
+            statusEl.className = 'status' + (type ? ' ' + type : '');
+            statusEl.textContent = message;
+        }
+
+        function resetOutput() {
+            resultBlockEl.classList.remove('visible');
+            debugBlockEl.classList.remove('visible');
+            resultBoxEl.innerHTML = '';
+            debugBoxEl.textContent = '';
+        }
+
+        async function runLookup() {
+            const url = inputEl.value.trim();
+            if (!url) {
+                setStatus('error', '알라딘 상품 URL을 입력해 주세요.');
+                return;
+            }
+
+            runBtn.disabled = true;
+            setStatus('', '단축 URL을 찾는 중입니다…');
+            resetOutput();
+
+            try {
+                const res = await fetch(FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    throw new Error(data?.error || `요청 실패 (${res.status})`);
+                }
+
+                resultBoxEl.innerHTML = `<a href="${escapeHtml(data.shortUrl)}" target="_blank">${escapeHtml(data.shortUrl)}</a>`;
+                resultBlockEl.classList.add('visible');
+
+                debugBoxEl.textContent = JSON.stringify({
+                    productUrl: data.productUrl,
+                    shortUrl: data.shortUrl,
+                    source: data.source,
+                    candidates: data.candidates
+                }, null, 2);
+                debugBlockEl.classList.add('visible');
+
+                setStatus('ok', `단축 URL을 찾았습니다. (${data.source})`);
+            } catch (error) {
+                setStatus('error', `실패: ${error.message}`);
+            } finally {
+                runBtn.disabled = false;
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        runBtn.addEventListener('click', runLookup);
+        sampleBtn.addEventListener('click', () => {
+            inputEl.value = SAMPLE_URL;
+            inputEl.focus();
+            inputEl.select();
+            setStatus('', '샘플 URL을 넣었습니다.');
+        });
+
+        if (window.location.protocol === 'file:') {
+            runBtn.disabled = true;
+            sampleBtn.disabled = true;
+            setStatus('error', '이 페이지는 file://가 아니라 로컬 테스트 서버에서 열어야 합니다. `node tools/book-recommend-link-test/server.mjs` 실행 후 `http://localhost:8787`로 접속해 주세요.');
+        }
+
+        inputEl.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                runLookup();
+            }
+        });
+    </script>
+</body>
+
+</html>

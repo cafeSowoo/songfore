@@ -40,6 +40,15 @@ function jsonResponse(body, status, headers) {
   });
 }
 
+function decodeHtmlText(value) {
+  return String(value || "")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&")
+    .trim();
+}
+
 function readAladinKey() {
   return (
     process.env.ALADIN_TTB_KEY ||
@@ -191,6 +200,130 @@ async function handleBookSearch(body, headers) {
   }
 }
 
+function normalizeAladinProductUrl(input) {
+  const parsed = new URL(String(input || "").trim());
+  const isAladinHost = /(^|\.)aladin\.co\.kr$/i.test(parsed.hostname);
+  const isProductPage = parsed.pathname === "/shop/wproduct.aspx";
+
+  if (!isAladinHost || !isProductPage) {
+    throw new Error("Only Aladin product detail URLs are supported");
+  }
+
+  const itemId = parsed.searchParams.get("ItemId");
+  const isbn = parsed.searchParams.get("ISBN");
+
+  if (itemId) {
+    return `https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=${encodeURIComponent(itemId)}`;
+  }
+
+  if (isbn) {
+    return `https://www.aladin.co.kr/shop/wproduct.aspx?ISBN=${encodeURIComponent(isbn)}`;
+  }
+
+  throw new Error("Missing ItemId or ISBN");
+}
+
+function extractAladinShortlinkCandidates(html) {
+  const candidates = [];
+
+  const copyUrlMatch = html.match(
+    /id=["']copyUrl["'][^>]*value=["'](http:\/\/aladin\.kr\/p\/[A-Za-z0-9]+)["']/i,
+  );
+  if (copyUrlMatch?.[1]) {
+    candidates.push({
+      url: decodeHtmlText(copyUrlMatch[1]),
+      source: "share-layer",
+    });
+  }
+
+  const shortlinkMetaMatch = html.match(
+    /<link[^>]+rel=["']shortlink["'][^>]+href=["'](http:\/\/aladin\.kr\/p\/[A-Za-z0-9]+)["']/i,
+  );
+  if (shortlinkMetaMatch?.[1]) {
+    candidates.push({
+      url: decodeHtmlText(shortlinkMetaMatch[1]),
+      source: "shortlink-meta",
+    });
+  }
+
+  const allMatches = [
+    ...html.matchAll(/http:\/\/aladin\.kr\/p\/[A-Za-z0-9]+/gi),
+  ].map((match) => match[0]);
+  for (const url of allMatches) {
+    candidates.push({ url, source: "html-match" });
+  }
+
+  const unique = [];
+  const seen = new Set();
+  for (const entry of candidates) {
+    if (!entry?.url || seen.has(entry.url)) continue;
+    seen.add(entry.url);
+    unique.push(entry);
+  }
+
+  return unique;
+}
+
+function pickBestAladinShortlink(candidates) {
+  if (!candidates || candidates.length === 0) {
+    return null;
+  }
+
+  const shareLayerCandidate = candidates.find(
+    (entry) => entry.source === "share-layer",
+  );
+  if (shareLayerCandidate) {
+    return shareLayerCandidate;
+  }
+
+  const sortedByCodeLength = [...candidates].sort((a, b) => {
+    const aCode = a.url.split("/p/")[1] || "";
+    const bCode = b.url.split("/p/")[1] || "";
+    return aCode.length - bCode.length;
+  });
+
+  return sortedByCodeLength[0] || null;
+}
+
+async function handleShortlinkLookup(body, headers) {
+  const productUrl = normalizeAladinProductUrl(body?.url || "");
+  const response = await fetch(productUrl, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; SongforeBookRecommend/1.0)",
+    },
+  });
+
+  const html = await response.text();
+  if (!response.ok) {
+    return jsonResponse(
+      { error: `Aladin request failed (${response.status})`, productUrl },
+      response.status,
+      headers,
+    );
+  }
+
+  const candidates = extractAladinShortlinkCandidates(html);
+  const best = pickBestAladinShortlink(candidates);
+  if (!best) {
+    return jsonResponse(
+      { error: "Shortlink not found", productUrl, candidates: [] },
+      404,
+      headers,
+    );
+  }
+
+  return jsonResponse(
+    {
+      productUrl,
+      shortUrl: best.url,
+      source: best.source,
+      candidates,
+    },
+    200,
+    headers,
+  );
+}
+
 async function handleGeminiPrompt(body, headers) {
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   if (!geminiApiKey) {
@@ -292,6 +425,10 @@ export default async (req) => {
 
   if (body?.action === "search") {
     return handleBookSearch(body, headers);
+  }
+
+  if (body?.action === "shortlink") {
+    return handleShortlinkLookup(body, headers);
   }
 
   return handleGeminiPrompt(body, headers);
