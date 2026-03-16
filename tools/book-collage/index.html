@@ -221,6 +221,13 @@
       box-shadow: none;
     }
 
+    .gesture-toolbar .button.subtle {
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 14px;
+      font-size: 0.86rem;
+    }
+
     .status {
       min-height: 0;
       height: 0;
@@ -432,6 +439,11 @@
       color: var(--gold-deep);
       background: rgba(74, 130, 112, 0.12);
       box-shadow: none;
+    }
+
+    .inline-upload.is-disabled {
+      opacity: 0.45;
+      pointer-events: none;
     }
 
     .inline-upload input {
@@ -647,7 +659,7 @@
             </div>
             <div id="selectedWrap" class="selected-wrap">
               <div class="empty-state">위에서 검색한 뒤 한 권을 선택하면 여기와 미리보기에 바로 반영됩니다.</div>
-              <div class="selected-note">판본 표지 화질이 떨어지는 경우 상세보기 버튼을 눌러주세요.</div>
+              <div class="selected-note">판본 표지 화질이 떨어지는 경우 상세보기 버튼을 눌러 표지 이미지를 직접 저장해주세요</div>
             </div>
           </section>
 
@@ -705,7 +717,11 @@
           <div class="preview-hint">드래그, 핀치 줌 인을 통해 사진 조정이 가능합니다.</div>
 
           <div class="download-row">
-            <button id="downloadSecondary" class="button subtle" type="button" disabled>현재 미리보기 다시 저장</button>
+            <button id="downloadSecondary" class="button subtle" type="button" disabled>이미지 저장하기</button>
+            <label id="bookCoverUploadLabel" class="inline-upload is-disabled">
+              표지 사진 직접 업로드
+              <input id="bookCoverInput" type="file" accept="image/*" />
+            </label>
           </div>
         </div>
       </div>
@@ -723,6 +739,8 @@
       const previewCanvas = document.getElementById("previewCanvas");
       const canvasWrap = document.querySelector(".canvas-wrap");
       const downloadSecondary = document.getElementById("downloadSecondary");
+      const bookCoverUploadLabel = document.getElementById("bookCoverUploadLabel");
+      const bookCoverInput = document.getElementById("bookCoverInput");
       const ctx = previewCanvas.getContext("2d");
       const DRAG_SENSITIVITY = 70;
 
@@ -782,6 +800,7 @@
       function updateDownloadButtons() {
         const ready = Boolean(state.selectedBook && state.selectedBookImage && state.photos.every((photo) => photo.image));
         downloadSecondary.disabled = !ready;
+        bookCoverUploadLabel.classList.toggle("is-disabled", !state.selectedBook);
       }
 
       function clearCustomBookCover() {
@@ -810,19 +829,12 @@
                 <span class="pill">${escapeHtml(formatDate(book.pubDate))}</span>
               </div>
               <div class="card-actions">
-                <a class="button subtle" href="${escapeHtml(book.link || "#")}" target="_blank" rel="noreferrer">알라딘 페이지 열기</a>
+                <a class="button subtle" href="${escapeHtml(book.link || "#")}" target="_blank" rel="noreferrer">상세보기</a>
               </div>
             </div>
           </article>
-          <div class="selected-note">판본 표지 화질이 떨어지는 경우 상세보기 버튼을 눌러주세요.</div>
+          <div class="selected-note">판본 표지 화질이 떨어지는 경우 상세보기 버튼을 눌러 표지 이미지를 직접 저장해주세요</div>
         `;
-        const actionsEl = selectedWrap.querySelector(".card-actions");
-        if (actionsEl && !actionsEl.querySelector("#bookCoverInput")) {
-          const uploadLabel = document.createElement("label");
-          uploadLabel.className = "inline-upload";
-          uploadLabel.innerHTML = '표지 직접 업로드<input id="bookCoverInput" type="file" accept="image/*" />';
-          actionsEl.appendChild(uploadLabel);
-        }
 
         updateDownloadButtons();
       }
@@ -925,7 +937,7 @@
           if (!state.results.length) {
             setStatus("검색 결과가 없습니다. 제목과 저자명을 함께 넣어 보세요.", true);
           } else {
-            setStatus(`${state.results.length}개의 판본 후보를 찾았습니다. 표지를 눌러 대표 판본을 선택해 주세요.`, false);
+            setStatus("", false);
           }
         } catch (error) {
           state.results = [];
@@ -940,9 +952,9 @@
         const photo = state.photos[index];
         if (!photo) return;
 
-        photo.zoom = Math.min(2.4, Math.max(1, photo.zoom));
-        photo.offsetX = Math.max(-100, Math.min(100, photo.offsetX));
-        photo.offsetY = Math.max(-100, Math.min(100, photo.offsetY));
+        photo.zoom = Math.min(3.5, Math.max(1, Number.isFinite(photo.zoom) ? photo.zoom : 1));
+        photo.offsetX = Math.max(-120, Math.min(120, Number.isFinite(photo.offsetX) ? photo.offsetX : 0));
+        photo.offsetY = Math.max(-120, Math.min(120, Number.isFinite(photo.offsetY) ? photo.offsetY : 0));
       }
 
       function updateStageTransform(index) {
@@ -957,9 +969,9 @@
         transform.zoom = Number.isFinite(transform.zoom) ? transform.zoom : 1;
         transform.offsetX = Number.isFinite(transform.offsetX) ? transform.offsetX : 0;
         transform.offsetY = Number.isFinite(transform.offsetY) ? transform.offsetY : 0;
-        transform.zoom = Math.min(2.4, Math.max(1, transform.zoom));
-        transform.offsetX = Math.max(-100, Math.min(100, transform.offsetX));
-        transform.offsetY = Math.max(-100, Math.min(100, transform.offsetY));
+        transform.zoom = Math.min(3.5, Math.max(1, transform.zoom));
+        transform.offsetX = Math.max(-120, Math.min(120, transform.offsetX));
+        transform.offsetY = Math.max(-120, Math.min(120, transform.offsetY));
       }
 
       function getTargetTransform(target) {
@@ -1037,12 +1049,8 @@
         const scale = baseScale * zoom;
         const drawWidth = image.width * scale;
         const drawHeight = image.height * scale;
-        const maxShiftX = Math.max(0, (drawWidth - rect.width) / 2);
-        const maxShiftY = Math.max(0, (drawHeight - rect.height) / 2);
-        const shiftX = maxShiftX * (offsetX / 100);
-        const shiftY = maxShiftY * (offsetY / 100);
-        const drawX = rect.x + (rect.width - drawWidth) / 2 + shiftX;
-        const drawY = rect.y + (rect.height - drawHeight) / 2 + shiftY;
+        const drawX = rect.x + (rect.width - drawWidth) / 2 + ((offsetX / 100) * rect.width);
+        const drawY = rect.y + (rect.height - drawHeight) / 2 + ((offsetY / 100) * rect.height);
         context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
       }
 
@@ -1050,12 +1058,8 @@
         const scale = Math.max(rect.width / image.width, rect.height / image.height) * zoom;
         const drawWidth = image.width * scale;
         const drawHeight = image.height * scale;
-        const maxShiftX = Math.max(0, (drawWidth - rect.width) / 2);
-        const maxShiftY = Math.max(0, (drawHeight - rect.height) / 2);
-        const shiftX = maxShiftX * (offsetX / 100);
-        const shiftY = maxShiftY * (offsetY / 100);
-        const drawX = rect.x + (rect.width - drawWidth) / 2 + shiftX;
-        const drawY = rect.y + (rect.height - drawHeight) / 2 + shiftY;
+        const drawX = rect.x + (rect.width - drawWidth) / 2 + ((offsetX / 100) * rect.width);
+        const drawY = rect.y + (rect.height - drawHeight) / 2 + ((offsetY / 100) * rect.height);
         context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
       }
 
@@ -1297,150 +1301,21 @@
 
       function setupCanvasGesture() {
         const activePointers = new Map();
-        let activeTouchTarget = null;
-        let touchMode = null;
         let dragStart = null;
         let pinchStart = null;
 
         function distance(a, b) {
-          return Math.hypot(a.x - b.x, a.y - b.y);
+          return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
         }
 
         function midpoint(a, b) {
           return {
-            x: (a.x + b.x) / 2,
-            y: (a.y + b.y) / 2,
+            x: (a.clientX + b.clientX) / 2,
+            y: (a.clientY + b.clientY) / 2,
           };
-        }
-
-        function sameTarget(a, b) {
-          if (!a || !b) return false;
-          return a.kind === b.kind && (a.index ?? null) === (b.index ?? null);
-        }
-
-        function normalizeTarget(target) {
-          if (!target) return null;
-          return { kind: target.kind, index: target.index ?? null };
-        }
-
-        function targetContainsPoint(target, clientX, clientY) {
-          const hit = getCanvasPhotoHit(clientX, clientY);
-          return sameTarget(hit, target);
-        }
-
-        function getTargetClientSize(target) {
-          const canvasRect = previewCanvas.getBoundingClientRect();
-          const layout = getCollageLayout();
-          const slot = target?.kind === "book"
-            ? layout.leftRect
-            : layout.photoRects[target?.index ?? -1];
-
-          if (!slot) {
-            return {
-              width: canvasRect.width || 1,
-              height: canvasRect.height || 1,
-            };
-          }
-
-          return {
-            width: (slot.width / previewCanvas.width) * canvasRect.width,
-            height: (slot.height / previewCanvas.height) * canvasRect.height,
-          };
-        }
-
-        function getPinchTarget(touches) {
-          if (!touches || touches.length < 2) return null;
-          const firstTouch = touches[0];
-          const secondTouch = touches[1];
-          const midpointHit = getCanvasPhotoHit(
-            (firstTouch.clientX + secondTouch.clientX) / 2,
-            (firstTouch.clientY + secondTouch.clientY) / 2,
-          );
-
-          if (midpointHit && hasTargetImage(midpointHit)) {
-            return normalizeTarget(midpointHit);
-          }
-
-          const firstHit = getCanvasPhotoHit(firstTouch.clientX, firstTouch.clientY);
-          const secondHit = getCanvasPhotoHit(secondTouch.clientX, secondTouch.clientY);
-
-          if (firstHit && secondHit && sameTarget(firstHit, secondHit) && hasTargetImage(firstHit)) {
-            return normalizeTarget(firstHit);
-          }
-
-          if (
-            activeTouchTarget &&
-            hasTargetImage(activeTouchTarget) &&
-            (targetContainsPoint(activeTouchTarget, firstTouch.clientX, firstTouch.clientY) ||
-              targetContainsPoint(activeTouchTarget, secondTouch.clientX, secondTouch.clientY) ||
-              (midpointHit && sameTarget(midpointHit, activeTouchTarget)))
-          ) {
-            return normalizeTarget(activeTouchTarget);
-          }
-
-          if (firstHit && hasTargetImage(firstHit)) {
-            return normalizeTarget(firstHit);
-          }
-
-          if (secondHit && hasTargetImage(secondHit)) {
-            return normalizeTarget(secondHit);
-          }
-
-          return null;
-        }
-
-        function beginDrag(target, point) {
-          const transform = getTargetTransform(target);
-          if (!transform) return;
-          state.activeCanvasTarget = target;
-          dragStart = {
-            kind: target.kind,
-            index: target.index ?? null,
-            x: point.x,
-            y: point.y,
-            offsetX: transform.offsetX,
-            offsetY: transform.offsetY,
-            slotWidth: point.slotWidthClient,
-            slotHeight: point.slotHeightClient,
-          };
-          pinchStart = null;
-          canvasWrap.classList.add("is-dragging");
-          drawCanvas();
-        }
-
-        function beginPinch(target, firstPoint, secondPoint) {
-          const transform = getTargetTransform(target);
-          if (!transform) return;
-          state.activeCanvasTarget = target;
-          pinchStart = {
-            kind: target.kind,
-            index: target.index ?? null,
-            zoom: transform.zoom,
-            offsetX: transform.offsetX,
-            offsetY: transform.offsetY,
-            distance: distance(firstPoint, secondPoint),
-            midpoint: midpoint(firstPoint, secondPoint),
-            slotWidth: firstPoint.slotWidthClient,
-            slotHeight: firstPoint.slotHeightClient,
-          };
-          dragStart = null;
-          canvasWrap.classList.remove("is-dragging");
-          drawCanvas();
-        }
-
-        function clearGestureState() {
-          dragStart = null;
-          pinchStart = null;
-          activeTouchTarget = null;
-          touchMode = null;
-          state.activeCanvasTarget = null;
-          canvasWrap.classList.remove("is-dragging");
-          canvasWrap.classList.remove("can-drag");
-          drawCanvas();
         }
 
         previewCanvas.addEventListener("pointerdown", function (event) {
-          if (event.pointerType === "touch") return;
           const hit = getCanvasPhotoHit(event.clientX, event.clientY);
           if (!hit || !hasTargetImage(hit)) return;
           event.preventDefault();
@@ -1456,25 +1331,48 @@
           });
 
           if (activePointers.size === 1) {
-            beginDrag(hit, {
+            const transform = getTargetTransform(hit);
+            state.activeCanvasTarget = { kind: hit.kind, index: hit.index ?? null };
+            dragStart = {
+              kind: hit.kind,
+              index: hit.index ?? null,
               x: event.clientX,
               y: event.clientY,
-              slotWidthClient: hit.slotWidthClient,
-              slotHeightClient: hit.slotHeightClient,
-            });
+              offsetX: transform.offsetX,
+              offsetY: transform.offsetY,
+              slotWidth: hit.slotWidthClient,
+              slotHeight: hit.slotHeightClient,
+            };
+            pinchStart = null;
+            canvasWrap.classList.add("is-dragging");
+            drawCanvas();
           } else if (activePointers.size === 2) {
             const points = Array.from(activePointers.values());
             if (points[0].kind !== points[1].kind || points[0].index !== points[1].index) {
               pinchStart = null;
+              canvasWrap.classList.remove("is-dragging");
               return;
             }
-            const pinchTarget = { kind: points[0].kind, index: points[0].index };
-            beginPinch(pinchTarget, points[0], points[1]);
+            const transform = getTargetTransform(points[0]);
+            state.activeCanvasTarget = { kind: points[0].kind, index: points[0].index ?? null };
+            pinchStart = {
+              kind: points[0].kind,
+              index: points[0].index ?? null,
+              zoom: transform.zoom,
+              offsetX: transform.offsetX,
+              offsetY: transform.offsetY,
+              distance: distance(points[0], points[1]),
+              midpoint: midpoint(points[0], points[1]),
+              slotWidth: points[0].slotWidthClient,
+              slotHeight: points[0].slotHeightClient,
+            };
+            dragStart = null;
+            canvasWrap.classList.remove("is-dragging");
+            drawCanvas();
           }
         });
 
         previewCanvas.addEventListener("pointermove", function (event) {
-          if (event.pointerType === "touch") return;
           if (!activePointers.has(event.pointerId)) {
             const hoverHit = getCanvasPhotoHit(event.clientX, event.clientY);
             const canDrag = Boolean(hoverHit && hasTargetImage(hoverHit));
@@ -1539,19 +1437,33 @@
         function releasePointer(pointerId) {
           activePointers.delete(pointerId);
           if (activePointers.size === 0) {
-            clearGestureState();
+            dragStart = null;
+            pinchStart = null;
+            state.activeCanvasTarget = null;
+            canvasWrap.classList.remove("is-dragging");
+            canvasWrap.classList.remove("can-drag");
+            drawCanvas();
             return;
           }
 
           if (activePointers.size === 1) {
             const remaining = Array.from(activePointers.values())[0];
-            const target = { kind: remaining.kind, index: remaining.index };
-            beginDrag(target, {
+            const target = { kind: remaining.kind, index: remaining.index ?? null };
+            const transform = getTargetTransform(target);
+            state.activeCanvasTarget = target;
+            dragStart = {
+              kind: remaining.kind,
+              index: remaining.index ?? null,
               x: remaining.clientX,
               y: remaining.clientY,
-              slotWidthClient: remaining.slotWidthClient,
-              slotHeightClient: remaining.slotHeightClient,
-            });
+              offsetX: transform.offsetX,
+              offsetY: transform.offsetY,
+              slotWidth: remaining.slotWidthClient,
+              slotHeight: remaining.slotHeightClient,
+            };
+            pinchStart = null;
+            canvasWrap.classList.add("is-dragging");
+            drawCanvas();
           }
         }
 
@@ -1580,150 +1492,6 @@
           updateTargetTransform(hit);
           drawCanvas();
         }, { passive: false });
-
-        previewCanvas.addEventListener("touchstart", function (event) {
-          const touches = Array.from(event.touches);
-          if (!touches.length) return;
-
-          if (touches.length === 1) {
-            const touch = touches[0];
-            const hit = getCanvasPhotoHit(touch.clientX, touch.clientY);
-            if (!hit || !hasTargetImage(hit)) {
-              clearGestureState();
-              return;
-            }
-            event.preventDefault();
-            activeTouchTarget = { kind: hit.kind, index: hit.index ?? null };
-            touchMode = "drag";
-            beginDrag(activeTouchTarget, {
-              x: touch.clientX,
-              y: touch.clientY,
-              slotWidthClient: hit.slotWidthClient,
-              slotHeightClient: hit.slotHeightClient,
-            });
-            return;
-          }
-
-          if (touches.length >= 2) {
-            const pinchTarget = getPinchTarget(touches);
-            if (!pinchTarget) {
-              clearGestureState();
-              return;
-            }
-            event.preventDefault();
-            activeTouchTarget = pinchTarget;
-            touchMode = "pinch";
-            const pinchTargetSize = getTargetClientSize(activeTouchTarget);
-            beginPinch(activeTouchTarget, {
-              x: touches[0].clientX,
-              y: touches[0].clientY,
-              slotWidthClient: pinchTargetSize.width,
-              slotHeightClient: pinchTargetSize.height,
-            }, {
-              x: touches[1].clientX,
-              y: touches[1].clientY,
-              slotWidthClient: pinchTargetSize.width,
-              slotHeightClient: pinchTargetSize.height,
-            });
-          }
-        }, { passive: false });
-
-        previewCanvas.addEventListener("touchmove", function (event) {
-          const touches = Array.from(event.touches);
-          if (!touches.length || !activeTouchTarget) return;
-          if (touchMode === "drag" && touches.length === 1 && dragStart) {
-            event.preventDefault();
-            const transform = getTargetTransform(activeTouchTarget);
-            if (!transform) return;
-            const touch = touches[0];
-            const zoomFactor = Math.max(1, transform.zoom);
-            const dx = ((touch.clientX - dragStart.x) / Math.max(1, dragStart.slotWidth)) * (DRAG_SENSITIVITY / zoomFactor);
-            const dy = ((touch.clientY - dragStart.y) / Math.max(1, dragStart.slotHeight)) * (DRAG_SENSITIVITY / zoomFactor);
-            transform.offsetX = dragStart.offsetX + dx;
-            transform.offsetY = dragStart.offsetY + dy;
-            updateTargetTransform(activeTouchTarget);
-            drawCanvas();
-            return;
-          }
-
-          if (touches.length >= 2 && pinchStart) {
-            event.preventDefault();
-            const transform = getTargetTransform(activeTouchTarget);
-            if (!transform) return;
-            const first = touches[0];
-            const second = touches[1];
-            const currentDistance = distance(first, second);
-            const currentMid = midpoint(first, second);
-            if (!Number.isFinite(currentDistance)) return;
-            const scaleRatio = currentDistance / Math.max(1, pinchStart.distance);
-            if (!Number.isFinite(scaleRatio)) return;
-            transform.zoom = pinchStart.zoom * scaleRatio;
-            const zoomFactor = Math.max(1, transform.zoom);
-            const dx = ((currentMid.x - pinchStart.midpoint.x) / Math.max(1, pinchStart.slotWidth)) * (DRAG_SENSITIVITY / zoomFactor);
-            const dy = ((currentMid.y - pinchStart.midpoint.y) / Math.max(1, pinchStart.slotHeight)) * (DRAG_SENSITIVITY / zoomFactor);
-            transform.offsetX = pinchStart.offsetX + dx;
-            transform.offsetY = pinchStart.offsetY + dy;
-            updateTargetTransform(activeTouchTarget);
-            drawCanvas();
-          }
-        }, { passive: false });
-
-        function syncTouchState(event) {
-          const touches = Array.from(event.touches || []);
-          if (!touches.length) {
-            clearGestureState();
-            return;
-          }
-
-          if (!activeTouchTarget) {
-            return;
-          }
-
-          if (touches.length === 1) {
-            const remainingTouch = touches[0];
-            const remainingHit = getCanvasPhotoHit(remainingTouch.clientX, remainingTouch.clientY);
-            if (!remainingHit || !sameTarget(remainingHit, activeTouchTarget) || !hasTargetImage(activeTouchTarget)) {
-              clearGestureState();
-              return;
-            }
-            touchMode = "drag";
-            beginDrag(activeTouchTarget, {
-              x: remainingTouch.clientX,
-              y: remainingTouch.clientY,
-              slotWidthClient: remainingHit.slotWidthClient,
-              slotHeightClient: remainingHit.slotHeightClient,
-            });
-            return;
-          }
-
-          const pinchTarget = getPinchTarget(touches);
-          if (!pinchTarget || !sameTarget(pinchTarget, activeTouchTarget)) {
-            clearGestureState();
-            return;
-          }
-          touchMode = "pinch";
-          const pinchTargetSize = getTargetClientSize(activeTouchTarget);
-          beginPinch(activeTouchTarget, {
-            x: touches[0].clientX,
-            y: touches[0].clientY,
-            slotWidthClient: pinchTargetSize.width,
-            slotHeightClient: pinchTargetSize.height,
-          }, {
-            x: touches[1].clientX,
-            y: touches[1].clientY,
-            slotWidthClient: pinchTargetSize.width,
-            slotHeightClient: pinchTargetSize.height,
-          });
-        }
-
-        previewCanvas.addEventListener("touchend", syncTouchState, { passive: false });
-        previewCanvas.addEventListener("touchcancel", syncTouchState, { passive: false });
-        previewCanvas.addEventListener("gesturestart", function (event) {
-          event.preventDefault();
-        }, { passive: false });
-        previewCanvas.addEventListener("gesturechange", function (event) {
-          event.preventDefault();
-        }, { passive: false });
       }
 
       document.querySelectorAll("[data-file-input]").forEach((input) => {
@@ -1742,12 +1510,10 @@
         });
       });
 
-      selectedWrap.addEventListener("change", function (event) {
-        const input = event.target.closest("#bookCoverInput");
-        if (!input) return;
-        const file = input.files && input.files[0];
+      bookCoverInput.addEventListener("change", function (event) {
+        const file = event.currentTarget.files && event.currentTarget.files[0];
         handleBookCoverUpload(file || null);
-        input.value = "";
+        event.currentTarget.value = "";
       });
 
       downloadSecondary.addEventListener("click", downloadCanvas);
