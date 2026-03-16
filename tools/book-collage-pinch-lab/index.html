@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../../assets/favicon/favicon.ico" type="image/x-icon" />
+  <title>콜라쥬 핀치 줌 테스트 랩</title>
+  <style>
+    :root {
+      --bg: linear-gradient(160deg, #f8f1df, #efe6d3);
+      --card: rgba(255, 252, 246, 0.86);
+      --line: rgba(95, 69, 25, 0.14);
+      --text: #2f2418;
+      --muted: #736455;
+      --accent: #805b24;
+      --accent-strong: #5f4218;
+      --accent-soft: rgba(128, 91, 36, 0.12);
+      --shadow: 0 20px 44px rgba(69, 49, 20, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: light; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(243, 211, 151, 0.24), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(200, 177, 127, 0.18), transparent 28%),
+        var(--bg);
+    }
+
+    button, input, textarea { font: inherit; }
+    button { border: 0; }
+
+    .shell {
+      width: min(1320px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 20px 0 40px;
+    }
+
+    .hero, .panel {
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero {
+      padding: 24px 26px;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 2.35rem);
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+    }
+
+    .hero p, .copy, .hint, .footnote {
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 0.9rem;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      max-width: 840px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(340px, 450px) minmax(420px, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel-body { padding: 22px; }
+    .section + .section {
+      margin-top: 22px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(95, 69, 25, 0.1);
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .label {
+      display: block;
+      margin: 0 0 8px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: var(--accent-strong);
+    }
+
+    .input, textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid rgba(95, 69, 25, 0.14);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    .input:focus, textarea:focus {
+      border-color: rgba(128, 91, 36, 0.42);
+      box-shadow: 0 0 0 4px rgba(128, 91, 36, 0.12);
+    }
+
+    .row, .actions, .slot-actions, .debug {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn, .upload {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn {
+      color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      box-shadow: 0 10px 22px rgba(91, 63, 24, 0.18);
+    }
+
+    .btn.subtle, .upload {
+      color: var(--accent-strong);
+      background: var(--accent-soft);
+      box-shadow: none;
+    }
+
+    .upload input { display: none; }
+    .status {
+      min-height: 22px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent-strong);
+    }
+
+    .status.error { color: #a24d32; }
+    .grid { display: grid; gap: 12px; }
+
+    .card {
+      padding: 14px;
+      border: 1px solid rgba(95, 69, 25, 0.1);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.82);
+    }
+
+    .slot-top, .parsed-top, .preview-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .slot-top, .parsed-top { margin-bottom: 12px; }
+    .slot-title, .parsed-title {
+      font-size: 0.94rem;
+      font-weight: 800;
+    }
+
+    .slot-preview, .parsed-thumb {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border-radius: 18px;
+      border: 1px solid rgba(95, 69, 25, 0.12);
+      object-fit: cover;
+      display: block;
+      background: linear-gradient(135deg, #f6f0e5, #ece4d5);
+    }
+
+    .slot-empty {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px dashed rgba(95, 69, 25, 0.22);
+      background: rgba(247, 241, 232, 0.92);
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+      font-size: 0.88rem;
+    }
+
+    .parsed {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .parsed-url {
+      margin: 0;
+      word-break: break-all;
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.55;
+    }
+
+    .preview-panel { position: sticky; top: 16px; }
+    .preview-head { margin-bottom: 14px; }
+    .canvas-wrap {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      background: linear-gradient(180deg, #f8f3e7, #ede1cb);
+      box-shadow: 0 14px 28px rgba(69, 49, 20, 0.12);
+      touch-action: none;
+      user-select: none;
+      cursor: default;
+    }
+
+    .canvas-wrap.can-drag { cursor: grab; }
+    .canvas-wrap.is-dragging { cursor: grabbing; }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1 / 1;
+      touch-action: none;
+    }
+
+    .debug {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .debug .card dt {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .debug .card dd {
+      margin: 6px 0 0;
+      font-size: 0.98rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .preview-panel { position: static; }
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        width: min(100vw - 18px, 100%);
+        padding-top: 14px;
+      }
+      .hero, .panel-body { padding: 18px; }
+      .parsed { grid-template-columns: 1fr; }
+      .debug { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <h1>콜라쥬 핀치 줌 테스트 랩</h1>
+      <p>메인 페이지와 분리된 독립 테스트 창입니다. HTML 조각에서 이미지 URL을 파싱하거나 직접 사진을 올린 뒤, 같은 캔버스 미리보기에서 모바일 핀치 줌과 드래그를 확인할 수 있습니다.</p>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="panel-body">
+          <section class="section" id="parserSection">
+            <h2>1. HTML 파서</h2>
+            <p class="copy">`img[src]`, `source[srcset]`, `meta[property="og:image"]`를 읽어서 이미지 후보를 만듭니다.</p>
+            <label class="label" for="baseUrlInput">상대 경로 보정용 기준 URL</label>
+            <input id="baseUrlInput" class="input" type="url" placeholder="https://example.com/post" />
+            <label class="label" for="htmlInput" style="margin-top:14px;">붙여넣을 HTML</label>
+            <textarea id="htmlInput" placeholder="<img src='https://...'> 또는 전체 HTML을 붙여넣으세요."></textarea>
+            <div class="row" style="margin-top:14px;">
+              <button id="parseHtmlButton" class="btn" type="button">HTML에서 이미지 읽기</button>
+              <button id="fillSampleButton" class="btn subtle" type="button">예시 넣기</button>
+              <button id="clearHtmlButton" class="btn subtle" type="button">입력 비우기</button>
+            </div>
+            <div id="parseStatus" class="status" aria-live="polite"></div>
+            <div id="parsedGrid" class="grid"></div>
+          </section>
+
+          <section class="section" id="uploadSection">
+            <h2>2. 직접 업로드</h2>
+            <p class="copy">원격 이미지가 막히는 경우를 대비해 업로드만으로도 바로 미리보기와 핀치 제스처를 시험할 수 있습니다.</p>
+            <div class="grid">
+              <article class="card">
+                <div class="slot-top">
+                  <div class="slot-title">상단 슬롯</div>
+                  <div class="slot-actions">
+                    <label class="upload">사진 올리기<input type="file" accept="image/*" data-file-input="0" /></label>
+                    <button class="btn subtle" type="button" data-reset-slot="0">초기화</button>
+                  </div>
+                </div>
+                <div data-slot-preview="0" class="slot-empty">아직 선택된 이미지가 없습니다.</div>
+              </article>
+
+              <article class="card">
+                <div class="slot-top">
+                  <div class="slot-title">하단 슬롯</div>
+                  <div class="slot-actions">
+                    <label class="upload">사진 올리기<input type="file" accept="image/*" data-file-input="1" /></label>
+                    <button class="btn subtle" type="button" data-reset-slot="1">초기화</button>
+                  </div>
+                </div>
+                <div data-slot-preview="1" class="slot-empty">아직 선택된 이미지가 없습니다.</div>
+              </article>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="panel preview-panel">
+        <div class="panel-body" id="previewSection">
+          <div class="preview-head">
+            <div>
+              <h2 style="margin-bottom:6px;">미리보기 캔버스</h2>
+              <div class="hint">슬롯 안에서 한 손가락 드래그, 두 손가락 핀치 줌, 데스크톱 휠 줌을 바로 확인합니다.</div>
+            </div>
+            <button id="resetTransformsButton" class="btn subtle" type="button">위치/줌 초기화</button>
+          </div>
+
+          <div class="canvas-wrap">
+            <canvas id="previewCanvas" width="1600" height="1600" aria-label="콜라쥬 미리보기 테스트 캔버스"></canvas>
+          </div>
+
+          <p class="hint">캔버스 바깥이 아니라 각 이미지 슬롯 안에서 제스처를 시작해야 반응합니다.</p>
+
+          <div class="debug">
+            <dl class="card"><dt>활성 슬롯</dt><dd id="debugActiveSlot">없음</dd></dl>
+            <dl class="card"><dt>포인터 수</dt><dd id="debugPointerCount">0</dd></dl>
+            <dl class="card"><dt>상단 줌</dt><dd id="debugZoomTop">1.00x</dd></dl>
+            <dl class="card"><dt>하단 줌</dt><dd id="debugZoomBottom">1.00x</dd></dl>
+          </div>
+
+          <p class="footnote">이 페이지는 메인 메뉴에 연결하지 않았습니다. 경로만 직접 열어서 테스트하면 됩니다.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    (function () {
+      const htmlInput = document.getElementById("htmlInput");
+      const baseUrlInput = document.getElementById("baseUrlInput");
+      const parseHtmlButton = document.getElementById("parseHtmlButton");
+      const fillSampleButton = document.getElementById("fillSampleButton");
+      const clearHtmlButton = document.getElementById("clearHtmlButton");
+      const parseStatus = document.getElementById("parseStatus");
+      const parsedGrid = document.getElementById("parsedGrid");
+      const previewCanvas = document.getElementById("previewCanvas");
+      const canvasWrap = document.querySelector(".canvas-wrap");
+      const resetTransformsButton = document.getElementById("resetTransformsButton");
+      const debugActiveSlot = document.getElementById("debugActiveSlot");
+      const debugPointerCount = document.getElementById("debugPointerCount");
+      const debugZoomTop = document.getElementById("debugZoomTop");
+      const debugZoomBottom = document.getElementById("debugZoomBottom");
+      const ctx = previewCanvas.getContext("2d");
+      const DRAG_SENSITIVITY = 70;
+      const SAMPLE_HTML = [
+        '<meta property="og:image" content="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=80">',
+        '<img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1200&q=80" alt="sample one">',
+        '<source srcset="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80 1200w">'
+      ].join("\n");
+
+      const state = {
+        parsedItems: [],
+        activeCanvasTarget: null,
+        photos: [makePhoto(), makePhoto()],
+      };
+
+      function makePhoto() {
+        return { sourceUrl: "", objectUrl: "", image: null, label: "", zoom: 1, offsetX: 0, offsetY: 0 };
+      }
+
+      function setStatus(message, isError) {
+        parseStatus.textContent = message || "";
+        parseStatus.classList.toggle("error", Boolean(isError));
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function normalizeUrl(rawUrl, baseUrl) {
+        const value = String(rawUrl || "").trim();
+        if (!value) return "";
+        if (value.startsWith("data:") || value.startsWith("blob:")) return value;
+        try {
+          return new URL(value, baseUrl || window.location.href).toString();
+        } catch {
+          return "";
+        }
+      }
+
+      function extractSrcsetUrl(value) {
+        return (String(value || "").split(",")[0] || "").trim().split(/\s+/)[0] || "";
+      }
+
+      function parseHtmlForImages(htmlText, baseUrl) {
+        const doc = new DOMParser().parseFromString(htmlText, "text/html");
+        const seen = new Set();
+        const items = [];
+        const push = (url, label) => {
+          const normalized = normalizeUrl(url, baseUrl);
+          if (!normalized || seen.has(normalized)) return;
+          seen.add(normalized);
+          items.push({ url: normalized, label: label || normalized });
+        };
+
+        doc.querySelectorAll('meta[property="og:image"], meta[name="og:image"]').forEach((node) => {
+          push(node.getAttribute("content"), "og:image");
+        });
+        doc.querySelectorAll("source[srcset]").forEach((node) => {
+          push(extractSrcsetUrl(node.getAttribute("srcset")), "source[srcset]");
+        });
+        doc.querySelectorAll("img").forEach((node) => {
+          push(node.getAttribute("src") || node.getAttribute("data-src"), node.getAttribute("alt") || "img[src]");
+        });
+        return items;
+      }
+
+      function loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => resolve(image);
+          image.onerror = () => reject(new Error("이미지를 불러오지 못했습니다."));
+          image.referrerPolicy = "no-referrer";
+          image.src = src;
+        });
+      }
+
+      function photoAt(index) {
+        return state.photos[index];
+      }
+
+      function clamp(photo) {
+        photo.zoom = Math.min(3.5, Math.max(1, Number.isFinite(photo.zoom) ? photo.zoom : 1));
+        photo.offsetX = Math.min(120, Math.max(-120, Number.isFinite(photo.offsetX) ? photo.offsetX : 0));
+        photo.offsetY = Math.min(120, Math.max(-120, Number.isFinite(photo.offsetY) ? photo.offsetY : 0));
+      }
+
+      function updateTransform(target) {
+        clamp(photoAt(target.index));
+      }
+
+      function hasImage(target) {
+        return Boolean(photoAt(target.index).image);
+      }
+
+      function renderSlotPreview(index) {
+        const host = document.querySelector(`[data-slot-preview="${index}"]`);
+        const photo = photoAt(index);
+        if (!photo.image) {
+          host.className = "slot-empty";
+          host.textContent = "아직 선택된 이미지가 없습니다.";
+          return;
+        }
+        host.className = "";
+        host.innerHTML = `<img class="slot-preview" src="${escapeHtml(photo.sourceUrl)}" alt="${escapeHtml(photo.label || `slot-${index + 1}`)}">`;
+      }
+
+      function renderParsedItems() {
+        if (!state.parsedItems.length) {
+          parsedGrid.innerHTML = "";
+          return;
+        }
+        parsedGrid.innerHTML = state.parsedItems.map((item, index) => `
+          <article class="card parsed">
+            <img class="parsed-thumb" src="${escapeHtml(item.url)}" alt="${escapeHtml(item.label || `parsed-${index + 1}`)}" referrerpolicy="no-referrer">
+            <div>
+              <div class="parsed-top">
+                <div class="parsed-title">${escapeHtml(item.label || `이미지 ${index + 1}`)}</div>
+                <div class="actions">
+                  <button class="btn subtle" type="button" data-apply-parsed="${index}" data-target-slot="0">상단</button>
+                  <button class="btn subtle" type="button" data-apply-parsed="${index}" data-target-slot="1">하단</button>
+                </div>
+              </div>
+              <p class="parsed-url">${escapeHtml(item.url)}</p>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function getLayout() {
+        const padding = 88;
+        const gap = 34;
+        const slotWidth = previewCanvas.width - padding * 2;
+        const slotHeight = (previewCanvas.height - padding * 2 - gap) / 2;
+        return [
+          { x: padding, y: padding, width: slotWidth, height: slotHeight },
+          { x: padding, y: padding + slotHeight + gap, width: slotWidth, height: slotHeight },
+        ];
+      }
+
+      function roundedRect(context, x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        context.beginPath();
+        context.moveTo(x + r, y);
+        context.arcTo(x + width, y, x + width, y + height, r);
+        context.arcTo(x + width, y + height, x, y + height, r);
+        context.arcTo(x, y + height, x, y, r);
+        context.arcTo(x, y, x + width, y, r);
+        context.closePath();
+      }
+
+      function drawImageFill(context, image, rect, zoom, offsetX, offsetY) {
+        const scale = Math.max(rect.width / image.width, rect.height / image.height) * zoom;
+        const drawWidth = image.width * scale;
+        const drawHeight = image.height * scale;
+        const drawX = rect.x + (rect.width - drawWidth) / 2 + ((offsetX / 100) * rect.width);
+        const drawY = rect.y + (rect.height - drawHeight) / 2 + ((offsetY / 100) * rect.height);
+        context.save();
+        roundedRect(context, rect.x, rect.y, rect.width, rect.height, 32);
+        context.clip();
+        context.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+        context.restore();
+      }
+
+      function drawSlot(context, rect, photo, title, active) {
+        context.save();
+        roundedRect(context, rect.x, rect.y, rect.width, rect.height, 34);
+        context.fillStyle = "rgba(255, 250, 244, 0.94)";
+        context.fill();
+        if (photo.image) {
+          drawImageFill(context, photo.image, rect, photo.zoom, photo.offsetX, photo.offsetY);
+        } else {
+          context.fillStyle = "rgba(142, 113, 72, 0.12)";
+          context.fill();
+          context.fillStyle = "rgba(113, 88, 58, 0.88)";
+          context.textAlign = "center";
+          context.font = "700 40px Pretendard, sans-serif";
+          context.fillText(title, rect.x + rect.width / 2, rect.y + rect.height / 2 - 10);
+          context.font = "500 24px Pretendard, sans-serif";
+          context.fillText("사진 업로드 또는 HTML 파싱 결과 적용", rect.x + rect.width / 2, rect.y + rect.height / 2 + 34);
+        }
+        context.lineWidth = active ? 8 : 3;
+        context.strokeStyle = active ? "rgba(77, 137, 255, 0.92)" : "rgba(110, 82, 36, 0.16)";
+        roundedRect(context, rect.x, rect.y, rect.width, rect.height, 34);
+        context.stroke();
+        context.restore();
+      }
+
+      function updateDebug() {
+        const active = state.activeCanvasTarget;
+        debugActiveSlot.textContent = active ? (active.index === 0 ? "상단 슬롯" : "하단 슬롯") : "없음";
+        debugZoomTop.textContent = `${state.photos[0].zoom.toFixed(2)}x`;
+        debugZoomBottom.textContent = `${state.photos[1].zoom.toFixed(2)}x`;
+      }
+
+      function drawCanvas() {
+        ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+        const bg = ctx.createLinearGradient(0, 0, 0, previewCanvas.height);
+        bg.addColorStop(0, "#f8f3e7");
+        bg.addColorStop(1, "#ecdfc8");
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+        const rects = getLayout();
+        drawSlot(ctx, rects[0], state.photos[0], "상단 슬롯", state.activeCanvasTarget?.index === 0);
+        drawSlot(ctx, rects[1], state.photos[1], "하단 슬롯", state.activeCanvasTarget?.index === 1);
+
+        ctx.fillStyle = "rgba(96, 71, 38, 0.8)";
+        ctx.textAlign = "left";
+        ctx.font = "700 24px Pretendard, sans-serif";
+        ctx.fillText("Pinch Zoom Test Lab", 88, 54);
+        updateDebug();
+      }
+
+      function hitTest(clientX, clientY) {
+        const bounds = previewCanvas.getBoundingClientRect();
+        if (!bounds.width || !bounds.height) return null;
+        const x = ((clientX - bounds.left) / bounds.width) * previewCanvas.width;
+        const y = ((clientY - bounds.top) / bounds.height) * previewCanvas.height;
+        const rects = getLayout();
+        for (let index = 0; index < rects.length; index += 1) {
+          const rect = rects[index];
+          if (x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height) {
+            return {
+              index,
+              slotWidthClient: (rect.width / previewCanvas.width) * bounds.width,
+              slotHeightClient: (rect.height / previewCanvas.height) * bounds.height,
+            };
+          }
+        }
+        return null;
+      }
+
+      async function applyToSlot(index, src, label, objectUrl) {
+        const image = await loadImage(src);
+        if (photoAt(index).objectUrl) {
+          URL.revokeObjectURL(photoAt(index).objectUrl);
+        }
+        state.photos[index] = { sourceUrl: src, objectUrl: objectUrl || "", image, label: label || "", zoom: 1, offsetX: 0, offsetY: 0 };
+        renderSlotPreview(index);
+        drawCanvas();
+      }
+
+      function resetSlot(index) {
+        if (photoAt(index).objectUrl) {
+          URL.revokeObjectURL(photoAt(index).objectUrl);
+        }
+        state.photos[index] = makePhoto();
+        renderSlotPreview(index);
+        drawCanvas();
+      }
+
+      function resetTransforms() {
+        state.photos.forEach((photo) => {
+          photo.zoom = 1;
+          photo.offsetX = 0;
+          photo.offsetY = 0;
+        });
+        state.activeCanvasTarget = null;
+        drawCanvas();
+      }
+
+      function parseHtmlInput() {
+        const htmlText = htmlInput.value.trim();
+        if (!htmlText) {
+          state.parsedItems = [];
+          renderParsedItems();
+          setStatus("붙여넣은 HTML이 없습니다.", true);
+          return;
+        }
+        state.parsedItems = parseHtmlForImages(htmlText, baseUrlInput.value.trim());
+        renderParsedItems();
+        setStatus(
+          state.parsedItems.length ? `${state.parsedItems.length}개의 이미지 후보를 찾았습니다.` : "이미지 후보를 찾지 못했습니다.",
+          !state.parsedItems.length,
+        );
+      }
+
+      function setupGesture() {
+        const pointers = new Map();
+        let dragStart = null;
+        let pinchStart = null;
+
+        function distance(a, b) {
+          return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+        }
+
+        function midpoint(a, b) {
+          return {
+            x: (a.clientX + b.clientX) / 2,
+            y: (a.clientY + b.clientY) / 2,
+          };
+        }
+
+        function updatePointerCount() {
+          debugPointerCount.textContent = String(pointers.size);
+        }
+
+        previewCanvas.addEventListener("pointerdown", function (event) {
+          const hit = hitTest(event.clientX, event.clientY);
+          if (!hit || !hasImage(hit)) return;
+
+          event.preventDefault();
+          previewCanvas.setPointerCapture(event.pointerId);
+          pointers.set(event.pointerId, {
+            clientX: event.clientX,
+            clientY: event.clientY,
+            index: hit.index,
+            slotWidthClient: hit.slotWidthClient,
+            slotHeightClient: hit.slotHeightClient,
+          });
+          updatePointerCount();
+
+          if (pointers.size === 1) {
+            const photo = photoAt(hit.index);
+            state.activeCanvasTarget = { index: hit.index };
+            dragStart = {
+              index: hit.index,
+              x: event.clientX,
+              y: event.clientY,
+              offsetX: photo.offsetX,
+              offsetY: photo.offsetY,
+              slotWidth: hit.slotWidthClient,
+              slotHeight: hit.slotHeightClient,
+            };
+            pinchStart = null;
+            canvasWrap.classList.add("is-dragging");
+            drawCanvas();
+          } else if (pointers.size === 2) {
+            const values = Array.from(pointers.values());
+            if (values[0].index !== values[1].index) {
+              pinchStart = null;
+              canvasWrap.classList.remove("is-dragging");
+              return;
+            }
+
+            const photo = photoAt(values[0].index);
+            state.activeCanvasTarget = { index: values[0].index };
+            pinchStart = {
+              index: values[0].index,
+              zoom: photo.zoom,
+              offsetX: photo.offsetX,
+              offsetY: photo.offsetY,
+              distance: distance(values[0], values[1]),
+              midpoint: midpoint(values[0], values[1]),
+              slotWidth: values[0].slotWidthClient,
+              slotHeight: values[0].slotHeightClient,
+            };
+            dragStart = null;
+            canvasWrap.classList.remove("is-dragging");
+            drawCanvas();
+          }
+        });
+
+        previewCanvas.addEventListener("pointermove", function (event) {
+          if (!pointers.has(event.pointerId)) {
+            const hover = hitTest(event.clientX, event.clientY);
+            canvasWrap.classList.toggle("can-drag", Boolean(hover && hasImage(hover)));
+            return;
+          }
+
+          event.preventDefault();
+          pointers.set(event.pointerId, {
+            ...pointers.get(event.pointerId),
+            clientX: event.clientX,
+            clientY: event.clientY,
+          });
+
+          if (pointers.size === 1 && dragStart) {
+            const photo = photoAt(dragStart.index);
+            const zoomFactor = Math.max(1, photo.zoom);
+            photo.offsetX = dragStart.offsetX + (((event.clientX - dragStart.x) / Math.max(1, dragStart.slotWidth)) * (DRAG_SENSITIVITY / zoomFactor));
+            photo.offsetY = dragStart.offsetY + (((event.clientY - dragStart.y) / Math.max(1, dragStart.slotHeight)) * (DRAG_SENSITIVITY / zoomFactor));
+            updateTransform({ index: dragStart.index });
+            drawCanvas();
+          } else if (pointers.size === 2 && pinchStart) {
+            const values = Array.from(pointers.values());
+            if (values[0].index !== pinchStart.index || values[1].index !== pinchStart.index) return;
+
+            const photo = photoAt(pinchStart.index);
+            const scaleRatio = distance(values[0], values[1]) / Math.max(1, pinchStart.distance);
+            const currentMid = midpoint(values[0], values[1]);
+            photo.zoom = pinchStart.zoom * scaleRatio;
+            const zoomFactor = Math.max(1, photo.zoom);
+            photo.offsetX = pinchStart.offsetX + (((currentMid.x - pinchStart.midpoint.x) / Math.max(1, pinchStart.slotWidth)) * (DRAG_SENSITIVITY / zoomFactor));
+            photo.offsetY = pinchStart.offsetY + (((currentMid.y - pinchStart.midpoint.y) / Math.max(1, pinchStart.slotHeight)) * (DRAG_SENSITIVITY / zoomFactor));
+            updateTransform({ index: pinchStart.index });
+            drawCanvas();
+          }
+        });
+
+        function release(pointerId) {
+          pointers.delete(pointerId);
+          updatePointerCount();
+
+          if (!pointers.size) {
+            dragStart = null;
+            pinchStart = null;
+            state.activeCanvasTarget = null;
+            canvasWrap.classList.remove("is-dragging");
+            canvasWrap.classList.remove("can-drag");
+            drawCanvas();
+            return;
+          }
+
+          if (pointers.size === 1) {
+            const remaining = Array.from(pointers.values())[0];
+            const photo = photoAt(remaining.index);
+            state.activeCanvasTarget = { index: remaining.index };
+            dragStart = {
+              index: remaining.index,
+              x: remaining.clientX,
+              y: remaining.clientY,
+              offsetX: photo.offsetX,
+              offsetY: photo.offsetY,
+              slotWidth: remaining.slotWidthClient,
+              slotHeight: remaining.slotHeightClient,
+            };
+            pinchStart = null;
+            canvasWrap.classList.add("is-dragging");
+            drawCanvas();
+          }
+        }
+
+        previewCanvas.addEventListener("pointerup", function (event) {
+          release(event.pointerId);
+        });
+
+        previewCanvas.addEventListener("pointercancel", function (event) {
+          release(event.pointerId);
+        });
+
+        previewCanvas.addEventListener("pointerleave", function () {
+          if (!pointers.size) {
+            canvasWrap.classList.remove("can-drag");
+          }
+        });
+
+        previewCanvas.addEventListener("wheel", function (event) {
+          const hit = hitTest(event.clientX, event.clientY);
+          if (!hit || !hasImage(hit)) return;
+          event.preventDefault();
+          const photo = photoAt(hit.index);
+          photo.zoom += event.deltaY < 0 ? 0.12 : -0.12;
+          state.activeCanvasTarget = { index: hit.index };
+          updateTransform(hit);
+          drawCanvas();
+        }, { passive: false });
+      }
+
+      parseHtmlButton.addEventListener("click", parseHtmlInput);
+
+      fillSampleButton.addEventListener("click", function () {
+        htmlInput.value = SAMPLE_HTML;
+        baseUrlInput.value = "https://images.unsplash.com/";
+        parseHtmlInput();
+      });
+
+      clearHtmlButton.addEventListener("click", function () {
+        htmlInput.value = "";
+        baseUrlInput.value = "";
+        state.parsedItems = [];
+        renderParsedItems();
+        setStatus("");
+      });
+
+      parsedGrid.addEventListener("click", async function (event) {
+        const button = event.target.closest("[data-apply-parsed]");
+        if (!button) return;
+
+        const item = state.parsedItems[Number(button.getAttribute("data-apply-parsed"))];
+        const slot = Number(button.getAttribute("data-target-slot"));
+        if (!item) return;
+
+        try {
+          await applyToSlot(slot, item.url, item.label, "");
+          setStatus(`${slot === 0 ? "상단" : "하단"} 슬롯에 이미지를 적용했습니다.`);
+        } catch (error) {
+          setStatus(error.message || "원격 이미지를 적용하지 못했습니다.", true);
+        }
+      });
+
+      document.querySelectorAll("[data-file-input]").forEach((input) => {
+        input.addEventListener("change", async function (event) {
+          const file = event.currentTarget.files && event.currentTarget.files[0];
+          const slot = Number(event.currentTarget.getAttribute("data-file-input"));
+          if (!file) return;
+
+          const objectUrl = URL.createObjectURL(file);
+          try {
+            await applyToSlot(slot, objectUrl, file.name, objectUrl);
+            setStatus(`${slot === 0 ? "상단" : "하단"} 슬롯에 업로드 이미지를 적용했습니다.`);
+          } catch (error) {
+            URL.revokeObjectURL(objectUrl);
+            setStatus(error.message || "업로드 이미지를 읽지 못했습니다.", true);
+          }
+          event.currentTarget.value = "";
+        });
+      });
+
+      document.querySelectorAll("[data-reset-slot]").forEach((button) => {
+        button.addEventListener("click", function (event) {
+          resetSlot(Number(event.currentTarget.getAttribute("data-reset-slot")));
+        });
+      });
+
+      resetTransformsButton.addEventListener("click", resetTransforms);
+
+      renderSlotPreview(0);
+      renderSlotPreview(1);
+      setupGesture();
+      drawCanvas();
+    })();
+  </script>
+</body>
+</html>
