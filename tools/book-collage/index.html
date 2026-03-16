@@ -1318,6 +1318,77 @@
           return a.kind === b.kind && (a.index ?? null) === (b.index ?? null);
         }
 
+        function normalizeTarget(target) {
+          if (!target) return null;
+          return { kind: target.kind, index: target.index ?? null };
+        }
+
+        function targetContainsPoint(target, clientX, clientY) {
+          const hit = getCanvasPhotoHit(clientX, clientY);
+          return sameTarget(hit, target);
+        }
+
+        function getTargetClientSize(target) {
+          const canvasRect = previewCanvas.getBoundingClientRect();
+          const layout = getCollageLayout();
+          const slot = target?.kind === "book"
+            ? layout.leftRect
+            : layout.photoRects[target?.index ?? -1];
+
+          if (!slot) {
+            return {
+              width: canvasRect.width || 1,
+              height: canvasRect.height || 1,
+            };
+          }
+
+          return {
+            width: (slot.width / previewCanvas.width) * canvasRect.width,
+            height: (slot.height / previewCanvas.height) * canvasRect.height,
+          };
+        }
+
+        function getPinchTarget(touches) {
+          if (!touches || touches.length < 2) return null;
+          const firstTouch = touches[0];
+          const secondTouch = touches[1];
+          const midpointHit = getCanvasPhotoHit(
+            (firstTouch.clientX + secondTouch.clientX) / 2,
+            (firstTouch.clientY + secondTouch.clientY) / 2,
+          );
+
+          if (midpointHit && hasTargetImage(midpointHit)) {
+            return normalizeTarget(midpointHit);
+          }
+
+          const firstHit = getCanvasPhotoHit(firstTouch.clientX, firstTouch.clientY);
+          const secondHit = getCanvasPhotoHit(secondTouch.clientX, secondTouch.clientY);
+
+          if (firstHit && secondHit && sameTarget(firstHit, secondHit) && hasTargetImage(firstHit)) {
+            return normalizeTarget(firstHit);
+          }
+
+          if (
+            activeTouchTarget &&
+            hasTargetImage(activeTouchTarget) &&
+            (targetContainsPoint(activeTouchTarget, firstTouch.clientX, firstTouch.clientY) ||
+              targetContainsPoint(activeTouchTarget, secondTouch.clientX, secondTouch.clientY) ||
+              (midpointHit && sameTarget(midpointHit, activeTouchTarget)))
+          ) {
+            return normalizeTarget(activeTouchTarget);
+          }
+
+          if (firstHit && hasTargetImage(firstHit)) {
+            return normalizeTarget(firstHit);
+          }
+
+          if (secondHit && hasTargetImage(secondHit)) {
+            return normalizeTarget(secondHit);
+          }
+
+          return null;
+        }
+
         function beginDrag(target, point) {
           const transform = getTargetTransform(target);
           if (!transform) return;
@@ -1534,31 +1605,25 @@
           }
 
           if (touches.length >= 2) {
-            const firstHit = getCanvasPhotoHit(touches[0].clientX, touches[0].clientY);
-            const secondHit = getCanvasPhotoHit(touches[1].clientX, touches[1].clientY);
-            if (
-              !firstHit ||
-              !secondHit ||
-              !hasTargetImage(firstHit) ||
-              !hasTargetImage(secondHit) ||
-              !sameTarget(firstHit, secondHit)
-            ) {
+            const pinchTarget = getPinchTarget(touches);
+            if (!pinchTarget) {
               clearGestureState();
               return;
             }
             event.preventDefault();
-            activeTouchTarget = { kind: firstHit.kind, index: firstHit.index ?? null };
+            activeTouchTarget = pinchTarget;
             touchMode = "pinch";
+            const pinchTargetSize = getTargetClientSize(activeTouchTarget);
             beginPinch(activeTouchTarget, {
               x: touches[0].clientX,
               y: touches[0].clientY,
-              slotWidthClient: firstHit.slotWidthClient,
-              slotHeightClient: firstHit.slotHeightClient,
+              slotWidthClient: pinchTargetSize.width,
+              slotHeightClient: pinchTargetSize.height,
             }, {
               x: touches[1].clientX,
               y: touches[1].clientY,
-              slotWidthClient: secondHit.slotWidthClient,
-              slotHeightClient: secondHit.slotHeightClient,
+              slotWidthClient: pinchTargetSize.width,
+              slotHeightClient: pinchTargetSize.height,
             });
           }
         }, { passive: false });
@@ -1631,28 +1696,23 @@
             return;
           }
 
-          const firstHit = getCanvasPhotoHit(touches[0].clientX, touches[0].clientY);
-          const secondHit = getCanvasPhotoHit(touches[1].clientX, touches[1].clientY);
-          if (
-            !firstHit ||
-            !secondHit ||
-            !sameTarget(firstHit, activeTouchTarget) ||
-            !sameTarget(secondHit, activeTouchTarget)
-          ) {
+          const pinchTarget = getPinchTarget(touches);
+          if (!pinchTarget || !sameTarget(pinchTarget, activeTouchTarget)) {
             clearGestureState();
             return;
           }
           touchMode = "pinch";
+          const pinchTargetSize = getTargetClientSize(activeTouchTarget);
           beginPinch(activeTouchTarget, {
             x: touches[0].clientX,
             y: touches[0].clientY,
-            slotWidthClient: firstHit.slotWidthClient,
-            slotHeightClient: firstHit.slotHeightClient,
+            slotWidthClient: pinchTargetSize.width,
+            slotHeightClient: pinchTargetSize.height,
           }, {
             x: touches[1].clientX,
             y: touches[1].clientY,
-            slotWidthClient: secondHit.slotWidthClient,
-            slotHeightClient: secondHit.slotHeightClient,
+            slotWidthClient: pinchTargetSize.width,
+            slotHeightClient: pinchTargetSize.height,
           });
         }
 
