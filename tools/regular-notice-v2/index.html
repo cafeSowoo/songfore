@@ -640,6 +640,9 @@
     const HUNDREDS = ['', '백', '이백', '삼백', '사백', '오백', '육백', '칠백', '팔백', '구백'];
     const PURE_ONES = ['', '한', '두', '세', '네', '다섯', '여섯', '일곱', '여덟', '아홉'];
     const PURE_TENS = ['', '열', '스물', '서른', '마흔', '쉰', '예순', '일흔', '여든', '아흔'];
+    const ORDINAL_SPECIAL = {
+      1: '첫'
+    };
     const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
 
     const meetingNumberEl = document.getElementById('meetingNumber');
@@ -678,8 +681,41 @@
       return `${PURE_TENS[t]}${PURE_ONES[o]}`;
     }
 
+    function toSpacedPureKorean(n) {
+      if (!n || n < 1 || n > 99) return '';
+      const t = Math.floor(n / 10);
+      const o = n % 10;
+      const parts = [];
+
+      if (t) {
+        parts.push(PURE_TENS[t]);
+      }
+
+      if (o) {
+        parts.push(PURE_ONES[o]);
+      }
+
+      return parts.join(' ');
+    }
+
     function toOrdinalKorean(n) {
       if (!n || n < 1 || n > 999) return '';
+      if (ORDINAL_SPECIAL[n]) return `${ORDINAL_SPECIAL[n]} 번째`;
+      if (n >= 100) {
+        const h = Math.floor(n / 100);
+        const remainder = n % 100;
+        const parts = [HUNDREDS[h]];
+
+        if (remainder) {
+          if (ORDINAL_SPECIAL[remainder]) {
+            parts.push(ORDINAL_SPECIAL[remainder]);
+          } else {
+            parts.push(toSpacedPureKorean(remainder));
+          }
+        }
+
+        return `${parts.join(' ')} 번째`;
+      }
       const pure = n < 100 ? toPureKorean(n) : '';
       return pure ? `${pure} 번째` : `${toKoreanNumber(n)} 번째`;
     }
