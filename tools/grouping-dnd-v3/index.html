@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../../assets/favicon/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="../../assets/favicon/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="../../assets/favicon/apple-touch-icon.png" />
+  <link rel="manifest" href="../../assets/favicon/site.webmanifest" />
+  <meta name="theme-color" content="#24b5a7" />
+  <title>Grouping Tool Preview</title>
+  <style>
+    :root {
+      /* Forest & Wisdom Theme */
+      --bg: #f4f9f5;
+      --card: rgba(255, 255, 255, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.5);
+      --line: rgba(46, 92, 77, 0.2);
+      --text: #1c2b26;
+      --muted: #5e736a;
+      --primary: #2e5c4d;
+      --primary-dark: #1a3c34;
+      --ok: #0d652d;
+      --warn: #8e5a00;
+      --error: #b3261e;
+      --shadow-soft: 0 16px 40px rgba(18, 38, 30, 0.08);
+      --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.03);
+      --chip-glow: 0 8px 20px rgba(46, 92, 77, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
+        radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
+        linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
+      background-attachment: fixed;
+    }
+
+    /* Ambient background shapes */
+    .bg-shape {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      z-index: -1;
+      opacity: 0.5;
+      animation: float 20s ease-in-out infinite alternate;
+    }
+
+    .shape-1 {
+      width: 400px;
+      height: 400px;
+      background: #b6d9c8;
+      top: -100px;
+      right: -50px;
+    }
+
+    .shape-2 {
+      width: 500px;
+      height: 500px;
+      background: #cce0d6;
+      bottom: -150px;
+      left: -100px;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      100% {
+        transform: translate(-30px, 40px) scale(1.1);
+      }
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-card);
+    }
+
+    .container {
+      width: min(1120px, 94vw);
+      margin: 28px auto 60px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #fff, #f4f7ff);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(26, 39, 87, 0.06);
+    }
+
+    .hero-slot {
+      position: relative;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2vw, 2rem);
+    }
+
+    .sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(26, 39, 87, 0.06);
+      padding: 16px;
+    }
+
+    .panel>h2 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+    }
+
+    .panel>p.hint {
+      margin: 10px 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    textarea,
+    button,
+    .person-chip-controls button {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: #fff;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 122px;
+      resize: vertical;
+      line-height: 1.45;
+      font-family: inherit;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-row button,
+    .back-home-btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: #e9edff;
+      color: #2a3a8a;
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    button.warn {
+      background: #fff4e2;
+      color: #8f5200;
+    }
+
+    button:disabled {
+      opacity: 0.52;
+      cursor: not-allowed;
+    }
+
+    .btn-label {
+      display: inline-block;
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .message {
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      margin-top: 10px;
+      display: none;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.error {
+      background: #ffebee;
+      color: var(--error);
+    }
+
+    .message.warn {
+      background: #fff8e1;
+      color: var(--warn);
+    }
+
+    .message.ok {
+      background: #e7f6ed;
+      color: var(--ok);
+    }
+
+    .board {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        "unassigned unassigned"
+        "male female";
+      gap: 10px;
+    }
+
+    .zone[data-zone="unassigned"] {
+      grid-area: unassigned;
+    }
+
+    .zone[data-zone="male"] {
+      grid-area: male;
+    }
+
+    .zone[data-zone="female"] {
+      grid-area: female;
+    }
+
+    .zone[data-zone="male"] .person-chip,
+    .zone[data-zone="female"] .person-chip {
+      grid-template-columns: 1fr;
+    }
+
+    .zone[data-zone="male"] .person-chip-controls,
+    .zone[data-zone="female"] .person-chip-controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .zone[data-zone="male"] .person-chip-controls button,
+    .zone[data-zone="female"] .person-chip-controls button {
+      width: 100%;
+    }
+
+    .zone {
+      min-height: 240px;
+      border-radius: 12px;
+      border: 1.5px dashed var(--line);
+      padding: 10px;
+      background: #fbfcff;
+      transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+    }
+
+    .zone.drag-over {
+      border-color: #a7b8f7;
+      background: #f2f6ff;
+      transform: translateY(-2px);
+    }
+
+    .zone h3 {
+      margin: 0;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .count {
+      font-size: 0.8rem;
+      color: var(--muted);
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: #eef3ff;
+    }
+
+    .chip-list {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+      min-height: 180px;
+      align-content: start;
+    }
+
+    .person-chip {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #ced9f7;
+      background: #fff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      line-height: 1.25;
+      cursor: grab;
+      transition: transform 0.14s ease;
+    }
+
+    .person-chip:hover {
+      transform: translateY(-1px);
+    }
+
+    .person-chip.leader {
+      background: #eef2ff;
+      border-color: #afc0ff;
+    }
+
+    .person-name {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .person-chip-controls {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .person-chip-controls button {
+      width: auto;
+      cursor: pointer;
+      min-width: 0;
+      white-space: nowrap;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: #eef2ff;
+      color: #30419a;
+      border-color: #b7c5f7;
+    }
+
+    .person-chip-controls button.active {
+      background: #3f67ff;
+      color: #fff;
+      border-color: #3f67ff;
+    }
+
+    .person-chip-controls button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .person-chip-pick-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .person-chip-pick-label {
+      font-size: 0.74rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .person-pick-select {
+      border: 1px solid #c3cef7;
+      border-radius: 8px;
+      padding: 0 22px 0 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: linear-gradient(160deg, #f4f7ff, #ecf1ff);
+      color: #2d3f85;
+      min-width: 46px;
+      max-width: 46px;
+      width: 46px;
+      height: 28px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      box-sizing: border-box;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      text-align: left;
+      justify-content: flex-start;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: none;
+    }
+
+    .person-pick-select.has-value {
+      padding-right: 6px;
+    }
+
+    .person-pick-select:focus {
+      outline: none;
+      border-color: #3f67ff;
+    }
+
+    .person-pick-arrow {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      font-size: 0.68rem;
+      line-height: 1;
+      color: #5366a5;
+    }
+
+    .person-chip-pick-wrap.has-pick .person-pick-arrow {
+      opacity: 0;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .group-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fafbff;
+    }
+
+    .group-card h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .stats {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .member-list {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.5;
+    }
+
+    .back-home-btn {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 18px;
+      width: fit-content;
+      margin: 0 auto;
+      padding: 10px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 20px rgba(25, 39, 88, 0.15);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 1080px) {
+      .board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+          "unassigned unassigned"
+          "male female";
+      }
+    }
+
+    @media (max-width: 720px) {
+      .board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+          "unassigned unassigned"
+          "male female";
+      }
+
+      .back-home-btn {
+        position: static;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        margin: 16px auto 0;
+        width: min(100%, 320px);
+        display: block;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .board {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+          "unassigned unassigned"
+          "male female";
+      }
+    }
+
+    @media (min-width: 721px) {
+      .chip-list {
+        justify-items: center;
+      }
+
+      .person-chip {
+        width: fit-content;
+        max-width: fit-content;
+        min-width: 0;
+        justify-self: center;
+        grid-template-columns: max-content auto;
+      }
+
+      .person-chip-controls {
+        width: auto;
+        justify-content: flex-start;
+      }
+
+      .person-chip-controls button {
+        padding: 4px 9px;
+      }
+
+      .zone[data-zone="male"] .person-chip,
+      .zone[data-zone="female"] .person-chip {
+        grid-template-columns: max-content auto;
+      }
+
+      .zone[data-zone="male"] .person-chip-controls,
+      .zone[data-zone="female"] .person-chip-controls {
+        display: flex;
+      }
+
+      .zone[data-zone="male"] .person-chip-controls button,
+      .zone[data-zone="female"] .person-chip-controls button {
+        width: auto;
+      }
+    }
+
+    :root {
+      --bg: #f4f9f5;
+      --card: rgba(255, 255, 255, 0.65);
+      --line: rgba(46, 92, 77, 0.2);
+      --text: #1c2b26;
+      --muted: #5e736a;
+      --primary: #2e5c4d;
+      --primary-dark: #1a3c34;
+      --ok: #0d652d;
+      --warn: #8e5a00;
+      --error: #b3261e;
+      --shadow-soft: 0 16px 40px rgba(18, 38, 30, 0.08);
+      --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.03);
+      --chip-glow: 0 8px 20px rgba(46, 92, 77, 0.12);
+    }
+
+    body {
+      min-height: 100vh;
+      color: var(--text);
+      animation: intro-fade 0.55s ease;
+    }
+
+    @keyframes intro-fade {
+      0% {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .container {
+      margin-block: 28px 80px;
+    }
+
+    .hero,
+    .panel {
+      position: relative;
+      border: 1px solid var(--glass-border);
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .hero::before,
+    .panel::before {
+      content: '';
+      position: absolute;
+      pointer-events: none;
+      inset: -45% auto auto -18%;
+      width: 220px;
+      height: 220px;
+      background: linear-gradient(130deg, rgba(46, 92, 77, 0.1), rgba(74, 130, 112, 0.08));
+      filter: blur(0px);
+      border-radius: 50%;
+    }
+
+    .panel::before {
+      inset: auto auto -40px -20%;
+      width: 190px;
+      height: 190px;
+      background: linear-gradient(130deg, rgba(74, 130, 112, 0.08), rgba(46, 92, 77, 0.06));
+    }
+
+    .hero:hover,
+    .panel:hover {
+      transform: translateY(-1px);
+      border-color: rgba(46, 92, 77, 0.3);
+      box-shadow: var(--shadow-soft);
+    }
+
+    h1 {
+      letter-spacing: -0.01em;
+      font-weight: 800;
+    }
+
+    .sub {
+      line-height: 1.55;
+    }
+
+    textarea,
+    button,
+    .person-chip-controls button,
+    .person-pick-select {
+      transition: all 0.18s ease;
+    }
+
+    textarea:focus,
+    .person-pick-select:focus,
+    button:focus-visible {
+      outline: 2px solid rgba(63, 103, 255, 0.28);
+      outline-offset: 2px;
+    }
+
+    .btn-row button,
+    .back-home-btn {
+      padding-block: 10px;
+      font-weight: 700;
+      border: 1px solid #b4c2ff;
+      box-shadow: 0 8px 20px rgba(43, 72, 181, 0.16);
+    }
+
+    .btn-row button:hover,
+    .back-home-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    button.primary {
+      background: linear-gradient(160deg, #4a8270, #2e5c4d);
+      box-shadow: 0 10px 24px rgba(46, 92, 77, 0.2);
+    }
+
+    button.primary:hover {
+      background: linear-gradient(160deg, #2e5c4d, #1a3c34);
+      box-shadow: 0 12px 26px rgba(46, 92, 77, 0.24);
+    }
+
+    button.warn {
+      background: linear-gradient(160deg, #ffefcf, #ffd98f);
+    }
+
+    button:disabled {
+      filter: grayscale(0.3);
+      box-shadow: none;
+    }
+
+    .message {
+      border: 1px solid #d9e2ff;
+      backdrop-filter: blur(2px);
+    }
+
+    .message.ok {
+      background: linear-gradient(160deg, #eaf8ee, #e8f7ea);
+    }
+
+    .message.warn {
+      background: linear-gradient(160deg, #fff9e5, #fff3c9);
+    }
+
+    .message.error {
+      background: linear-gradient(160deg, #ffeaee, #ffdde1);
+    }
+
+    .board {
+      gap: 12px;
+    }
+
+    .zone {
+      background: rgba(255, 255, 255, 0.4);
+      border-width: 1.5px;
+      border-style: dashed;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6), var(--shadow-soft);
+      border-color: rgba(46, 92, 77, 0.2);
+      min-height: 0;
+    }
+
+    .zone.drag-over {
+      border-style: solid;
+      border-color: #4a8270;
+      background: rgba(255, 255, 255, 0.7);
+      transform: translateY(-2px) scale(1.005);
+    }
+
+    .zone h3 {
+      color: #213062;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.87rem;
+      font-weight: 800;
+    }
+
+    .chip-list {
+      align-content: start;
+      gap: 9px;
+      min-height: 0;
+    }
+
+    .zone[data-zone="male"],
+    .zone[data-zone="female"] {
+      min-height: 110px;
+    }
+
+    .zone[data-zone="unassigned"] {
+      min-height: 0;
+    }
+
+    .zone[data-zone="unassigned"] .chip-list {
+      min-height: 0;
+    }
+
+    .person-chip {
+      grid-template-columns: minmax(0, 1fr) auto;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(46, 92, 77, 0.15);
+      border-radius: 10px;
+      padding: 8px 12px;
+      gap: 10px;
+      box-shadow: var(--chip-glow);
+      animation: chip-pop 0.2s ease;
+    }
+
+    @keyframes chip-pop {
+      0% {
+        transform: scale(0.98);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .person-chip:hover {
+      transform: translateY(-1px);
+      border-color: #9eb3ff;
+    }
+
+    .person-chip.leader {
+      background: linear-gradient(170deg, #e6f0ec, #f4f9f5);
+      border-color: #a3c2b5;
+      box-shadow: 0 8px 22px rgba(46, 92, 77, 0.2);
+      color: #1a3c34;
+    }
+
+    .person-name {
+      font-size: 0.95rem;
+    }
+
+    .person-chip-controls {
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .person-chip-controls button {
+      min-width: 46px;
+      padding: 4px 9px;
+      border: 1px solid #c3cef7;
+      border-radius: 8px;
+      background: linear-gradient(160deg, #f4f7ff, #ecf1ff);
+      color: #2d3f85;
+      font-weight: 800;
+    }
+
+    .person-chip-controls button:hover {
+      border-color: #97a9ff;
+      box-shadow: inset 0 0 0 1px rgba(63, 103, 255, 0.22);
+    }
+
+    .person-chip-controls button.active {
+      background: linear-gradient(160deg, #2e5c4d, #1a3c34);
+      border-color: #1a3c34;
+      color: #fff;
+      box-shadow: 0 6px 14px rgba(46, 92, 77, 0.25);
+    }
+
+    .person-chip-pick-wrap {
+      position: relative;
+      gap: 6px;
+    }
+
+    .person-pick-select {
+      width: 46px;
+      min-width: 46px;
+      max-width: 46px;
+      height: 28px;
+      padding: 0 22px 0 6px;
+      box-sizing: border-box;
+      background: #f3f6ff;
+      border: 1px solid #c3cef7;
+      border-radius: 8px;
+      font-weight: 800;
+      color: #2d3f85;
+      text-align: left;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: none;
+    }
+
+    .person-pick-select.has-value {
+      padding-right: 6px;
+    }
+
+    .group-card {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(46, 92, 77, 0.2);
+      box-shadow: var(--shadow-card);
+    }
+
+    .member-list {
+      padding-left: 21px;
+    }
+
+    .back-home-btn {
+      backdrop-filter: blur(2px);
+      background: linear-gradient(160deg, #ffffff, #f0f4ff);
+      border-color: #b9c6ff;
+    }
+    .container {
+      width: min(760px, calc(100vw - 36px));
+      margin: 18px auto 44px;
+      gap: 14px;
+    }
+
+    .board {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        "unassigned unassigned"
+        "male female";
+    }
+
+    .top-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      width: fit-content;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #24504a;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(180, 216, 208, 0.56);
+      box-shadow: 0 10px 24px rgba(31, 94, 85, 0.08);
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .top-link:hover {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
+    .hero {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      border-radius: 24px;
+      padding: 28px 30px;
+      background: rgba(255, 255, 255, 0.82);
+      border-color: rgba(180, 216, 208, 0.56);
+      box-shadow: 0 18px 42px rgba(31, 94, 85, 0.11);
+    }
+
+    .hero-mark {
+      position: relative;
+      width: 62px;
+      height: 62px;
+      border-radius: 20px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #42c48f, #24b5a7 54%, #57b7e5);
+      box-shadow: 0 18px 30px rgba(46, 145, 132, 0.22);
+    }
+
+    .hero-mark::after {
+      content: "";
+      position: absolute;
+      top: -1px;
+      right: -1px;
+      width: 16px;
+      height: 16px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
+    }
+
+    .hero-mark svg {
+      width: 28px;
+      height: 28px;
+      color: #fff;
+      stroke-width: 2.1;
+    }
+
+    .hero h1 {
+      background: linear-gradient(90deg, #1f7468, #177f86, #2b85b9);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-copy p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
+    }
+
+    .panel {
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.82);
+      border-color: rgba(180, 216, 208, 0.56);
+      box-shadow: 0 18px 42px rgba(31, 94, 85, 0.11);
+    }
+
+    .btn-row button,
+    .back-home-btn {
+      background: rgba(255, 255, 255, 0.86);
+      color: #24504a;
+      border-color: rgba(160, 201, 193, 0.8);
+      box-shadow: 0 10px 22px rgba(31, 94, 85, 0.1);
+    }
+
+    button.primary,
+    button.primary:hover {
+      background: linear-gradient(90deg, #42c48f, #24b5a7);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    button.warn {
+      background: linear-gradient(160deg, #fff4df, #ffe3b0);
+      color: #8f5200;
+    }
+
+    button.share-kakao {
+      background: #FEE500;
+      color: #3C1E1E;
+      border-color: #FEE500;
+    }
+
+    .back-home-btn {
+      display: none;
+    }
+
+    .zone h3,
+    .count {
+      color: #24504a;
+    }
+
+    .person-chip-controls button.active {
+      background: linear-gradient(160deg, #2e5c4d, #177f86);
+      border-color: #177f86;
+    }
+
+    @media (max-width: 720px) {
+      :root {
+        --mobile-sticky-gap: 14px;
+      }
+
+      .hero-slot {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding-top: var(--mobile-sticky-gap);
+        padding-bottom: 10px;
+        overflow: clip;
+      }
+
+      .container {
+        width: min(calc(100vw - 20px), 1120px);
+        margin: 12px auto 28px;
+        gap: 12px;
+      }
+
+      .hero,
+      .panel {
+        border-radius: 22px;
+      }
+
+      .hero {
+        position: relative;
+        flex-direction: row;
+        text-align: left;
+        align-items: center;
+        padding: 20px 18px;
+        gap: 16px;
+      }
+
+      .panel {
+        padding: 16px 14px;
+      }
+
+      .top-link {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero-copy p {
+        margin-top: 6px;
+        font-size: 0.88rem;
+        line-height: 1.45;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-shape shape-1"></div>
+  <div class="bg-shape shape-2"></div>
+  <main class="container">
+    <a class="top-link" href="../../index.html">← Home</a>
+    <div class="hero-slot">
+    <section class="hero">
+      <div class="hero-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1" stroke="currentColor" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <circle cx="9.5" cy="8" r="3" stroke="currentColor" />
+          <path d="M20 19v-1.2a3.2 3.2 0 0 0-2.4-3.1" stroke="currentColor" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <path d="M14.8 5.2a3 3 0 0 1 0 5.6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <div class="hero-copy">
+        <h1>Grouping Builder</h1>
+        <p>Preview build for sticky-layout QA before replacing the original menu.</p>
+      </div>
+    </section>
+    </div>
+
+    <section class="panel">
+      <h2>1. Enter participants</h2>
+      <textarea id="allPeople" placeholder="Enter names separated by spaces or line breaks."></textarea>
+      <div class="btn-row">
+        <button id="confirmPeopleBtn" class="primary" type="button">Confirm</button>
+        <button id="clearAllBtn" type="button">Reset all</button>
+      </div>
+    </section>
+
+    <section class="panel" id="classifyPanel" hidden>
+      <h2>2. Classify leader / existing / newbie</h2>
+      <p class="hint">1. Assign each person to M or F.<br>2. Mark leaders and optional picks.<br>3. Mark newbies, then run grouping.</p>
+      <div class="board" id="board">
+        <section class="zone" data-zone="unassigned">
+          <h3>Unassigned <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="unassigned"></div>
+        </section>
+        <section class="zone" data-zone="male">
+          <h3>Male <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="male"></div>
+        </section>
+        <section class="zone" data-zone="female">
+          <h3>Female <span class="count">0</span></h3>
+          <div class="chip-list" data-zone="female"></div>
+        </section>
+      </div>
+
+      <div class="btn-row">
+        <button id="assignBtn" class="primary" type="button">Run grouping</button>
+        <button id="reshuffleBtn" type="button">Reshuffle</button>
+        <button id="resetBoardBtn" class="warn" type="button">Reset classification</button>
+      </div>
+
+      <div id="statusMessage" class="message"></div>
+      <div id="warningMessage" class="message"></div>
+    </section>
+
+    <section class="panel" id="resultPanel" hidden>
+      <h2>3. Grouping result</h2>
+      <div class="btn-row">
+        <button id="plainCopyBtn" type="button">Copy result</button>
+        <button id="shareBtn" class="share-kakao" type="button">Share to KakaoTalk</button>
+      </div>
+
+      <div id="resultContainer" class="result-grid"></div>
+    </section>
+  </main>
+
+  <a class="back-home-btn" href="../../index.html">Back to Home</a>
+
+  <script>
+    const zoneOrder = [
+      'unassigned',
+      'male',
+      'female'
+    ];
+
+    const allPeopleEl = document.getElementById('allPeople');
+    const confirmPeopleBtn = document.getElementById('confirmPeopleBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const classifyPanelEl = document.getElementById('classifyPanel');
+    const resultPanelEl = document.getElementById('resultPanel');
+    const statusMessageEl = document.getElementById('statusMessage');
+    const warningMessageEl = document.getElementById('warningMessage');
+    const resultContainerEl = document.getElementById('resultContainer');
+    const assignBtn = document.getElementById('assignBtn');
+    const reshuffleBtn = document.getElementById('reshuffleBtn');
+    const resetBoardBtn = document.getElementById('resetBoardBtn');
+    const plainCopyBtn = document.getElementById('plainCopyBtn');
+    const shareBtn = document.getElementById('shareBtn');
+
+    const zoneElements = {};
+    const zoneCountElements = {};
+    document.querySelectorAll('.zone').forEach((zoneEl) => {
+      const zone = zoneEl.dataset.zone;
+      zoneElements[zone] = zoneEl.querySelector('.chip-list');
+      zoneCountElements[zone] = zoneEl.querySelector('.count');
+    });
+
+    let people = [];
+    let duplicatedBaseNames = [];
+    let lastResult = null;
+    let dragHandlersBound = false;
+
+    function showMessage(el, type, text) {
+      el.className = `message show ${type}`;
+      el.textContent = text;
+    }
+
+    function hideMessage(el) {
+      el.className = 'message';
+      el.textContent = '';
+    }
+
+    async function writeClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (error) {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          return true;
+        } catch (fallbackError) {
+          return false;
+        }
+      }
+    }
+
+    function parseNames(text) {
+      return text
+        .trim()
+        .split(/[\s,;\n\r]+/)
+        .map((name) => name.trim())
+        .filter(Boolean);
+    }
+
+    function dedupePeople(basePeople) {
+      const counts = new Map();
+      const duplicatedBaseNames = new Set();
+      const deduped = basePeople.map((person) => {
+        const base = person.name;
+        const current = counts.get(base) || 0;
+        counts.set(base, current + 1);
+
+        if (current === 0) return person;
+
+        duplicatedBaseNames.add(base);
+        return {
+          ...person,
+          name: `${base} (${current + 1})`
+        };
+      });
+
+      return { deduped, duplicatedBaseNames: Array.from(duplicatedBaseNames) };
+    }
+
+    function makeTargetArray(total, groupCount) {
+      const base = Math.floor(total / groupCount);
+      const remainder = total % groupCount;
+      const result = Array.from({ length: groupCount }, () => base);
+      const shuffledIndexes = shuffle(Array.from({ length: groupCount }, (_, i) => i));
+      for (let i = 0; i < remainder; i += 1) {
+        result[shuffledIndexes[i]] += 1;
+      }
+      return result;
+    }
+
+    function shuffle(arr) {
+      const cloned = [...arr];
+      for (let i = cloned.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cloned[i], cloned[j]] = [cloned[j], cloned[i]];
+      }
+      return cloned;
+    }
+
+    function evaluateGroups(groups, targets) {
+      const sizePenalty = groups.reduce((sum, group, i) => sum + Math.abs(group.members.length - targets.sizes[i]), 0);
+      const newbiePenalty = groups.reduce((sum, group, i) => sum + Math.abs(group.newbieCount - targets.newbies[i]), 0);
+      const malePenalty = groups.reduce((sum, group, i) => sum + Math.abs(group.maleCount - targets.males[i]), 0);
+      const femalePenalty = groups.reduce((sum, group, i) => {
+        const femaleCount = group.members.length - group.maleCount;
+        return sum + Math.abs(femaleCount - targets.females[i]);
+      }, 0);
+
+      const score = sizePenalty * 1000 + newbiePenalty * 260 + malePenalty * 50 + femalePenalty * 50;
+      return { score, sizePenalty, newbiePenalty, malePenalty, femalePenalty };
+    }
+
+    function assignWithBestOfN(leaders, participants, fixedPicks = new Map(), tries = 1000) {
+      const fixedPairs = fixedPicks instanceof Map ? fixedPicks : new Map(fixedPicks);
+      const fixedPairIds = new Set(Array.from(fixedPairs.values()));
+      const fixedMembers = participants.filter((person) => fixedPairIds.has(person.id));
+      const fixedMemberByLeader = new Map();
+      leaders.forEach((leader) => {
+        const memberId = fixedPairs.get(leader.id);
+        const fixedMember = fixedMembers.find((person) => person.id === memberId);
+        if (fixedMember) {
+          fixedMemberByLeader.set(leader.id, fixedMember);
+        }
+      });
+
+      const groupCount = leaders.length;
+      const remainingParticipants = participants.filter((person) => !fixedPairIds.has(person.id));
+      const totalPeople = leaders.length + fixedMembers.length + remainingParticipants.length;
+      const totalNewbies = [...leaders, ...fixedMembers, ...remainingParticipants].filter((p) => p.newbie).length;
+      const totalMales = [...leaders, ...fixedMembers, ...remainingParticipants].filter((p) => p.gender === 'M').length;
+
+      const targetSizes = makeTargetArray(totalPeople, groupCount);
+      const targetNewbies = makeTargetArray(totalNewbies, groupCount);
+      const targetMales = makeTargetArray(totalMales, groupCount);
+      const targetFemales = targetSizes.map((size, i) => size - targetMales[i]);
+
+      const targets = {
+        sizes: targetSizes,
+        newbies: targetNewbies,
+        males: targetMales,
+        females: targetFemales
+      };
+
+      let best = null;
+
+      for (let attempt = 0; attempt < tries; attempt += 1) {
+        const groups = leaders.map((leader, idx) => {
+          const fixedMember = fixedMemberByLeader.get(leader.id);
+          const members = [leader];
+          let newbieCount = leader.newbie ? 1 : 0;
+          let maleCount = leader.gender === 'M' ? 1 : 0;
+
+          if (fixedMember) {
+            members.push(fixedMember);
+            newbieCount += fixedMember.newbie ? 1 : 0;
+            maleCount += fixedMember.gender === 'M' ? 1 : 0;
+          }
+
+          return {
+            name: `${idx + 1} Group (${leader.name})`,
+            leader,
+            members,
+            newbieCount,
+            maleCount
+          };
+        });
+
+        const shuffled = shuffle(remainingParticipants);
+        const participantNeedPerGroup = groups.map((g, i) => ({
+          size: Math.max(0, targets.sizes[i] - g.members.length),
+          newbie: Math.max(0, targets.newbies[i] - g.newbieCount),
+          male: Math.max(0, targets.males[i] - g.maleCount),
+          female: Math.max(0, targets.females[i] - (g.members.length - g.maleCount))
+        }));
+
+        const totalNeed = participantNeedPerGroup.reduce((acc, need) => ({
+          size: acc.size + need.size,
+          newbie: acc.newbie + need.newbie,
+          male: acc.male + need.male,
+          female: acc.female + need.female
+        }), { size: 0, newbie: 0, male: 0, female: 0 });
+
+        const ordered = shuffled.sort((a, b) => {
+          const rarityA = (a.newbie && totalNeed.newbie > 0 ? 3 : 0) + (a.gender === 'M' && totalNeed.male > 0 ? 2 : 0) + (a.gender === 'F' && totalNeed.female > 0 ? 2 : 0);
+          const rarityB = (b.newbie && totalNeed.newbie > 0 ? 3 : 0) + (b.gender === 'M' && totalNeed.male > 0 ? 2 : 0) + (b.gender === 'F' && totalNeed.female > 0 ? 2 : 0);
+          return rarityB - rarityA;
+        });
+
+        for (const person of ordered) {
+          let bestGroupIndex = -1;
+          let bestScore = Infinity;
+
+          const groupNeedNewbie = groups.map((g, i) => Math.max(0, targets.newbies[i] - g.newbieCount));
+          const mustPlaceToNewbieNeedGroup = person.newbie && groupNeedNewbie.some((need) => need > 0);
+
+          for (let i = 0; i < groups.length; i += 1) {
+            const g = groups[i];
+            const sizeAfter = g.members.length + 1;
+            const newbieAfter = g.newbieCount + (person.newbie ? 1 : 0);
+            const maleAfter = g.maleCount + (person.gender === 'M' ? 1 : 0);
+            const femaleAfter = sizeAfter - maleAfter;
+            const remainingCapacity = targets.sizes[i] - g.members.length;
+
+            if (remainingCapacity <= 0) continue;
+            if (mustPlaceToNewbieNeedGroup && groupNeedNewbie[i] <= 0) continue;
+
+            const sizeGap = Math.max(0, sizeAfter - targets.sizes[i]);
+            const sizeLack = Math.max(0, targets.sizes[i] - sizeAfter);
+            const newbieGap = Math.max(0, newbieAfter - targets.newbies[i]);
+            const newbieLack = Math.max(0, targets.newbies[i] - newbieAfter);
+            const maleGap = Math.max(0, maleAfter - targets.males[i]);
+            const maleLack = Math.max(0, targets.males[i] - maleAfter);
+            const femaleGap = Math.max(0, femaleAfter - targets.females[i]);
+            const femaleLack = Math.max(0, targets.females[i] - femaleAfter);
+
+            const localScore = sizeGap * 500 + sizeLack * 120 + newbieGap * 220 + newbieLack * 140 + maleGap * 50 + maleLack * 25 + femaleGap * 50 + femaleLack * 25 + Math.random() * 2;
+
+            if (localScore < bestScore || (localScore === bestScore && Math.random() < 0.5)) {
+              bestScore = localScore;
+              bestGroupIndex = i;
+            }
+          }
+
+          if (bestGroupIndex === -1) {
+            const availableIndices = groups
+              .map((g, i) => ({ i, remain: targets.sizes[i] - g.members.length }))
+              .filter((it) => it.remain > 0)
+              .map((it) => it.i);
+            bestGroupIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)] ?? 0;
+          }
+
+          const targetGroup = groups[bestGroupIndex];
+          targetGroup.members.push(person);
+          if (person.newbie) targetGroup.newbieCount += 1;
+          if (person.gender === 'M') targetGroup.maleCount += 1;
+        }
+
+        const metrics = evaluateGroups(groups, targets);
+        const candidate = { groups, targets, metrics };
+
+        if (
+          !best ||
+          candidate.metrics.score < best.metrics.score ||
+          (candidate.metrics.score === best.metrics.score && Math.random() < 0.35)
+        ) {
+          best = candidate;
+        }
+      }
+
+      return best;
+    }
+
+    function getDisplayMembers(group) {
+      const leader = group.members.find((m) => m.isLeader);
+      const participants = group.members.filter((m) => !m.isLeader);
+      const existing = participants.filter((m) => !m.newbie);
+      const newbies = participants.filter((m) => m.newbie);
+      return [leader, ...existing, ...newbies].filter(Boolean);
+    }
+
+    function buildPersonForAssignment(person) {
+      return {
+        id: person.id,
+        name: person.name,
+        gender: person.gender === 'F' ? 'F' : 'M',
+        newbie: !!person.newbie,
+        isLeader: !!person.isLeader,
+        pickedPersonId: person.pickedPersonId ?? null
+      };
+    }
+
+    function buildSummary(result) {
+      return result.groups.map((group, idx) => {
+        const members = getDisplayMembers(group)
+          .filter((m) => !m.isLeader)
+          .map((m) => m.name)
+          .join(', ') || 'No members';
+        const male = group.members.filter((m) => m.gender === 'M').length;
+        const female = group.members.filter((m) => m.gender === 'F').length;
+        const newbie = group.members.filter((m) => m.newbie).length;
+        const pick = group.members.find((member) => member.id === group.leader.pickedPersonId);
+        const pickText = pick ? `\n- Pick: ${pick.name} (${pick.gender === 'M' ? 'M' : 'F'})` : '';
+        return `${idx + 1} Group (${group.leader.name})\n- Leader: ${group.leader.name} (${group.leader.gender === 'M' ? 'M' : 'F'})${pickText}\n- Members: ${members}\n- Stats: total ${group.members.length} / M ${male} / F ${female} / newbie ${newbie}`;
+      }).join('\n\n');
+    }
+
+    function renderResult(result, warnings = []) {
+      resultContainerEl.innerHTML = '';
+
+      result.groups.forEach((group, idx) => {
+        const total = group.members.length;
+        const male = group.members.filter((m) => m.gender === 'M').length;
+        const female = group.members.filter((m) => m.gender === 'F').length;
+        const newbie = group.members.filter((m) => m.newbie).length;
+        const card = document.createElement('article');
+        card.className = 'group-card';
+
+        const membersHtml = getDisplayMembers(group)
+          .map((member) => {
+            if (member.isLeader) {
+              return `<li><strong>Leader: ${member.name}</strong> (${member.gender === 'M' ? 'M' : 'F'})</li>`;
+            }
+            return `<li>${member.name} (${member.gender === 'M' ? 'M' : 'F'}${member.newbie ? ', newbie' : ''})</li>`;
+          })
+          .join('');
+
+        card.innerHTML = `
+          <h3>${idx + 1} Group 夷?${group.leader.name}</h3>
+          <div class="stats">Total ${total} 夷?M ${male} 夷?F ${female} 夷?Newbie ${newbie}</div>
+          <ul class="member-list">${membersHtml}</ul>
+        `;
+
+        resultContainerEl.appendChild(card);
+      });
+
+      const score = result.metrics.score;
+      if (score === 0) {
+        showMessage(statusMessageEl, 'ok', 'All grouping rules were satisfied.');
+      } else {
+        showMessage(statusMessageEl, 'warn', 'Closest balanced result was used because some constraints conflicted.');
+      }
+
+      if (warnings.length) {
+        showMessage(warningMessageEl, 'warn', warnings.join('\n'));
+      } else {
+        hideMessage(warningMessageEl);
+      }
+    }
+
+    function createPersonChip(person) {
+      const chip = document.createElement('div');
+      chip.className = `person-chip ${person.isLeader ? 'leader' : ''}`;
+      chip.dataset.id = person.id;
+      chip.draggable = true;
+
+      const nameText = document.createElement('span');
+      nameText.className = 'person-name';
+
+      nameText.textContent = person.name;
+      chip.appendChild(nameText);
+
+      const controls = document.createElement('div');
+      controls.className = 'person-chip-controls';
+
+      if (person.zone === 'unassigned') {
+        const maleBtn = document.createElement('button');
+        maleBtn.type = 'button';
+        maleBtn.textContent = 'M';
+        maleBtn.className = person.gender === 'M' ? 'active' : '';
+        maleBtn.addEventListener('click', () => {
+          assignPersonToZone(person.id, 'male');
+        });
+        controls.appendChild(maleBtn);
+
+        const femaleBtn = document.createElement('button');
+        femaleBtn.type = 'button';
+        femaleBtn.textContent = 'F';
+        femaleBtn.className = person.gender === 'F' ? 'active' : '';
+        femaleBtn.addEventListener('click', () => {
+          assignPersonToZone(person.id, 'female');
+        });
+        controls.appendChild(femaleBtn);
+      } else {
+        const leaderBtn = document.createElement('button');
+        leaderBtn.type = 'button';
+        leaderBtn.textContent = 'Leader';
+        leaderBtn.className = person.isLeader ? 'active' : '';
+        leaderBtn.addEventListener('click', () => {
+          toggleLeader(person.id);
+        });
+        controls.appendChild(leaderBtn);
+
+        if (person.isLeader) {
+          const pickWrap = document.createElement('span');
+          pickWrap.className = 'person-chip-pick-wrap';
+
+          const pickSelect = document.createElement('select');
+          pickSelect.className = 'person-pick-select';
+
+          const candidateMembers = people.filter((item) => (
+            // ?リ옇?????ル‘肉?춯????깅뮔: 亦껋꼶梨??믩ご???戮곕뇶 + ?洹먮맧????戮곕뇶
+            item.id !== person.id && !item.isLeader && (item.zone === 'male' || item.zone === 'female')
+          ));
+
+          const selectedPickId = person.pickedPersonId;
+          const hasValidPick = candidateMembers.some((member) => member.id === selectedPickId);
+          if (selectedPickId != null && !hasValidPick) {
+            person.pickedPersonId = null;
+          }
+
+          const hasPick = person.pickedPersonId != null;
+          if (hasPick) {
+            pickWrap.classList.add('has-pick');
+            pickSelect.className = 'person-pick-select has-value';
+          }
+
+          pickSelect.innerHTML = '<option value=">Pick</option>';
+          candidateMembers.forEach((member) => {
+            const option = document.createElement('option');
+            option.value = String(member.id);
+            option.textContent = `${member.name}`;
+            option.selected = member.id === person.pickedPersonId;
+            pickSelect.appendChild(option);
+          });
+
+          pickSelect.value = (person.pickedPersonId != null && hasValidPick) ? String(person.pickedPersonId) : '';
+          pickSelect.disabled = candidateMembers.length === 0;
+
+          if (!pickWrap.classList.contains('has-pick')) {
+            const pickArrow = document.createElement('span');
+            pickArrow.className = 'person-pick-arrow';
+            pickArrow.textContent = 'v';
+            pickWrap.appendChild(pickArrow);
+          }
+
+          pickSelect.addEventListener('change', () => {
+            const value = pickSelect.value;
+            setLeaderPick(person.id, value === '' ? null : Number(value));
+          });
+
+          pickWrap.appendChild(pickSelect);
+          controls.appendChild(pickWrap);
+        } else {
+          const newbieBtn = document.createElement('button');
+          newbieBtn.type = 'button';
+          newbieBtn.textContent = 'Newbie';
+          newbieBtn.className = person.newbie ? 'active' : '';
+          newbieBtn.disabled = person.isLeader;
+          newbieBtn.addEventListener('click', () => {
+            toggleNewbie(person.id);
+          });
+          controls.appendChild(newbieBtn);
+        }
+      }
+
+      chip.appendChild(controls);
+
+      chip.addEventListener('dragstart', (event) => {
+        event.dataTransfer.setData('text/plain', String(person.id));
+        event.dataTransfer.effectAllowed = 'move';
+      });
+
+      return chip;
+    }
+
+    function renderBoard() {
+      zoneOrder.forEach((zone) => {
+        zoneElements[zone].innerHTML = '';
+      });
+
+      people.forEach((person) => {
+        zoneElements[person.zone].appendChild(createPersonChip(person));
+      });
+
+      zoneOrder.forEach((zone) => {
+        zoneCountElements[zone].textContent = String(zoneElements[zone].children.length);
+      });
+    }
+
+    function getLeaderCount() {
+      return people.filter((person) => person.isLeader).length;
+    }
+
+    function toggleLeader(personId) {
+      const person = people.find((item) => item.id === personId);
+      if (!person) return;
+
+      if (!person.isLeader && getLeaderCount() >= 4) {
+        showMessage(statusMessageEl, 'error', 'You can assign up to 4 leaders.');
+        return;
+      }
+
+      person.isLeader = !person.isLeader;
+      if (person.isLeader) {
+        person.newbie = false;
+      } else {
+        person.pickedPersonId = null;
+      }
+
+      if (person.isLeader) {
+        people.forEach((member) => {
+          if (member.id !== person.id && member.isLeader && member.pickedPersonId === person.id) {
+            member.pickedPersonId = null;
+          }
+        });
+      }
+
+      hideMessage(statusMessageEl);
+      renderBoard();
+    }
+
+    function setLeaderPick(leaderId, pickedPersonId) {
+      const leader = people.find((item) => item.id === leaderId);
+      if (!leader || !leader.isLeader) return;
+
+      if (pickedPersonId == null) {
+        leader.pickedPersonId = null;
+        renderBoard();
+        return;
+      }
+
+      const targetId = Number(pickedPersonId);
+      const target = people.find((item) => item.id === targetId);
+      if (!target || target.zone === 'unassigned' || target.isLeader || target.id === leader.id) {
+        leader.pickedPersonId = null;
+        renderBoard();
+        return;
+      }
+
+      people.forEach((member) => {
+        if (member.isLeader && member.id !== leader.id && member.pickedPersonId === target.id) {
+          member.pickedPersonId = null;
+        }
+      });
+
+      leader.pickedPersonId = targetId;
+      renderBoard();
+    }
+
+    function toggleNewbie(personId) {
+      const person = people.find((item) => item.id === personId);
+      if (!person || person.isLeader) return;
+
+      person.newbie = !person.newbie;
+      hideMessage(statusMessageEl);
+      renderBoard();
+    }
+
+    function assignPersonToZone(personId, nextZone) {
+      const person = people.find((item) => item.id === personId);
+      if (!person || person.zone === nextZone) return;
+      if (!zoneOrder.includes(nextZone)) return;
+
+      person.zone = nextZone;
+      if (nextZone === 'male') person.gender = 'M';
+      else if (nextZone === 'female') person.gender = 'F';
+      else if (nextZone === 'unassigned') person.gender = null;
+
+      hideMessage(statusMessageEl);
+      renderBoard();
+    }
+
+    function resetBoard() {
+      people.forEach((person) => {
+        person.zone = 'unassigned';
+        person.isLeader = false;
+        person.pickedPersonId = null;
+        person.gender = null;
+        person.newbie = false;
+      });
+
+      renderBoard();
+      hideMessage(statusMessageEl);
+      hideMessage(warningMessageEl);
+      resultContainerEl.innerHTML = '';
+      resultPanelEl.hidden = true;
+      lastResult = null;
+      assignBtn.disabled = false;
+    }
+
+    function enableDragAndDrop() {
+      if (dragHandlersBound) return;
+      const zoneEls = document.querySelectorAll('.zone');
+      zoneEls.forEach((zoneEl) => {
+        const zone = zoneEl.dataset.zone;
+        zoneEl.addEventListener('dragover', (event) => {
+          event.preventDefault();
+          zoneEl.classList.add('drag-over');
+        });
+        zoneEl.addEventListener('dragleave', () => {
+          zoneEl.classList.remove('drag-over');
+        });
+        zoneEl.addEventListener('drop', (event) => {
+          event.preventDefault();
+          zoneEl.classList.remove('drag-over');
+          const personId = Number(event.dataTransfer.getData('text/plain'));
+          if (Number.isNaN(personId)) return;
+          assignPersonToZone(personId, zone);
+        });
+      });
+      dragHandlersBound = true;
+    }
+
+    function confirmPeople() {
+      const parsedNames = parseNames(allPeopleEl.value);
+      if (parsedNames.length === 0) {
+        showMessage(statusMessageEl, 'error', 'Enter names first.');
+        return;
+      }
+
+      const basePeople = parsedNames.map((name) => ({
+        id: 0,
+        name,
+        gender: null,
+        newbie: false,
+        pickedPersonId: null,
+        isLeader: false,
+        zone: 'unassigned'
+      }));
+
+      const dedupedResult = dedupePeople(basePeople);
+      duplicatedBaseNames = dedupedResult.duplicatedBaseNames;
+      people = dedupedResult.deduped.map((person, index) => ({ ...person, id: index }));
+
+      resultContainerEl.innerHTML = '';
+      classifyPanelEl.hidden = false;
+      resultPanelEl.hidden = true;
+      lastResult = null;
+
+      if (duplicatedBaseNames.length > 0) {
+        showMessage(
+          warningMessageEl,
+          'warn',
+          `Duplicate names were auto-numbered: ${duplicatedBaseNames.join(', ')}`
+        );
+      } else {
+        hideMessage(warningMessageEl);
+      }
+
+      hideMessage(statusMessageEl);
+      renderBoard();
+      enableDragAndDrop();
+      window.scrollTo({ top: classifyPanelEl.offsetTop - 20, behavior: 'smooth' });
+    }
+
+    function runAssignment() {
+      hideMessage(statusMessageEl);
+      hideMessage(warningMessageEl);
+      resultContainerEl.innerHTML = '';
+
+      if (!people.length) {
+        showMessage(statusMessageEl, 'error', 'Enter all names first and confirm.');
+        return;
+      }
+
+      const unassignedCount = people.filter((person) => person.zone === 'unassigned' || !person.gender).length;
+      const leaders = people.filter((person) => person.isLeader);
+      const fixedPicks = new Map();
+      const usedPickIds = new Set();
+
+      if (unassignedCount > 0) {
+        showMessage(statusMessageEl, 'error', 'Assign everyone from unassigned to M/F first.');
+        return;
+      }
+
+      if (leaders.length === 0) {
+        showMessage(statusMessageEl, 'error', 'At least one leader is required.');
+        return;
+      }
+
+      if (leaders.length > 4) {
+        showMessage(statusMessageEl, 'error', 'You can assign up to 4 leaders.');
+        return;
+      }
+
+      leaders.forEach((leader) => {
+        const pickId = leader.pickedPersonId;
+        if (pickId == null) return;
+
+        const target = people.find((person) => person.id === pickId);
+        if (!target || target.zone === 'unassigned' || target.isLeader || target.id === leader.id || usedPickIds.has(pickId)) {
+          leader.pickedPersonId = null;
+          return;
+        }
+
+        fixedPicks.set(leader.id, pickId);
+        usedPickIds.add(pickId);
+      });
+
+      const preparedLeaders = leaders
+        .map(buildPersonForAssignment)
+        .map((leader) => ({
+          ...leader,
+          newbie: false,
+          isLeader: true
+        }));
+
+      const participants = people
+        .filter((person) => !person.isLeader)
+        .map(buildPersonForAssignment);
+
+      const groupCount = preparedLeaders.length;
+      const totalPeople = people.length;
+      const targetSizes = makeTargetArray(totalPeople, groupCount);
+      const minTarget = Math.min(...targetSizes);
+      const maxTarget = Math.max(...targetSizes);
+      const warnings = [];
+
+      if (minTarget < 4 || maxTarget > 7) {
+        warnings.push('With the current headcount, 4 to 7 per group may not be possible. The closest balanced result is shown.');
+      }
+
+      const result = assignWithBestOfN(preparedLeaders, participants, fixedPicks, 1000);
+
+      const constraintsReason = [];
+      if (result.metrics.sizePenalty > 0) constraintsReason.push('size balance');
+      if (result.metrics.newbiePenalty > 0) constraintsReason.push('newbie spread');
+      if (result.metrics.malePenalty > 0 || result.metrics.femalePenalty > 0) constraintsReason.push('gender balance');
+      if (constraintsReason.length) {
+        warnings.push(`Constraints not fully satisfied: ${constraintsReason.join(', ')}`);
+      }
+
+      if (duplicatedBaseNames.length > 0) {
+        warnings.push(`Duplicate names were normalized: ${duplicatedBaseNames.join(', ')}`);
+      }
+
+      renderResult(result, warnings);
+      lastResult = { ...result, textSummary: buildSummary(result) };
+      resultPanelEl.hidden = false;
+      window.scrollTo({ top: resultPanelEl.offsetTop - 20, behavior: 'smooth' });
+    }
+
+    async function copyPlainResult() {
+      if (!lastResult) {
+        showMessage(statusMessageEl, 'error', 'Generate a grouping result first.');
+        return;
+      }
+
+      const plainLines = lastResult.groups
+        .map((group) => getDisplayMembers(group).map((m) => m.name).join(' '))
+        .join('\n');
+
+      try {
+        await navigator.clipboard.writeText(plainLines);
+        showMessage(statusMessageEl, 'ok', 'Grouping result copied to clipboard.');
+      } catch (error) {
+        showMessage(statusMessageEl, 'error', 'Copy failed. Check browser permissions.');
+      }
+    }
+
+    async function sharePlainResult() {
+      if (!lastResult) {
+        showMessage(statusMessageEl, 'error', 'Generate a grouping result first.');
+        return;
+      }
+
+      const text = lastResult.groups
+        .map((group) => getDisplayMembers(group).map((member) => member.name).join(' '))
+        .join('\n');
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ text });
+          return;
+        } catch (error) {
+          if (error && error.name === 'AbortError') {
+            return;
+          }
+        }
+      }
+
+      const copied = await writeClipboard(text);
+      if (!copied) {
+        showMessage(statusMessageEl, 'error', 'Failed to copy KakaoTalk share text.');
+        return;
+      }
+
+      shareBtn.textContent = 'Copied! Paste into KakaoTalk';
+      shareBtn.style.background = '#34a853';
+      shareBtn.style.color = '#fff';
+      shareBtn.style.borderColor = '#34a853';
+      showMessage(statusMessageEl, 'ok', 'KakaoTalk share text copied.');
+      setTimeout(() => {
+        shareBtn.textContent = 'Share to KakaoTalk';
+        shareBtn.style.background = '#FEE500';
+        shareBtn.style.color = '#3C1E1E';
+        shareBtn.style.borderColor = '#FEE500';
+      }, 3000);
+    }
+
+    confirmPeopleBtn.addEventListener('click', confirmPeople);
+    clearAllBtn.addEventListener('click', () => {
+      allPeopleEl.value = '';
+      people = [];
+      duplicatedBaseNames = [];
+      classifyPanelEl.hidden = true;
+      resultPanelEl.hidden = true;
+      resultContainerEl.innerHTML = '';
+      Object.values(zoneElements).forEach((zoneEl) => {
+        zoneEl.innerHTML = '';
+      });
+      Object.values(zoneCountElements).forEach((countEl) => {
+        countEl.textContent = '0';
+      });
+      hideMessage(statusMessageEl);
+      hideMessage(warningMessageEl);
+    });
+
+    assignBtn.addEventListener('click', runAssignment);
+    reshuffleBtn.addEventListener('click', runAssignment);
+    resetBoardBtn.addEventListener('click', resetBoard);
+    plainCopyBtn.addEventListener('click', copyPlainResult);
+    shareBtn.addEventListener('click', sharePlainResult);
+
+    classifyPanelEl.hidden = true;
+    resultPanelEl.hidden = true;
+    hideMessage(statusMessageEl);
+    hideMessage(warningMessageEl);
+  </script>
+</body>
+
+</html>
