@@ -7,19 +7,19 @@
   <link rel="icon" href="../../assets/favicon/favicon.ico" type="image/x-icon" />
   <link rel="icon" href="../../assets/favicon/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="../../assets/favicon/apple-touch-icon.png" />
-  <meta name="theme-color" content="#c19b43" />
+  <meta name="theme-color" content="#f2fbfc" />
   <title>책 콜라주 만들기 - 송도 독서 포레스트</title>
   <style>
     :root {
-      --bg-1: #ebf4f0;
-      --bg-2: #e2ede7;
-      --ink: #1c2b26;
-      --muted: #5e736a;
-      --line: rgba(46, 92, 77, 0.16);
-      --card: rgba(255, 255, 255, 0.78);
-      --gold: #4a8270;
-      --gold-deep: #2e5c4d;
-      --shadow: 0 24px 60px rgba(18, 38, 30, 0.12);
+      --bg-1: #f7fbf9;
+      --bg-2: #eaf5f3;
+      --ink: #151d1e;
+      --muted: #4f6166;
+      --line: rgba(79, 97, 102, 0.12);
+      --card: rgba(242, 251, 252, 0.82);
+      --gold: #24b5a7;
+      --gold-deep: #006a61;
+      --shadow: 0 20px 40px rgba(21, 29, 30, 0.06);
       --radius: 28px;
     }
 
@@ -33,8 +33,8 @@
       font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at top left, rgba(182, 217, 200, 0.28), transparent 36%),
-        radial-gradient(circle at bottom right, rgba(204, 224, 214, 0.24), transparent 34%),
+        radial-gradient(circle at top left, rgba(36, 181, 167, 0.18), transparent 36%),
+        radial-gradient(circle at bottom right, rgba(0, 106, 97, 0.12), transparent 34%),
         linear-gradient(135deg, var(--bg-1), var(--bg-2));
     }
 
@@ -65,9 +65,9 @@
       align-items: center;
       gap: 18px;
       padding: 28px 30px;
-      border: 1px solid rgba(74, 130, 112, 0.18);
+      border: 1px solid rgba(79, 97, 102, 0.12);
       border-radius: 30px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(240, 247, 243, 0.92));
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(242, 251, 252, 0.96));
       box-shadow: var(--shadow);
     }
 
@@ -79,7 +79,7 @@
       place-items: center;
       flex: 0 0 auto;
       background: linear-gradient(135deg, var(--gold), var(--gold-deep));
-      box-shadow: 0 16px 30px rgba(46, 92, 77, 0.22);
+      box-shadow: 0 18px 30px rgba(0, 106, 97, 0.18);
     }
 
     .hero-icon svg {
@@ -130,7 +130,7 @@
     .section + .section {
       margin-top: 24px;
       padding-top: 24px;
-      border-top: 1px solid rgba(46, 92, 77, 0.1);
+      border-top: 1px solid rgba(79, 97, 102, 0.12);
     }
 
     .section-header {
@@ -181,15 +181,15 @@
       width: 100%;
       padding: 14px 16px;
       border-radius: 16px;
-      border: 1px solid rgba(46, 92, 77, 0.16);
+      border: 1px solid rgba(79, 97, 102, 0.12);
       background: rgba(255, 255, 255, 0.92);
       color: var(--ink);
       outline: none;
     }
 
     .search-input:focus {
-      border-color: rgba(74, 130, 112, 0.46);
-      box-shadow: 0 0 0 4px rgba(74, 130, 112, 0.12);
+      border-color: rgba(36, 181, 167, 0.32);
+      box-shadow: 0 0 0 4px rgba(36, 181, 167, 0.12);
     }
 
     .button {
@@ -206,7 +206,7 @@
       cursor: pointer;
       color: white;
       background: linear-gradient(135deg, var(--gold), var(--gold-deep));
-      box-shadow: 0 10px 24px rgba(46, 92, 77, 0.22);
+      box-shadow: 0 18px 32px rgba(0, 106, 97, 0.18);
     }
 
     .button:disabled {
@@ -217,7 +217,7 @@
 
     .button.subtle {
       color: var(--gold-deep);
-      background: rgba(74, 130, 112, 0.12);
+      background: rgba(36, 181, 167, 0.12);
       box-shadow: none;
     }
 
@@ -263,7 +263,7 @@
       gap: 14px;
       padding: 12px;
       border-radius: 18px;
-      border: 1px solid rgba(46, 92, 77, 0.1);
+      border: 1px solid rgba(79, 97, 102, 0.12);
       background: rgba(255, 255, 255, 0.88);
     }
 
@@ -271,7 +271,7 @@
       display: block;
       padding: 8px;
       border-radius: 18px;
-      border: 1px solid rgba(46, 92, 77, 0.1);
+      border: 1px solid rgba(79, 97, 102, 0.12);
       background: rgba(255, 255, 255, 0.88);
       cursor: pointer;
       transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
@@ -280,12 +280,12 @@
     .result-card:hover {
       transform: translateY(-2px);
       border-color: rgba(74, 130, 112, 0.4);
-      box-shadow: 0 10px 20px rgba(46, 92, 77, 0.1);
+      box-shadow: 0 18px 32px rgba(21, 29, 30, 0.06);
     }
 
     .result-card.active {
       border-color: rgba(74, 130, 112, 0.4);
-      box-shadow: 0 10px 24px rgba(46, 92, 77, 0.12);
+      box-shadow: 0 20px 40px rgba(21, 29, 30, 0.06);
     }
 
     .result-card .thumb {
@@ -303,8 +303,8 @@
       width: 84px;
       height: 112px;
       border-radius: 12px;
-      background: linear-gradient(180deg, #edf5f1, #dfece5);
-      border: 1px solid rgba(46, 92, 77, 0.12);
+      background: linear-gradient(180deg, #f2fbfc, #eaf5f3);
+      border: 1px solid rgba(79, 97, 102, 0.12);
       object-fit: contain;
       padding: 6px;
     }
@@ -342,7 +342,7 @@
       border-radius: 999px;
       font-size: 0.78rem;
       font-weight: 700;
-      color: #2e5c4d;
+      color: #006a61;
       background: rgba(74, 130, 112, 0.12);
     }
 
@@ -361,7 +361,7 @@
     .upload-card {
       padding: 6px 14px;
       border-radius: 18px;
-      border: 1px solid rgba(46, 92, 77, 0.1);
+      border: 1px solid rgba(79, 97, 102, 0.12);
       background: rgba(255, 255, 255, 0.84);
     }
 
@@ -413,7 +413,7 @@
       max-width: 320px;
       padding: 18px;
       border-radius: 18px;
-      border: 1px dashed rgba(46, 92, 77, 0.18);
+      border: 1px dashed rgba(79, 97, 102, 0.16);
       background: rgba(255, 255, 255, 0.54);
       color: var(--muted);
       line-height: 1.7;
@@ -1074,8 +1074,8 @@
           fillPhotoImage(context, photo.image, rect, photo.zoom, photo.offsetX, photo.offsetY);
         } else {
           const gradient = context.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.height);
-          gradient.addColorStop(0, "#edf5f1");
-          gradient.addColorStop(1, "#d6e6de");
+          gradient.addColorStop(0, "#f2fbfc");
+          gradient.addColorStop(1, "#dcefed");
           context.fillStyle = gradient;
           context.fillRect(rect.x, rect.y, rect.width, rect.height);
           context.fillStyle = "rgba(78, 63, 42, 0.78)";
@@ -1171,7 +1171,7 @@
         } else {
           const placeholder = ctx.createLinearGradient(leftRect.x, leftRect.y, leftRect.x + leftRect.width, leftRect.y + leftRect.height);
           placeholder.addColorStop(0, "#5f9d87");
-          placeholder.addColorStop(1, "#2e5c4d");
+          placeholder.addColorStop(1, "#006a61");
           ctx.fillStyle = placeholder;
           ctx.fillRect(leftRect.x, leftRect.y, leftRect.width, leftRect.height);
           ctx.fillStyle = "rgba(255, 255, 255, 0.92)";

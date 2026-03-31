@@ -8,26 +8,26 @@
   <link rel="icon" href="assets/favicon/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png" />
   <link rel="manifest" href="assets/favicon/site.webmanifest" />
-  <meta name="theme-color" content="#dcefeb" />
+  <meta name="theme-color" content="#f2fbfc" />
   <title>&#49569;&#46020; &#46021;&#49436; &#54252;&#47112;&#49828;&#53944;</title>
   <style>
     :root {
-      --bg-top: #eef8f4;
-      --bg-mid: #eff8f9;
-      --bg-bottom: #e7f3f7;
-      --surface: rgba(255, 255, 255, 0.84);
-      --surface-strong: rgba(255, 255, 255, 0.94);
-      --border: rgba(170, 203, 197, 0.42);
-      --shadow: 0 24px 60px rgba(66, 116, 107, 0.13);
-      --text-main: #203236;
-      --text-subtle: #627579;
-      --title-start: #1f7468;
-      --title-mid: #177f86;
-      --title-end: #2b85b9;
-      --accent-start: #42c48f;
+      --bg-top: #f7fbf9;
+      --bg-mid: #f2fbfc;
+      --bg-bottom: #eaf5f3;
+      --surface: rgba(242, 251, 252, 0.84);
+      --surface-strong: rgba(255, 255, 255, 0.96);
+      --border: rgba(79, 97, 102, 0.12);
+      --shadow: 0 20px 40px rgba(21, 29, 30, 0.06);
+      --text-main: #151d1e;
+      --text-subtle: #4f6166;
+      --title-start: #006a61;
+      --title-mid: #0f8175;
+      --title-end: #24b5a7;
+      --accent-start: #006a61;
       --accent-mid: #24b5a7;
-      --accent-end: #57b7e5;
-      --disabled: #c3ccd2;
+      --accent-end: #53c8bc;
+      --disabled: #a6b4b8;
     }
 
     * {
@@ -47,8 +47,8 @@
       font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
       color: var(--text-main);
       background:
-        radial-gradient(circle at top left, rgba(164, 217, 190, 0.32), transparent 36%),
-        radial-gradient(circle at bottom right, rgba(120, 201, 227, 0.24), transparent 32%),
+        radial-gradient(circle at top left, rgba(36, 181, 167, 0.16), transparent 36%),
+        radial-gradient(circle at bottom right, rgba(0, 106, 97, 0.1), transparent 32%),
         linear-gradient(135deg, var(--bg-top) 0%, var(--bg-mid) 52%, var(--bg-bottom) 100%);
     }
 
@@ -71,7 +71,7 @@
       height: 20rem;
       top: -5rem;
       left: -4rem;
-      background: rgba(135, 210, 181, 0.34);
+      background: rgba(36, 181, 167, 0.18);
     }
 
     body::after {
@@ -79,7 +79,7 @@
       height: 22rem;
       right: -8rem;
       bottom: -6rem;
-      background: rgba(139, 213, 235, 0.28);
+      background: rgba(0, 106, 97, 0.12);
     }
 
     .wrap {
@@ -94,11 +94,11 @@
       justify-content: center;
       gap: 20px;
       padding: 34px 40px;
-      border: 1px solid rgba(173, 212, 203, 0.5);
+      border: 1px solid rgba(79, 97, 102, 0.1);
       border-radius: 32px;
-      background: rgba(255, 255, 255, 0.72);
+      background: rgba(242, 251, 252, 0.72);
       backdrop-filter: blur(18px);
-      box-shadow: 0 16px 34px rgba(75, 124, 116, 0.09);
+      box-shadow: 0 20px 40px rgba(21, 29, 30, 0.06);
       animation: rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
@@ -114,7 +114,7 @@
       display: grid;
       place-items: center;
       background: linear-gradient(135deg, var(--accent-start), var(--accent-mid) 54%, var(--accent-end));
-      box-shadow: 0 18px 30px rgba(46, 145, 132, 0.25);
+      box-shadow: 0 18px 30px rgba(0, 106, 97, 0.18);
       flex: 0 0 auto;
     }
 
@@ -127,7 +127,7 @@
       height: 18px;
       border: 3px solid #fff;
       border-radius: 50%;
-      background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
+      background: linear-gradient(135deg, #24b5a7, #78d7ce);
     }
 
     .brand-mark img {
@@ -173,8 +173,8 @@
       padding: 18px 22px;
       border-radius: 28px;
       background: var(--surface-strong);
-      border: 1px solid rgba(223, 231, 235, 0.92);
-      box-shadow: 0 14px 34px rgba(92, 121, 126, 0.1);
+      border: 1px solid rgba(79, 97, 102, 0.08);
+      box-shadow: 0 20px 40px rgba(21, 29, 30, 0.06);
       text-decoration: none;
       overflow: hidden;
       transition:
@@ -188,7 +188,7 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(66, 196, 143, 0.12), rgba(87, 183, 229, 0.02));
+      background: linear-gradient(135deg, rgba(36, 181, 167, 0.12), rgba(0, 106, 97, 0.04));
       opacity: 0;
       transition: opacity 220ms ease;
       pointer-events: none;
@@ -197,7 +197,7 @@
     .feature-card:hover {
       transform: translateY(-6px);
       box-shadow: var(--shadow);
-      border-color: rgba(145, 209, 198, 0.9);
+      border-color: rgba(36, 181, 167, 0.2);
     }
 
     .feature-card:hover::after {
@@ -226,7 +226,7 @@
       border-radius: 18px;
       display: grid;
       place-items: center;
-      background: linear-gradient(135deg, #e7fbf0, #d9f3f2);
+      background: linear-gradient(135deg, rgba(0, 106, 97, 0.08), rgba(36, 181, 167, 0.14));
       transition: transform 220ms ease, background 220ms ease;
       position: relative;
       z-index: 1;
@@ -235,13 +235,13 @@
 
     .feature-card:hover .card-icon {
       transform: scale(1.05);
-      background: linear-gradient(135deg, #dbf7ea, #cdeef1);
+      background: linear-gradient(135deg, rgba(0, 106, 97, 0.12), rgba(36, 181, 167, 0.2));
     }
 
     .card-icon svg {
       width: 30px;
       height: 30px;
-      color: #22906d;
+      color: #006a61;
       stroke-width: 2.1;
       transition: transform 220ms ease;
     }
@@ -295,8 +295,8 @@
       font-weight: 700;
       letter-spacing: -0.01em;
       color: #fff;
-      background: linear-gradient(90deg, #28c681, #17b3aa);
-      box-shadow: 0 14px 26px rgba(39, 185, 138, 0.2);
+      background: linear-gradient(135deg, #006a61, #24b5a7);
+      box-shadow: 0 18px 32px rgba(0, 106, 97, 0.18);
       transition: filter 220ms ease;
     }
 
@@ -307,7 +307,7 @@
     .feature-card.disabled {
       pointer-events: none;
       opacity: 0.8;
-      box-shadow: 0 10px 24px rgba(131, 145, 152, 0.08);
+      box-shadow: 0 16px 28px rgba(21, 29, 30, 0.04);
     }
 
     .feature-card.disabled::after {
@@ -315,7 +315,7 @@
     }
 
     .feature-card.disabled .card-icon {
-      background: linear-gradient(135deg, #f1f4f6, #edf1f4);
+      background: linear-gradient(135deg, #f4f8f8, #edf3f3);
     }
 
     .feature-card.disabled .card-icon svg,
@@ -325,8 +325,8 @@
     }
 
     .feature-card.disabled .cta {
-      color: #95a0aa;
-      background: linear-gradient(90deg, #edf1f4, #e6ebef);
+      color: #8ea0a4;
+      background: linear-gradient(135deg, #eef3f3, #e8eeee);
       box-shadow: none;
     }
 
@@ -336,7 +336,7 @@
       border: 1px solid var(--border);
       border-radius: 24px;
       background: var(--surface);
-      box-shadow: 0 12px 28px rgba(99, 126, 131, 0.08);
+      box-shadow: 0 20px 40px rgba(21, 29, 30, 0.06);
       animation: fade 900ms ease both 420ms;
     }
 
@@ -362,7 +362,7 @@
       padding: 5px 10px;
       border-radius: 999px;
       background: rgba(36, 181, 167, 0.12);
-      color: #1f7468;
+      color: #006a61;
       font-size: 0.78rem;
       letter-spacing: 0.02em;
     }
@@ -386,7 +386,7 @@
       justify-content: center;
       padding: 11px 14px;
       border-radius: 14px;
-      border: 1px solid rgba(170, 203, 197, 0.5);
+      border: 1px solid rgba(79, 97, 102, 0.1);
       background: rgba(255, 255, 255, 0.9);
       color: var(--text-main);
       font-size: 0.9rem;
@@ -397,8 +397,8 @@
 
     .legacy-link:hover {
       transform: translateY(-2px);
-      border-color: rgba(145, 209, 198, 0.9);
-      box-shadow: 0 10px 24px rgba(99, 126, 131, 0.12);
+      border-color: rgba(36, 181, 167, 0.18);
+      box-shadow: 0 20px 40px rgba(21, 29, 30, 0.06);
     }
 
     .footer-wrap {
@@ -416,7 +416,7 @@
       border-radius: 999px;
       background: var(--surface);
       color: var(--text-subtle);
-      box-shadow: 0 10px 24px rgba(99, 126, 131, 0.08);
+      box-shadow: 0 20px 40px rgba(21, 29, 30, 0.06);
       animation: fade 900ms ease both 480ms;
     }
 
@@ -425,8 +425,8 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: #2bc57a;
-      box-shadow: 0 0 0 8px rgba(43, 197, 122, 0.12);
+      background: #24b5a7;
+      box-shadow: 0 0 0 8px rgba(36, 181, 167, 0.12);
     }
 
     .icon-sprite {

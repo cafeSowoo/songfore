@@ -7,18 +7,18 @@
     <link rel="icon" href="../../assets/favicon/favicon.ico" type="image/x-icon" />
     <link rel="icon" href="../../assets/favicon/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="../../assets/favicon/apple-touch-icon.png" />
-  <meta name="theme-color" content="#24b5a7" />
+  <meta name="theme-color" content="#f2fbfc" />
     <title>선정도서 추천하기 – 송도 독서 포레스트</title>
     <style>
         :root {
-            --primary: #2e5c4d;
-            --primary-light: #4a8270;
-            --primary-dark: #1a3c34;
-            --text-main: #1c2b26;
-            --text-muted: #5e736a;
-            --glass-bg: rgba(255, 255, 255, 0.65);
-            --glass-border: rgba(255, 255, 255, 0.5);
-            --glass-shadow: 0 16px 40px rgba(18, 38, 30, 0.08);
+            --primary: #006a61;
+            --primary-light: #24b5a7;
+            --primary-dark: #00544d;
+            --text-main: #151d1e;
+            --text-muted: #4f6166;
+            --glass-bg: rgba(242, 251, 252, 0.72);
+            --glass-border: rgba(79, 97, 102, 0.12);
+            --glass-shadow: 0 20px 40px rgba(21, 29, 30, 0.06);
         }
 
         * {
@@ -32,9 +32,9 @@
             font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
             color: var(--text-main);
             background:
-                radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
-                radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
-                linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
+                radial-gradient(circle at 15% 10%, rgba(36, 181, 167, 0.18) 0%, transparent 400px),
+                radial-gradient(circle at 85% 90%, rgba(0, 106, 97, 0.12) 0%, transparent 350px),
+                linear-gradient(135deg, #f7fbf9 0%, #f2fbfc 50%, #eaf5f3 100%);
             background-attachment: fixed;
             overflow-x: hidden;
         }
@@ -51,7 +51,7 @@
         .shape-1 {
             width: 400px;
             height: 400px;
-            background: #b6d9c8;
+            background: rgba(36, 181, 167, 0.22);
             top: -100px;
             right: -50px;
         }
@@ -59,7 +59,7 @@
         .shape-2 {
             width: 500px;
             height: 500px;
-            background: #cce0d6;
+            background: rgba(0, 106, 97, 0.16);
             bottom: -150px;
             left: -100px;
             animation-delay: -5s;
@@ -233,7 +233,7 @@
         .form-group input[type="date"] {
             width: 100%;
             padding: 13px 16px;
-            border: 1.5px solid rgba(46, 92, 77, 0.18);
+            border: 1.5px solid rgba(79, 97, 102, 0.14);
             border-radius: 12px;
             font-size: 0.975rem;
             font-family: inherit;
@@ -350,7 +350,7 @@
         /* Divider */
         .divider {
             height: 1px;
-            background: rgba(46, 92, 77, 0.08);
+            background: rgba(36, 181, 167, 0.12);
             margin: 4px 0;
         }
 
@@ -370,7 +370,7 @@
             font-weight: 700;
             font-family: inherit;
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(46, 92, 77, 0.25);
+            box-shadow: 0 18px 32px rgba(0, 106, 97, 0.18);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             align-items: center;
@@ -381,7 +381,7 @@
 
         .btn-generate:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(46, 92, 77, 0.35);
+            box-shadow: 0 22px 36px rgba(0, 106, 97, 0.22);
         }
 
         .btn-generate:active:not(:disabled) {
@@ -432,7 +432,7 @@
 
         .result-preview {
             margin-top: 16px;
-            background: rgba(46, 92, 77, 0.04);
+            background: rgba(36, 181, 167, 0.08);
             border-left: 3px solid var(--primary-light);
             border-radius: 0 12px 12px 0;
             padding: 18px 20px;
@@ -453,7 +453,7 @@
             align-items: center;
             gap: 7px;
             background: transparent;
-            border: 1.5px solid rgba(46, 92, 77, 0.25);
+            border: 1.5px solid rgba(79, 97, 102, 0.14);
             border-radius: 999px;
             padding: 9px 20px;
             font-size: 0.9rem;
@@ -498,8 +498,8 @@
             gap: 18px;
             margin-bottom: 14px;
             padding: 14px 16px;
-            background: rgba(46, 92, 77, 0.04);
-            border: 1px solid rgba(46, 92, 77, 0.1);
+            background: rgba(242, 251, 252, 0.84);
+            border: 1px solid rgba(79, 97, 102, 0.12);
             border-radius: 14px;
             animation: fadeInUp 0.4s ease forwards;
         }
@@ -543,7 +543,7 @@
 
         /* API 키 설정 카드 */
         .key-card {
-            border: 1.5px dashed rgba(46, 92, 77, 0.25);
+            border: 1.5px dashed rgba(79, 97, 102, 0.18);
         }
 
         .key-card.missing {
@@ -622,7 +622,7 @@
         .key-input {
             flex: 1;
             padding: 10px 13px;
-            border: 1.5px solid rgba(46, 92, 77, 0.18);
+            border: 1.5px solid rgba(79, 97, 102, 0.14);
             border-radius: 10px;
             font-size: 0.88rem;
             font-family: monospace;
@@ -713,20 +713,20 @@
             padding: 10px 16px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(180, 216, 208, 0.56);
-            box-shadow: 0 10px 24px rgba(31, 94, 85, 0.08);
+            border: 1px solid rgba(79, 97, 102, 0.12);
+            box-shadow: 0 20px 40px rgba(21, 29, 30, 0.06);
             font-weight: 700;
         }
 
         .card {
             background: rgba(255, 255, 255, 0.82);
-            border-color: rgba(180, 216, 208, 0.56);
-            box-shadow: 0 18px 42px rgba(31, 94, 85, 0.11);
+            border-color: rgba(79, 97, 102, 0.12);
+            box-shadow: 0 20px 40px rgba(21, 29, 30, 0.06);
             border-radius: 28px;
         }
 
         .card.hero h1 {
-            background: linear-gradient(90deg, #1f7468, #177f86, #2b85b9);
+            background: linear-gradient(90deg, #006a61, #0f8175, #24b5a7);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -748,8 +748,8 @@
             flex: 0 0 auto;
             display: grid;
             place-items: center;
-            background: linear-gradient(135deg, #42c48f, #24b5a7 54%, #57b7e5);
-            box-shadow: 0 18px 30px rgba(46, 145, 132, 0.22);
+            background: linear-gradient(135deg, #006a61, #24b5a7 54%, #53c8bc);
+            box-shadow: 0 18px 30px rgba(0, 106, 97, 0.18);
         }
 
         .hero-mark::after {
@@ -761,7 +761,7 @@
             height: 16px;
             border: 3px solid #fff;
             border-radius: 50%;
-            background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
+            background: linear-gradient(135deg, #24b5a7, #78d7ce);
         }
 
         .hero-mark svg {
@@ -779,7 +779,7 @@
         .btn-search,
         .btn-generate,
         .btn-key-save {
-            background: linear-gradient(90deg, #42c48f, #24b5a7);
+            background: linear-gradient(90deg, #006a61, #24b5a7);
             border-color: transparent;
             box-shadow: 0 12px 26px rgba(39, 185, 138, 0.18);
         }
@@ -787,11 +787,11 @@
         .btn-search:hover,
         .btn-generate:hover,
         .btn-key-save:hover {
-            background: linear-gradient(90deg, #24b5a7, #177f86);
+            background: linear-gradient(90deg, #24b5a7, #0f8175);
         }
 
         .btn-copy:hover {
-            background: linear-gradient(90deg, #2e5c4d, #177f86);
+            background: linear-gradient(90deg, #006a61, #0f8175);
             color: white;
             border-color: transparent;
         }
@@ -820,9 +820,9 @@
                 inset: 0 0 auto;
                 height: calc(var(--mobile-sticky-gap) + 10px);
                 background:
-                    radial-gradient(circle at 15% 10%, #d5e8df 0%, transparent 400px),
-                    radial-gradient(circle at 85% 90%, #d8e5df 0%, transparent 350px),
-                    linear-gradient(135deg, #ebf4f0 0%, #ffffff 50%, #e2ede7 100%);
+                    radial-gradient(circle at 15% 10%, rgba(36, 181, 167, 0.18) 0%, transparent 400px),
+                    radial-gradient(circle at 85% 90%, rgba(0, 106, 97, 0.12) 0%, transparent 350px),
+                    linear-gradient(135deg, #f7fbf9 0%, #f2fbfc 50%, #eaf5f3 100%);
                 pointer-events: none;
             }
 
@@ -833,7 +833,7 @@
                 right: 0;
                 bottom: 0;
                 height: 24px;
-                background: linear-gradient(180deg, rgba(226, 237, 231, 0.88) 0%, rgba(226, 237, 231, 0) 100%);
+                background: linear-gradient(180deg, rgba(242, 251, 252, 0.92) 0%, rgba(242, 251, 252, 0) 100%);
                 pointer-events: none;
             }
 
