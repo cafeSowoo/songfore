@@ -1,4 +1,4 @@
-import { json } from "@netlify/functions";
+import { json } from "./lib/http.js";
 import { buildTripSnapshot } from "./lib/tripService.js";
 
 export default async (request) => {

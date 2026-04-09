@@ -1,4 +1,4 @@
-import { json } from "@netlify/functions";
+import { json } from "./lib/http.js";
 import { geocodeAddress } from "./lib/naverGeocode.js";
 import {
   buildTripSnapshot,
