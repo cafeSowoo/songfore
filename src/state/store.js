@@ -181,7 +181,10 @@ export function createStore(seedData, runtimeConfig) {
           name: formData.name.trim(),
           address: formData.address.trim(),
           description: formData.description.trim(),
-          nickname: state.nickname
+          nickname: state.nickname,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          resolvedAddress: formData.resolvedAddress
         });
 
         applySnapshot(snapshot, "remote");

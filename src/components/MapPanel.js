@@ -1,19 +1,4 @@
-function loadNaverMapScript(clientId) {
-  const existingScript = document.querySelector('script[data-naver-map-script="true"]');
-  if (existingScript) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${clientId}`;
-    script.async = true;
-    script.dataset.naverMapScript = "true";
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load NAVER Maps SDK"));
-    document.head.append(script);
-  });
-}
+import { loadNaverMapsSdk } from "../lib/naverMaps.js";
 
 function getCategoryColor(state, categoryId) {
   return state.categories.find((category) => category.id === categoryId)?.color || "#1e1e1e";
@@ -62,7 +47,7 @@ async function renderNaverMap(host, state, actions) {
   const preview = host.querySelector("[data-map-preview]");
 
   try {
-    await loadNaverMapScript(clientId);
+    await loadNaverMapsSdk(clientId);
   } catch {
     renderPreviewMap(host, state, actions);
     return;

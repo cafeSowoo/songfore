@@ -16,6 +16,12 @@ function validatePlacePayload(body) {
   }
 }
 
+function hasCoordinates(body) {
+  return (
+    Number.isFinite(Number(body.latitude)) && Number.isFinite(Number(body.longitude))
+  );
+}
+
 export default async (request) => {
   if (request.method !== "POST") {
     return json({ error: "Method not allowed." }, { status: 405 });
@@ -28,7 +34,14 @@ export default async (request) => {
     const supabase = getSupabaseAdmin();
     const trip = await getOrCreateTripBySlug(String(body.slug));
     const member = await ensureMember(trip.id, String(body.nickname));
-    const location = await geocodeAddress(String(body.address));
+    const location = hasCoordinates(body)
+      ? {
+          latitude: Number(body.latitude),
+          longitude: Number(body.longitude),
+          roadAddress: String(body.resolvedAddress || body.address).trim(),
+          jibunAddress: String(body.address).trim()
+        }
+      : await geocodeAddress(String(body.address));
 
     const { error } = await supabase.from("places").insert({
       trip_id: trip.id,
@@ -48,9 +61,15 @@ export default async (request) => {
     const snapshot = await buildTripSnapshot(trip.slug);
     return json(snapshot, { status: 201 });
   } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to create place.";
+
     return json(
       {
-        error: error instanceof Error ? error.message : "Failed to create place."
+        error:
+          message.includes("status 401")
+            ? "주소 찾기로 후보를 먼저 선택해 주세요. 현재 서버 지오코딩 인증이 올바르지 않습니다."
+            : message
       },
       { status: 500 }
     );
