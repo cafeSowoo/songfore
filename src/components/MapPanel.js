@@ -80,6 +80,18 @@ async function renderNaverMap(host, state, actions) {
       logoControl: false
     });
 
+    const syncMapSize = () => {
+      const width = mapHost.clientWidth;
+      const height = mapHost.clientHeight;
+
+      if (!width || !height) {
+        return;
+      }
+
+      map.setSize(new naverMaps.Size(width, height));
+      map.autoResize();
+    };
+
     if (places.length > 1) {
       const bounds = new naverMaps.LatLngBounds();
       places.forEach((place) =>
@@ -115,9 +127,14 @@ async function renderNaverMap(host, state, actions) {
       naverMaps.Event.addListener(marker, "click", () => actions.selectPlace(place.id));
     });
 
+    syncMapSize();
+
     window.requestAnimationFrame(() => {
-      naverMaps.Event.trigger(map, "resize");
+      syncMapSize();
+      window.requestAnimationFrame(syncMapSize);
     });
+
+    window.setTimeout(syncMapSize, 120);
   } catch (error) {
     console.error("Failed to render NAVER map", error);
     mapHost.hidden = true;
