@@ -133,6 +133,10 @@ export function createMapPanel(state) {
     <div class="map-stage">
       <div class="map-preview" data-map-preview></div>
       <div class="real-map" data-real-map hidden></div>
+      <div class="empty-map-state ${state.filteredPlaces.length === 0 ? "is-visible" : ""}" data-empty-map-state>
+        <strong>첫 장소를 올리면 여기에 바로 마커가 생깁니다.</strong>
+        <p>식당이든 관광지든 하나만 추가해도 지도와 리스트가 같이 채워집니다.</p>
+      </div>
       <div class="map-selection-card">
         <div>
           <span class="place-badge" style="--category-accent:${selectedCategory?.color || "#1e1e1e"}">
@@ -163,17 +167,8 @@ export function createMapPanel(state) {
 }
 
 export function enhanceMapPanel(mapPanel, state, actions) {
-  if (state.filteredPlaces.length === 0) {
-    const preview = mapPanel.querySelector("[data-map-preview]");
-    preview.innerHTML = `
-      <div class="map-grid"></div>
-      <div class="empty-map-state">
-        <strong>첫 장소를 올리면 여기에 바로 마커가 생깁니다.</strong>
-        <p>식당이든 관광지든 하나만 추가해도 지도와 리스트가 같이 채워집니다.</p>
-      </div>
-    `;
-    return;
-  }
+  const emptyState = mapPanel.querySelector("[data-empty-map-state]");
+  emptyState.classList.toggle("is-visible", state.filteredPlaces.length === 0);
 
   renderPreviewMap(mapPanel, state, actions);
   renderNaverMap(mapPanel, state, actions);
