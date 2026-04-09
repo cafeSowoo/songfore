@@ -1,0 +1,15 @@
+{
+  "name": "songfore-dj-trip",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/generate-runtime-config.mjs",
+    "check": "node scripts/check-static.mjs",
+    "start": "node scripts/dev-server.mjs"
+  },
+  "dependencies": {
+    "@netlify/functions": "^5.2.0",
+    "@supabase/supabase-js": "^2.103.0"
+  }
+}
