@@ -11,7 +11,8 @@ const CATEGORY_OPTIONS = [
 
 function renderSuggestions(target, suggestions, onSelect) {
   if (suggestions.length === 0) {
-    target.innerHTML = '<p class="form-help-note">검색 결과가 없습니다. 다른 키워드로 다시 시도해 주세요.</p>';
+    target.innerHTML =
+      '<p class="form-help-note">검색 결과가 없어요. 다른 장소명이나 주소로 다시 시도해 주세요.</p>';
     return;
   }
 
@@ -22,7 +23,7 @@ function renderSuggestions(target, suggestions, onSelect) {
           (item) => `
             <button type="button" class="suggestion-item" data-suggestion-id="${item.id}">
               <strong>${item.address}</strong>
-              <span>${item.roadAddress || item.jibunAddress || "좌표 확인 가능"}</span>
+              <span>${item.roadAddress || item.jibunAddress || "좌표만 확인된 위치입니다."}</span>
             </button>
           `
         )
@@ -48,7 +49,7 @@ function renderSelectedLocation(target, selectedLocation) {
 
   target.innerHTML = `
     <div class="selected-location-chip">
-      <strong>선택한 위치</strong>
+      <strong>선택된 위치</strong>
       <span>${selectedLocation.address}</span>
     </div>
   `;
@@ -81,7 +82,7 @@ export function createAddPlaceForm(state, actions) {
           </label>
           <label>
             <span>현재 작성자</span>
-            <input type="text" value="${state.nickname || "닉네임이 아직 없습니다"}" disabled />
+            <input type="text" value="${state.nickname || "닉네임을 먼저 입력해 주세요"}" disabled />
           </label>
           <label class="form-span-2">
             <span>장소명</span>
@@ -91,8 +92,15 @@ export function createAddPlaceForm(state, actions) {
             <span>주소 또는 검색어</span>
             <div class="address-search-stack">
               <div class="address-search-row">
-                <input name="address" type="text" placeholder="예: 대전 유성구 엑스포로 107 또는 성심당 DCC점" required />
-                <button class="ghost-button" type="button" data-action="search-address">주소 찾기</button>
+                <input
+                  name="address"
+                  type="text"
+                  placeholder="예: 대전 유성구 엑스포로 107 또는 성심당"
+                  required
+                />
+                <button class="ghost-button" type="button" data-action="search-address">
+                  주소 찾기
+                </button>
               </div>
               <div data-slot="selected-location"></div>
               <div data-slot="suggestions"></div>
@@ -100,10 +108,16 @@ export function createAddPlaceForm(state, actions) {
           </label>
           <label class="form-span-2">
             <span>한 줄 메모</span>
-            <textarea name="description" rows="3" placeholder="왜 가고 싶은지 짧게 적어 주세요"></textarea>
+            <textarea
+              name="description"
+              rows="3"
+              placeholder="왜 가고 싶은지 짧게 적어 주세요"
+            ></textarea>
           </label>
         </div>
-        <p class="form-caption">주소 찾기로 후보를 먼저 선택하면 저장 시 바로 좌표가 반영됩니다.</p>
+        <p class="form-caption">
+          주소 후보를 먼저 선택하면 저장할 때 좌표가 바로 반영돼요.
+        </p>
         <button class="primary-button" type="submit" ${state.isSavingPlace ? "disabled" : ""}>
           ${state.isSavingPlace ? "장소 저장 중..." : "장소 올리기"}
         </button>
@@ -127,6 +141,7 @@ export function createAddPlaceForm(state, actions) {
 
   const runSearch = async () => {
     const query = addressInput.value.trim();
+
     if (!query) {
       suggestionsSlot.innerHTML =
         '<p class="form-help-note">먼저 주소나 장소명을 입력해 주세요.</p>';
@@ -135,11 +150,12 @@ export function createAddPlaceForm(state, actions) {
 
     if (!state.runtimeConfig.naverMapsClientId) {
       suggestionsSlot.innerHTML =
-        '<p class="form-help-note">네이버 지도 키가 없어서 주소 검색을 사용할 수 없습니다.</p>';
+        '<p class="form-help-note">네이버 지도 키가 없어 주소 검색을 사용할 수 없습니다.</p>';
       return [];
     }
 
-    suggestionsSlot.innerHTML = '<p class="form-help-note">주소 후보를 검색 중입니다...</p>';
+    suggestionsSlot.innerHTML =
+      '<p class="form-help-note">주소 후보를 찾는 중입니다...</p>';
 
     try {
       const suggestions = await searchAddressCandidates(
@@ -171,11 +187,11 @@ export function createAddPlaceForm(state, actions) {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-
     const formData = new FormData(event.currentTarget);
 
     if (!selectedLocation && state.runtimeConfig.naverMapsClientId) {
       const suggestions = await runSearch();
+
       if (suggestions.length === 1) {
         selectLocation(suggestions[0]);
       } else if (suggestions.length > 1) {

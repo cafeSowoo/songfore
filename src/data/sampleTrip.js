@@ -21,14 +21,14 @@ export const sampleTrip = {
       address: "대전 유성구 엑스포로 107",
       latitude: 36.376195,
       longitude: 127.386541,
-      description: "빵 사서 숙소나 공원으로 이동하기 좋아 보여요.",
-      author: "지수",
+      description: "비 온 뒤 산책하고 공원 쪽으로 이동하기 좋아 보여요.",
+      author: "지석",
       createdAt: "2026-04-10T10:00:00+09:00",
       comments: [
         {
           id: "comment-1",
           author: "민호",
-          content: "여기는 거의 확정 느낌이에요. 아침 코스로도 좋을 듯.",
+          content: "여기면 대전 분위기 시작점으로도 좋을 듯해요.",
           createdAt: "2026-04-10T10:12:00+09:00"
         }
       ]
@@ -36,18 +36,18 @@ export const sampleTrip = {
     {
       id: "place-2",
       category: "tour",
-      name: "한밭수목원",
-      address: "대전 서구 둔산대로 169",
-      latitude: 36.368123,
-      longitude: 127.388951,
-      description: "산책하면서 이야기하기 좋은 장소. 사진도 예쁘게 나올 것 같아요.",
+      name: "소제동 골목",
+      address: "대전 동구 철갑2길 8",
+      latitude: 36.334531,
+      longitude: 127.442716,
+      description: "걷다 보면 사진도 잘 나오고 카페 이어가기 좋을 것 같아요.",
       author: "보람",
       createdAt: "2026-04-10T10:20:00+09:00",
       comments: [
         {
           id: "comment-2",
-          author: "태윤",
-          content: "카페 들렀다가 여기로 넘어가면 동선 괜찮겠네요.",
+          author: "세윤",
+          content: "카페랑 이어서 묶으면 동선이 괜찮을 것 같아요.",
           createdAt: "2026-04-10T10:28:00+09:00"
         }
       ]
@@ -55,33 +55,14 @@ export const sampleTrip = {
     {
       id: "place-3",
       category: "shopping",
-      name: "대전신세계 Art & Science",
+      name: "신세계 Art & Science",
       address: "대전 유성구 엑스포로 1",
       latitude: 36.377607,
       longitude: 127.381123,
-      description: "쇼핑과 식사를 한 번에 해결하기 좋아 보여요.",
+      description: "쇼핑이랑 식사를 한 번에 해결하기 좋아 보여요.",
       author: "유진",
       createdAt: "2026-04-10T10:44:00+09:00",
       comments: []
-    },
-    {
-      id: "place-4",
-      category: "cafe",
-      name: "테미오래 근처 로스터리 카페",
-      address: "대전 중구 테미로 일대",
-      latitude: 36.321921,
-      longitude: 127.419394,
-      description: "조용하게 앉아서 독서모임 느낌 내기 좋은 후보.",
-      author: "서현",
-      createdAt: "2026-04-10T11:02:00+09:00",
-      comments: [
-        {
-          id: "comment-3",
-          author: "하준",
-          content: "여기 가면 사진 분위기 좋을 것 같아요.",
-          createdAt: "2026-04-10T11:18:00+09:00"
-        }
-      ]
     }
   ]
 };

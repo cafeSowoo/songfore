@@ -2,7 +2,7 @@ import { createCommentSection } from "./CommentSection.js";
 
 function formatDate(value) {
   return new Intl.DateTimeFormat("ko-KR", {
-    month: "short",
+    month: "long",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit"
@@ -34,7 +34,7 @@ export function createPlaceList(state, actions) {
     emptyCard.innerHTML = `
       <div class="empty-card">
         <h3>아직 등록된 장소가 없어요</h3>
-        <p>첫 번째 식당이나 관광지를 올리면 이 리스트와 지도가 바로 채워집니다.</p>
+        <p>첫 번째 후보를 올리면 바로 지도와 리스트가 채워집니다.</p>
       </div>
     `;
     list.append(emptyCard);
@@ -57,7 +57,7 @@ export function createPlaceList(state, actions) {
         </div>
         <h3>${place.name}</h3>
         <p class="place-address">${place.address}</p>
-        <p class="place-description">${place.description || "설명이 아직 없습니다."}</p>
+        <p class="place-description">${place.description || "아직 남겨진 메모가 없어요."}</p>
         <div class="place-meta">
           <span>작성자 ${place.author}</span>
           <span>댓글 ${place.comments.length}</span>

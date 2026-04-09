@@ -33,9 +33,7 @@ export function createCommentSection(place, options) {
     </div>
     <form class="comment-form">
       <input name="comment" type="text" placeholder="여기에 코멘트를 남겨 주세요" />
-      <button type="submit" class="text-button" ${
-        options.isSaving ? "disabled" : ""
-      }>
+      <button type="submit" class="text-button" ${options.isSaving ? "disabled" : ""}>
         ${options.isSaving ? "저장 중..." : "댓글 남기기"}
       </button>
     </form>

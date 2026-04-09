@@ -56,7 +56,7 @@ export function createStore(seedData, runtimeConfig) {
     accessGranted: Boolean(persistedNickname),
     uiNotice: runtimeConfig.naverMapsClientId
       ? "네이버 지도 키가 연결되어 있습니다. 실제 마커를 불러옵니다."
-      : "네이버 지도 키가 없어서 데모 지도 프리뷰가 표시됩니다.",
+      : "네이버 지도 키가 없어 프리뷰 지도로 표시됩니다.",
     isInitializing: true,
     isSavingPlace: false,
     isSavingComment: false,
@@ -103,9 +103,7 @@ export function createStore(seedData, runtimeConfig) {
         dataMode: mode,
         isInitializing: false,
         errorMessage:
-          mode === "demo"
-            ? "백엔드가 아직 연결되지 않아 예시 데이터로 표시 중입니다."
-            : ""
+          mode === "demo" ? "백엔드 연결이 실패해 예시 데이터로 표시 중입니다." : ""
       };
     });
   };
@@ -194,15 +192,15 @@ export function createStore(seedData, runtimeConfig) {
           isAddFormOpen: false
         }));
       } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "장소를 저장하지 못했습니다.";
+
         setState((current) => ({
           ...current,
           isSavingPlace: false,
-          errorMessage:
-            error instanceof Error ? error.message : "장소를 저장하지 못했습니다."
+          errorMessage: message
         }));
-        window.alert(
-          error instanceof Error ? error.message : "장소를 저장하지 못했습니다."
-        );
+        window.alert(message);
       }
     },
     async addComment(placeId, content) {
@@ -235,15 +233,15 @@ export function createStore(seedData, runtimeConfig) {
           isSavingComment: false
         }));
       } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "댓글을 저장하지 못했습니다.";
+
         setState((current) => ({
           ...current,
           isSavingComment: false,
-          errorMessage:
-            error instanceof Error ? error.message : "댓글을 저장하지 못했습니다."
+          errorMessage: message
         }));
-        window.alert(
-          error instanceof Error ? error.message : "댓글을 저장하지 못했습니다."
-        );
+        window.alert(message);
       }
     },
     unlockAccess({ nickname }) {

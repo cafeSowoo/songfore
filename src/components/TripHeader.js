@@ -22,7 +22,9 @@ export function createTripHeader(state, actions) {
     <div class="hero-band">
       <div>
         <p class="hero-label">이번 보드의 기준</p>
-        <p class="hero-text">맛집, 쇼핑, 산책 코스를 한 페이지에서 쌓고, 누가 올렸는지 바로 보이게 만듭니다.</p>
+        <p class="hero-text">
+          맛집, 쇼핑, 산책 코스를 한 페이지에서 쌓고, 누가 올렸는지 바로 보이게 만듭니다.
+        </p>
       </div>
       <div class="hero-meta">
         <span>선택된 장소</span>

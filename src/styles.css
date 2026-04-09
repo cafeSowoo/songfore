@@ -112,10 +112,11 @@ button:disabled {
 }
 
 .left-panel-inner {
-  display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   padding: 1.15rem;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .right-panel-inner {
@@ -134,9 +135,9 @@ button:disabled {
 }
 
 .board-section-fill {
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 0.35rem;
+  min-height: auto;
+  overflow: visible;
+  padding-right: 0;
 }
 
 .trip-header,
@@ -433,8 +434,8 @@ textarea:focus {
   display: grid;
   gap: 0.95rem;
   max-height: none;
-  overflow: auto;
-  padding-right: 0.25rem;
+  overflow: visible;
+  padding-right: 0;
 }
 
 .place-card {
@@ -563,6 +564,7 @@ textarea:focus {
 }
 
 .map-preview {
+  z-index: 1;
   background:
     radial-gradient(circle at 16% 20%, rgba(255, 255, 255, 0.74), transparent 16%),
     radial-gradient(circle at 72% 24%, rgba(166, 198, 181, 0.22), transparent 22%),
@@ -570,9 +572,15 @@ textarea:focus {
     linear-gradient(180deg, rgba(251, 249, 245, 0.9), rgba(239, 233, 226, 0.92));
 }
 
+.real-map {
+  z-index: 1;
+  background: rgba(255, 251, 245, 0.92);
+}
+
 .map-grid {
   position: absolute;
   inset: 0;
+  z-index: 0;
   background-image:
     linear-gradient(rgba(119, 102, 84, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(119, 102, 84, 0.1) 1px, transparent 1px);
@@ -584,6 +592,7 @@ textarea:focus {
 .map-preview::after {
   content: "";
   position: absolute;
+  z-index: 1;
   border-radius: 999px;
   background: rgba(90, 135, 109, 0.15);
 }
@@ -606,6 +615,7 @@ textarea:focus {
 
 .map-marker {
   position: absolute;
+  z-index: 2;
   width: 1.35rem;
   height: 1.35rem;
   border: none;
@@ -631,6 +641,7 @@ textarea:focus {
 
 .map-selection-card {
   position: absolute;
+  z-index: 4;
   left: 1rem;
   right: 1rem;
   bottom: 1rem;
@@ -645,6 +656,7 @@ textarea:focus {
 
 .empty-map-state {
   position: absolute;
+  z-index: 3;
   inset: 0;
   padding: 2rem;
   opacity: 0;
@@ -654,6 +666,10 @@ textarea:focus {
 
 .empty-map-state.is-visible {
   opacity: 1;
+}
+
+.empty-map-state[hidden] {
+  display: none;
 }
 
 .legend-item {
