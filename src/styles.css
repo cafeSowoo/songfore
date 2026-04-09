@@ -17,11 +17,14 @@
 
 html {
   scroll-behavior: smooth;
+  height: 100%;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
   font-family: "Instrument Sans", "Apple SD Gothic Neo", sans-serif;
   color: var(--ink);
   background:
@@ -49,11 +52,13 @@ button:disabled {
 
 #app {
   position: relative;
+  height: 100%;
 }
 
 .page-shell {
   position: relative;
   min-height: 100vh;
+  height: 100vh;
   overflow: clip;
 }
 
@@ -87,7 +92,13 @@ button:disabled {
   grid-template-columns: minmax(22rem, 42rem) minmax(22rem, 1fr);
   gap: 1.2rem;
   min-height: 100vh;
+  height: 100vh;
   padding: 1.2rem;
+}
+
+.left-panel,
+.right-panel {
+  min-height: 0;
 }
 
 .left-panel-inner,
@@ -104,13 +115,13 @@ button:disabled {
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr);
   padding: 1.15rem;
+  overflow: hidden;
 }
 
 .right-panel-inner {
-  position: sticky;
-  top: 1.2rem;
-  min-height: calc(100vh - 2.4rem);
+  min-height: 0;
   padding: 1.15rem;
+  overflow: hidden;
 }
 
 .board-section {
@@ -124,6 +135,8 @@ button:disabled {
 
 .board-section-fill {
   min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.35rem;
 }
 
 .trip-header,
@@ -419,7 +432,7 @@ textarea:focus {
 .place-card-list {
   display: grid;
   gap: 0.95rem;
-  max-height: min(72vh, 100%);
+  max-height: none;
   overflow: auto;
   padding-right: 0.25rem;
 }
@@ -528,12 +541,13 @@ textarea:focus {
 .map-panel {
   height: 100%;
   grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
 }
 
 .map-stage {
   position: relative;
-  min-height: 28rem;
   height: 100%;
+  min-height: 0;
   border-radius: 30px;
   overflow: hidden;
   background:
@@ -712,14 +726,31 @@ textarea:focus {
 }
 
 @media (max-width: 1120px) {
+  html,
+  body,
+  #app,
+  .page-shell,
+  .page-layout {
+    height: auto;
+  }
+
+  body {
+    overflow: auto;
+  }
+
   .page-layout {
     grid-template-columns: 1fr;
   }
 
   .right-panel-inner {
     position: relative;
-    top: 0;
     min-height: 36rem;
+  }
+
+  .left-panel-inner,
+  .right-panel-inner,
+  .board-section-fill {
+    overflow: visible;
   }
 }
 
