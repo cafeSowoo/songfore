@@ -2,6 +2,7 @@ import { createTripHeader } from "./components/TripHeader.js";
 import { createEntryGate } from "./components/EntryGate.js";
 import { createCategoryFilterBar } from "./components/CategoryFilterBar.js";
 import { createAddPlaceForm } from "./components/AddPlaceForm.js";
+import { createSuggestionLauncher } from "./components/SuggestionLauncher.js";
 import { createPlaceList } from "./components/PlaceList.js";
 import { createMapPanel, enhanceMapPanel } from "./components/MapPanel.js";
 import { createStore } from "./state/store.js";
@@ -27,8 +28,8 @@ export function mountApp(root) {
             <section class="board-section board-section-tight">
               <div data-slot="filter"></div>
             </section>
-            <section class="board-section">
-              <div data-slot="form"></div>
+            <section class="board-section board-section-tight">
+              <div data-slot="suggestion-launcher"></div>
             </section>
             <section class="board-section board-section-fill">
               <div data-slot="places"></div>
@@ -53,10 +54,9 @@ export function mountApp(root) {
       })
     );
 
-    shell.querySelector('[data-slot="form"]').append(
-      createAddPlaceForm(state, {
-        toggleAddForm: store.toggleAddForm,
-        addPlace: store.addPlace
+    shell.querySelector('[data-slot="suggestion-launcher"]').append(
+      createSuggestionLauncher({
+        openAddForm: store.openAddForm
       })
     );
 
@@ -74,6 +74,15 @@ export function mountApp(root) {
     enhanceMapPanel(mapPanel, state, {
       selectPlace: store.selectPlace
     });
+
+    if (state.isAddFormOpen) {
+      root.append(
+        createAddPlaceForm(state, {
+          closeAddForm: store.closeAddForm,
+          addPlace: store.addPlace
+        })
+      );
+    }
 
     const gate = createEntryGate(state, {
       unlockAccess: store.unlockAccess
