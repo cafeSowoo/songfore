@@ -24,6 +24,16 @@ function normalizeWhitespace(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }
 
+function parseCoordinate(value) {
+  const numeric = Number(value);
+
+  if (!Number.isFinite(numeric)) {
+    return null;
+  }
+
+  return numeric / 10000000;
+}
+
 export async function searchLocalPlaces(query, { display = 5 } = {}) {
   const trimmedQuery = normalizeWhitespace(query);
 
@@ -57,6 +67,8 @@ export async function searchLocalPlaces(query, { display = 5 } = {}) {
     roadAddress: normalizeWhitespace(item.roadAddress || ""),
     category: normalizeWhitespace(stripHtml(item.category || "").replace(/>/g, " · ")),
     telephone: normalizeWhitespace(item.telephone || ""),
-    link: String(item.link || "")
+    link: String(item.link || ""),
+    longitude: parseCoordinate(item.mapx),
+    latitude: parseCoordinate(item.mapy)
   }));
 }

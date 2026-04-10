@@ -127,12 +127,19 @@ function scoreCandidate(candidate, query) {
 }
 
 async function enrichCandidate(candidate, centerLocation) {
-  const location =
-    (await geocodeCached(candidate.roadAddress || candidate.address)) ||
-    (await geocodeCached(candidate.address));
+  const hasInlineCoordinates =
+    Number.isFinite(candidate.latitude) && Number.isFinite(candidate.longitude);
+  const location = hasInlineCoordinates
+    ? null
+    : (await geocodeCached(candidate.roadAddress || candidate.address)) ||
+      (await geocodeCached(candidate.address));
 
-  const latitude = Number(location?.latitude);
-  const longitude = Number(location?.longitude);
+  const latitude = hasInlineCoordinates
+    ? Number(candidate.latitude)
+    : Number(location?.latitude);
+  const longitude = hasInlineCoordinates
+    ? Number(candidate.longitude)
+    : Number(location?.longitude);
 
   return {
     ...candidate,
