@@ -8,6 +8,101 @@ function getSelectedPlace(state) {
   return state.filteredPlaces.find((place) => place.id === state.selectedPlaceId) || state.filteredPlaces[0];
 }
 
+function setMapStatus(host, message = "") {
+  const status = host.querySelector("[data-map-status]");
+
+  if (!status) {
+    return;
+  }
+
+  status.hidden = !message;
+  status.textContent = message;
+}
+
+function mapLooksPainted(mapHost) {
+  if (mapHost.querySelector("canvas")) {
+    return true;
+  }
+
+  return Array.from(mapHost.querySelectorAll("img")).some(
+    (image) => image.complete && image.naturalWidth > 0
+  );
+}
+
+function waitForMapPaint(mapHost, timeout = 3200) {
+  if (mapLooksPainted(mapHost)) {
+    return Promise.resolve(true);
+  }
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const observedImages = new WeakSet();
+
+    const finish = (didPaint) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      observer.disconnect();
+      window.clearTimeout(timer);
+      resolve(didPaint);
+    };
+
+    const inspect = () => {
+      if (mapLooksPainted(mapHost)) {
+        finish(true);
+      }
+    };
+
+    const watchImages = () => {
+      mapHost.querySelectorAll("img").forEach((image) => {
+        if (observedImages.has(image)) {
+          return;
+        }
+
+        observedImages.add(image);
+        image.addEventListener("load", inspect, { once: true });
+        image.addEventListener("error", inspect, { once: true });
+      });
+    };
+
+    const observer = new MutationObserver(() => {
+      watchImages();
+      inspect();
+    });
+
+    observer.observe(mapHost, {
+      childList: true,
+      subtree: true
+    });
+
+    watchImages();
+    inspect();
+
+    const timer = window.setTimeout(() => finish(mapLooksPainted(mapHost)), timeout);
+  });
+}
+
+function waitForNextFrame() {
+  return new Promise((resolve) => {
+    window.requestAnimationFrame(() => resolve());
+  });
+}
+
+async function ensureMapHostReady(mapHost, attempts = 3) {
+  mapHost.hidden = false;
+
+  for (let index = 0; index < attempts; index += 1) {
+    await waitForNextFrame();
+    const { width, height } = mapHost.getBoundingClientRect();
+
+    if (width > 0 && height > 0) {
+      return;
+    }
+  }
+}
+
 function renderPreviewMap(host, state, actions) {
   const preview = host.querySelector("[data-map-preview]");
   const selectedId = state.selectedPlaceId;
@@ -49,13 +144,14 @@ async function renderNaverMap(host, state, actions) {
 
   if (!clientId) {
     mapHost.hidden = true;
+    setMapStatus(host, "네이버 지도 키가 없어 위치 프리뷰를 표시 중입니다.");
     renderPreviewMap(host, state, actions);
     return;
   }
 
   try {
     await loadNaverMapsSdk(clientId);
-    await new Promise((resolve) => window.requestAnimationFrame(resolve));
+    await waitForNextFrame();
 
     if (!host.isConnected || !window.naver?.maps?.Map) {
       throw new Error("NAVER Maps SDK is not ready.");
@@ -65,9 +161,10 @@ async function renderNaverMap(host, state, actions) {
     const places = state.filteredPlaces;
     const focusPlace = getSelectedPlace(state);
 
-    preview.hidden = true;
-    mapHost.hidden = false;
+    setMapStatus(host, "실제 네이버 지도를 불러오는 중입니다.");
+    preview.hidden = false;
     mapHost.replaceChildren();
+    await ensureMapHostReady(mapHost);
 
     const map = new naverMaps.Map(mapHost, {
       center: focusPlace
@@ -135,9 +232,23 @@ async function renderNaverMap(host, state, actions) {
     });
 
     window.setTimeout(syncMapSize, 120);
+
+    const didPaint = await waitForMapPaint(mapHost);
+
+    if (didPaint) {
+      preview.hidden = true;
+      setMapStatus(host);
+      return;
+    }
+
+    setMapStatus(
+      host,
+      "실제 지도 타일이 보이지 않으면 네이버 클라우드 허용 도메인과 지도 영역 크기를 먼저 확인해 주세요."
+    );
   } catch (error) {
     console.error("Failed to render NAVER map", error);
     mapHost.hidden = true;
+    setMapStatus(host, "실제 지도를 불러오지 못해 위치 프리뷰를 유지합니다.");
     renderPreviewMap(host, state, actions);
   }
 }
@@ -163,6 +274,7 @@ export function createMapPanel(state) {
     <div class="map-stage">
       <div class="map-preview" data-map-preview></div>
       <div class="real-map" data-real-map hidden></div>
+      <p class="map-status-banner" data-map-status hidden></p>
       <div class="empty-map-state" data-empty-map-state hidden>
         <strong>첫 장소를 올리면 여기에 바로 마커가 생깁니다.</strong>
         <p>식당이든 관광지든 하나만 추가해도 지도와 리스트가 함께 채워집니다.</p>

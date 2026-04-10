@@ -567,6 +567,11 @@ textarea:focus {
   inset: 0;
 }
 
+.real-map {
+  z-index: 1;
+  background: transparent;
+}
+
 .map-preview {
   z-index: 1;
   background:
@@ -574,11 +579,6 @@ textarea:focus {
     radial-gradient(circle at 72% 24%, rgba(166, 198, 181, 0.22), transparent 22%),
     radial-gradient(circle at 82% 76%, rgba(222, 166, 127, 0.2), transparent 18%),
     linear-gradient(180deg, rgba(251, 249, 245, 0.9), rgba(239, 233, 226, 0.92));
-}
-
-.real-map {
-  z-index: 1;
-  background: rgba(255, 251, 245, 0.92);
 }
 
 .map-grid {
@@ -637,6 +637,24 @@ textarea:focus {
   box-shadow:
     0 0 0 5px rgba(255, 255, 255, 0.74),
     0 12px 24px rgba(16, 24, 40, 0.18);
+}
+
+.map-status-banner {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  max-width: min(24rem, calc(100% - 2rem));
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 16px;
+  background: rgba(255, 250, 243, 0.88);
+  border: 1px solid rgba(80, 58, 40, 0.08);
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  box-shadow: 0 12px 28px rgba(34, 26, 19, 0.08);
+  backdrop-filter: blur(12px);
+  z-index: 2;
 }
 
 .map-marker.is-selected span {
