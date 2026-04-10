@@ -71,6 +71,7 @@ function waitForMapReady(mapHost, timeout = 6000) {
 
   return new Promise((resolve) => {
     let settled = false;
+    let timer = null;
     const observedImages = new WeakSet();
 
     const finish = (didPaint) => {
@@ -121,7 +122,7 @@ function waitForMapReady(mapHost, timeout = 6000) {
     watchImages();
     inspect();
 
-    const timer = window.setTimeout(() => finish(mapLooksPainted(mapHost)), timeout);
+    timer = window.setTimeout(() => finish(mapLooksPainted(mapHost)), timeout);
   });
 }
 
