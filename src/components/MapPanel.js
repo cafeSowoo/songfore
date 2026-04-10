@@ -24,12 +24,47 @@ function mapLooksPainted(mapHost) {
     return true;
   }
 
-  return Array.from(mapHost.querySelectorAll("img")).some(
-    (image) => image.complete && image.naturalWidth > 0
-  );
+  if (
+    Array.from(mapHost.querySelectorAll("img")).some(
+      (image) => image.complete && image.naturalWidth > 0
+    )
+  ) {
+    return true;
+  }
+
+  if (mapHost.querySelector("svg")) {
+    return true;
+  }
+
+  return Array.from(mapHost.querySelectorAll("*")).some((element) => {
+    const style = window.getComputedStyle(element);
+    const hasBackgroundImage =
+      style.backgroundImage &&
+      style.backgroundImage !== "none" &&
+      style.visibility !== "hidden" &&
+      style.display !== "none";
+    const rect = element.getBoundingClientRect();
+
+    return hasBackgroundImage && rect.width > 8 && rect.height > 8;
+  });
 }
 
-function waitForMapPaint(mapHost, timeout = 3200) {
+function mapHasRenderableDom(mapHost) {
+  return Array.from(mapHost.querySelectorAll("*")).some((element) => {
+    const rect = element.getBoundingClientRect();
+    const style = window.getComputedStyle(element);
+
+    return (
+      rect.width > 16 &&
+      rect.height > 16 &&
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
+      style.opacity !== "0"
+    );
+  });
+}
+
+function waitForMapReady(mapHost, timeout = 6000) {
   if (mapLooksPainted(mapHost)) {
     return Promise.resolve(true);
   }
@@ -51,6 +86,11 @@ function waitForMapPaint(mapHost, timeout = 3200) {
 
     const inspect = () => {
       if (mapLooksPainted(mapHost)) {
+        finish(true);
+        return;
+      }
+
+      if (mapHasRenderableDom(mapHost)) {
         finish(true);
       }
     };
@@ -74,13 +114,26 @@ function waitForMapPaint(mapHost, timeout = 3200) {
 
     observer.observe(mapHost, {
       childList: true,
-      subtree: true
+      subtree: true,
+      attributes: true
     });
 
     watchImages();
     inspect();
 
     const timer = window.setTimeout(() => finish(mapLooksPainted(mapHost)), timeout);
+  });
+}
+
+function waitForMapPaint(mapHost, timeout = 3200) {
+  return waitForMapReady(mapHost, timeout).then((didRender) => {
+    if (didRender) {
+      return true;
+    }
+
+    return Array.from(mapHost.querySelectorAll("img")).some(
+      (image) => image.complete && image.naturalWidth > 0
+    );
   });
 }
 
