@@ -9,6 +9,7 @@ const requiredFiles = [
   "src/styles.css",
   "supabase/schema.sql",
   "config/runtime-config.js",
+  "netlify/functions/place-search.js",
   "netlify/functions/trip.js",
   "netlify/functions/places.js",
   "netlify/functions/comments.js"

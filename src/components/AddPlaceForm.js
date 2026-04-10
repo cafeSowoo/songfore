@@ -1,4 +1,4 @@
-import { searchAddressCandidates } from "../lib/naverMaps.js";
+import { searchPlaceCandidates } from "../lib/api.js";
 
 const CATEGORY_OPTIONS = [
   { value: "restaurant", label: "식당" },
@@ -22,8 +22,9 @@ function renderSuggestions(target, suggestions, onSelect) {
         .map(
           (item) => `
             <button type="button" class="suggestion-item" data-suggestion-id="${item.id}">
-              <strong>${item.address}</strong>
-              <span>${item.roadAddress || item.jibunAddress || "좌표만 확인된 위치입니다."}</span>
+              <strong>${item.name}</strong>
+              <span>${item.address}</span>
+              <span>${[item.category, item.distanceLabel].filter(Boolean).join(" · ")}</span>
             </button>
           `
         )
@@ -50,9 +51,22 @@ function renderSelectedLocation(target, selectedLocation) {
   target.innerHTML = `
     <div class="selected-location-chip">
       <strong>선택된 위치</strong>
+      <span>${selectedLocation.name}</span>
       <span>${selectedLocation.address}</span>
     </div>
   `;
+}
+
+function formatDistanceLabel(distanceMeters) {
+  if (!Number.isFinite(distanceMeters)) {
+    return "";
+  }
+
+  if (distanceMeters < 1000) {
+    return `중앙로역 기준 약 ${Math.round(distanceMeters)}m`;
+  }
+
+  return `중앙로역 기준 약 ${(distanceMeters / 1000).toFixed(1)}km`;
 }
 
 export function createAddPlaceForm(state, actions) {
@@ -89,17 +103,17 @@ export function createAddPlaceForm(state, actions) {
             <input name="name" type="text" placeholder="예: 성심당 DCC점" required />
           </label>
           <label class="form-span-2">
-            <span>주소 또는 검색어</span>
+            <span>장소 검색</span>
             <div class="address-search-stack">
               <div class="address-search-row">
                 <input
                   name="address"
                   type="text"
-                  placeholder="예: 대전 유성구 엑스포로 107 또는 성심당"
+                  placeholder="예: 성심당, 한밭수목원, 중앙로역"
                   required
                 />
                 <button class="ghost-button" type="button" data-action="search-address">
-                  주소 찾기
+                  장소 찾기
                 </button>
               </div>
               <div data-slot="selected-location"></div>
@@ -116,7 +130,7 @@ export function createAddPlaceForm(state, actions) {
           </label>
         </div>
         <p class="form-caption">
-          주소 후보를 먼저 선택하면 저장할 때 좌표가 바로 반영돼요.
+          중앙로역을 기준으로 대전 근처 후보를 먼저 보여드려요. 하나를 고르면 이름과 주소가 자동으로 채워집니다.
         </p>
         <button class="primary-button" type="submit" ${state.isSavingPlace ? "disabled" : ""}>
           ${state.isSavingPlace ? "장소 저장 중..." : "장소 올리기"}
@@ -127,6 +141,7 @@ export function createAddPlaceForm(state, actions) {
 
   let selectedLocation = null;
   const form = wrapper.querySelector("form");
+  const nameInput = form.querySelector('input[name="name"]');
   const addressInput = form.querySelector('input[name="address"]');
   const suggestionsSlot = wrapper.querySelector('[data-slot="suggestions"]');
   const selectedLocationSlot = wrapper.querySelector('[data-slot="selected-location"]');
@@ -134,6 +149,7 @@ export function createAddPlaceForm(state, actions) {
 
   const selectLocation = (location) => {
     selectedLocation = location;
+    nameInput.value = location.name;
     addressInput.value = location.address;
     renderSelectedLocation(selectedLocationSlot, selectedLocation);
     suggestionsSlot.innerHTML = "";
@@ -144,30 +160,25 @@ export function createAddPlaceForm(state, actions) {
 
     if (!query) {
       suggestionsSlot.innerHTML =
-        '<p class="form-help-note">먼저 주소나 장소명을 입력해 주세요.</p>';
-      return [];
-    }
-
-    if (!state.runtimeConfig.naverMapsClientId) {
-      suggestionsSlot.innerHTML =
-        '<p class="form-help-note">네이버 지도 키가 없어 주소 검색을 사용할 수 없습니다.</p>';
+        '<p class="form-help-note">먼저 장소명이나 주소를 입력해 주세요.</p>';
       return [];
     }
 
     suggestionsSlot.innerHTML =
-      '<p class="form-help-note">주소 후보를 찾는 중입니다...</p>';
+      '<p class="form-help-note">중앙로역 기준으로 대전 근처 후보를 찾는 중입니다...</p>';
 
     try {
-      const suggestions = await searchAddressCandidates(
-        query,
-        state.runtimeConfig.naverMapsClientId
-      );
+      const payload = await searchPlaceCandidates(query);
+      const suggestions = (payload.suggestions || []).map((item) => ({
+        ...item,
+        distanceLabel: formatDistanceLabel(item.distanceMeters)
+      }));
       renderSuggestions(suggestionsSlot, suggestions, selectLocation);
       return suggestions;
     } catch (error) {
       suggestionsSlot.innerHTML = `
         <p class="form-help-note">
-          ${error instanceof Error ? error.message : "주소 검색에 실패했습니다."}
+          ${error instanceof Error ? error.message : "장소 검색에 실패했습니다."}
         </p>
       `;
       return [];
@@ -202,8 +213,8 @@ export function createAddPlaceForm(state, actions) {
 
     actions.addPlace({
       category: String(formData.get("category") || "etc"),
-      name: String(formData.get("name") || ""),
-      address: String(formData.get("address") || ""),
+      name: String(formData.get("name") || selectedLocation?.name || ""),
+      address: String(formData.get("address") || selectedLocation?.address || ""),
       description: String(formData.get("description") || ""),
       latitude: selectedLocation?.latitude,
       longitude: selectedLocation?.longitude,

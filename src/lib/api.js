@@ -31,6 +31,19 @@ export async function fetchTripSnapshot(slug) {
   return parseResponse(response);
 }
 
+export async function searchPlaceCandidates(query) {
+  const response = await fetch(
+    `${API_ROOT}/place-search?q=${encodeURIComponent(String(query || "").trim())}`,
+    {
+      headers: {
+        Accept: "application/json"
+      }
+    }
+  );
+
+  return parseResponse(response);
+}
+
 export async function createPlace(payload) {
   const response = await fetch(`${API_ROOT}/places`, {
     method: "POST",
