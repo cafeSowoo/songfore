@@ -51,7 +51,7 @@ export function createStore(seedData, runtimeConfig) {
     places: [],
     selectedCategory: "all",
     selectedPlaceId: null,
-    isAddFormOpen: true,
+    isAddFormOpen: false,
     nickname: persistedNickname,
     accessGranted: Boolean(persistedNickname),
     uiNotice: runtimeConfig.naverMapsClientId
@@ -152,6 +152,18 @@ export function createStore(seedData, runtimeConfig) {
       setState((current) => ({
         ...current,
         selectedPlaceId: placeId
+      }));
+    },
+    openAddForm() {
+      setState((current) => ({
+        ...current,
+        isAddFormOpen: true
+      }));
+    },
+    closeAddForm() {
+      setState((current) => ({
+        ...current,
+        isAddFormOpen: false
       }));
     },
     toggleAddForm() {
