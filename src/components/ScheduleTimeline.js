@@ -1,5 +1,5 @@
 import { categoryOptions, getCategoryById } from "../lib/api.js";
-import { TrashIcon } from "./Icons.js";
+import { HeartIcon, TrashIcon } from "./Icons.js";
 
 const { createElement: h, useEffect, useMemo, useState } = window.React;
 
@@ -45,12 +45,33 @@ function buildDayTabs(entries) {
   }));
 }
 
+function groupEntriesByTime(entries) {
+  const groups = [];
+
+  for (const entry of entries) {
+    const lastGroup = groups[groups.length - 1];
+
+    if (lastGroup && lastGroup.time === entry.time) {
+      lastGroup.items.push(entry);
+      continue;
+    }
+
+    groups.push({
+      time: entry.time,
+      items: [entry]
+    });
+  }
+
+  return groups;
+}
+
 export function ScheduleTimeline({
   places,
   entries,
   onAddFromCard,
   onAddDirect,
-  onDeleteEntry
+  onDeleteEntry,
+  onOpenPlace
 }) {
   const dayTabs = useMemo(() => buildDayTabs(entries), [entries]);
   const initialPlaceTime = toTimeParts("09:00");
@@ -80,12 +101,13 @@ export function ScheduleTimeline({
     }
   }, [places, selectedPlaceId]);
 
-  const categoryFilterOptions = categoryOptions.filter((category) => category.id !== "all");
+  const categoryFilterOptions = categoryOptions;
   const filteredPlaces =
     selectedCategory === "all"
       ? places
       : places.filter((place) => place.category === selectedCategory);
   const activeEntries = sortEntries(entries.filter((entry) => entry.dayId === activeDayId));
+  const groupedEntries = groupEntriesByTime(activeEntries);
 
   useEffect(() => {
     if (!filteredPlaces.some((place) => place.id === selectedPlaceId)) {
@@ -233,18 +255,26 @@ export function ScheduleTimeline({
             )
           ),
           h(
-            "label",
+            "div",
             { className: "schedule-add-field" },
             h("span", null, "카테고리"),
             h(
-              "select",
-              {
-                value: selectedCategory,
-                onChange: (event) => setSelectedCategory(event.target.value)
-              },
-              h("option", { value: "all" }, "전체"),
+              "div",
+              { className: "category-chip-row schedule-category-row" },
               ...categoryFilterOptions.map((category) =>
-                h("option", { key: category.id, value: category.id }, category.label)
+                h(
+                  "button",
+                  {
+                    key: category.id,
+                    type: "button",
+                    className: `category-select-chip ${
+                      selectedCategory === category.id ? "active" : ""
+                    }`,
+                    style: { "--chip-tone": category.tone },
+                    onClick: () => setSelectedCategory(category.id)
+                  },
+                  category.label
+                )
               )
             )
           ),
@@ -337,50 +367,80 @@ export function ScheduleTimeline({
       h(
         "div",
         { className: "schedule-timeline" },
-        ...activeEntries.map((entry) => {
-          const place =
-            entry.type === "place" ? places.find((item) => item.id === entry.placeId) : null;
-          const category = place ? getCategoryById(place.category) : null;
-
-          return h(
+        ...groupedEntries.map((group, groupIndex) =>
+          h(
             "div",
-            { key: entry.id, className: "schedule-entry" },
-            h("div", { className: "schedule-time" }, entry.time),
+            {
+              key: `${activeDayId}-${group.time}-${groupIndex}`,
+              className: "schedule-entry-group"
+            },
+            h("div", { className: "schedule-time" }, group.time),
             h("div", { className: "schedule-line" }),
             h(
               "div",
               {
-                className: `schedule-entry-card ${entry.type === "note" ? "schedule-note" : ""}`,
-                style: category ? { "--schedule-tone": category.tone } : null
+                className: `schedule-entry-stack ${group.items.length > 1 ? "schedule-entry-stack-compact" : ""}`
               },
-              h(
-                "div",
-                { className: "schedule-entry-head" },
-                h(
+              ...group.items.map((entry) => {
+                const place =
+                  entry.type === "place" ? places.find((item) => item.id === entry.placeId) : null;
+                const category = place ? getCategoryById(place.category) : null;
+
+                return h(
                   "div",
-                  { className: "schedule-entry-copy" },
-                  place
-                    ? h("span", { className: "schedule-entry-label" }, category.label)
-                    : h("span", { className: "schedule-entry-label" }, "직접 입력"),
-                  h("strong", null, place ? place.name : entry.title)
-                ),
-                h(
-                  "button",
                   {
-                    type: "button",
-                    className: "schedule-delete-button",
-                    onClick: (event) => {
-                      event.stopPropagation();
-                      handleDelete(entry.id);
-                    },
-                    "aria-label": "일정 삭제"
+                    key: entry.id,
+                    className: `schedule-entry-card ${entry.type === "note" ? "schedule-note" : ""} ${
+                      group.items.length > 1 ? "schedule-entry-card-compact" : ""
+                    }`,
+                    style: category ? { "--schedule-tone": category.tone } : null,
+                    onClick: place ? () => onOpenPlace(place.id) : undefined
                   },
-                  h(TrashIcon, { className: "schedule-delete-icon" })
-                )
-              )
+                  h(
+                    "div",
+                    { className: "schedule-entry-head" },
+                    h(
+                      "div",
+                      { className: "schedule-entry-copy" },
+                      place
+                        ? h("span", { className: "schedule-entry-label" }, category.label)
+                        : h("span", { className: "schedule-entry-label" }, "직접 입력"),
+                      h("strong", null, place ? place.name : entry.title)
+                    ),
+                    h(
+                      "div",
+                      { className: "schedule-entry-actions" },
+                      place
+                        ? h(
+                            "span",
+                            { className: "schedule-like-badge" },
+                            h(HeartIcon, {
+                              className: "schedule-like-icon",
+                              filled: true
+                            }),
+                            h("span", null, place.saveCount)
+                          )
+                        : null,
+                      h(
+                        "button",
+                        {
+                          type: "button",
+                          className: "schedule-delete-button",
+                          onClick: (event) => {
+                            event.stopPropagation();
+                            handleDelete(entry.id);
+                          },
+                          "aria-label": "일정 삭제"
+                        },
+                        h(TrashIcon, { className: "schedule-delete-icon" })
+                      )
+                    )
+                  )
+                );
+              })
             )
-          );
-        })
+          )
+        )
       )
     )
   );

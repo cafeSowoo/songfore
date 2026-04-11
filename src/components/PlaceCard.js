@@ -20,7 +20,7 @@ function toRecommendedLabel(label, friendName) {
   return `${safeFriendName} ${replaced}`;
 }
 
-export function PlaceCard({ place, onOpen, onToggleSave }) {
+export function PlaceCard({ place, scheduleBadge, onOpen, onToggleSave }) {
   const category = getCategoryById(place.category);
 
   return h(
@@ -36,6 +36,14 @@ export function PlaceCard({ place, onOpen, onToggleSave }) {
       overlay: h(
         "div",
         { className: "place-card-overlay-grid" },
+        scheduleBadge
+          ? h(
+              "div",
+              { className: "place-schedule-badge" },
+              h("span", { className: "place-schedule-day" }, scheduleBadge.day),
+              h("span", { className: "place-schedule-time" }, scheduleBadge.time)
+            )
+          : null,
         h(
           "button",
           {
@@ -94,7 +102,7 @@ export function PlaceCard({ place, onOpen, onToggleSave }) {
           className: "friend-note",
           style: { "--note-tone": category.tone }
         },
-        `“${place.friendNote}”`
+        `"${place.friendNote}"`
       )
     )
   );

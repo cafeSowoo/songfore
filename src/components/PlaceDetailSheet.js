@@ -1,16 +1,16 @@
 import { getCategoryById } from "../lib/api.js";
-import { ArrowLeftIcon, HeartIcon, MapPinIcon } from "./Icons.js";
+import { ArrowLeftIcon, HeartIcon, MapPinIcon, TrashIcon } from "./Icons.js";
 import { PlaceImage } from "./PlaceImage.js";
 
-const { createElement: h } = window.React;
+const { createElement: h, useMemo, useState } = window.React;
 
 function buildFriendMessages(place) {
-  return [
+  const seededMessages = [
     {
       id: `${place.id}-primary`,
       name: place.friendName,
       text: place.friendNote,
-      time: place.createdLabel || "방금 저장됨",
+      time: String(place.createdLabel || "방금 추천").replace("저장", "추천"),
       accent: "left"
     },
     {
@@ -21,11 +21,36 @@ function buildFriendMessages(place) {
       accent: "right"
     }
   ];
+
+  const extraMessages = Array.isArray(place.comments) ? place.comments : [];
+
+  return [...seededMessages, ...extraMessages];
 }
 
-export function PlaceDetailSheet({ place, onClose, onToggleSave, onShowMap }) {
+export function PlaceDetailSheet({
+  place,
+  onAddComment,
+  onClose,
+  onDeletePlace,
+  onToggleSave,
+  onShowMap
+}) {
   const category = getCategoryById(place.category);
-  const friendMessages = buildFriendMessages(place);
+  const friendMessages = useMemo(() => buildFriendMessages(place), [place]);
+  const [draftComment, setDraftComment] = useState("");
+
+  function handleSubmitComment(event) {
+    event.preventDefault();
+
+    const normalized = draftComment.trim();
+
+    if (!normalized) {
+      return;
+    }
+
+    onAddComment(place.id, normalized);
+    setDraftComment("");
+  }
 
   return h(
     "div",
@@ -128,7 +153,7 @@ export function PlaceDetailSheet({ place, onClose, onToggleSave, onShowMap }) {
                 "article",
                 {
                   key: message.id,
-                  className: `detail-comment-item ${message.accent}`
+                  className: `detail-comment-item ${message.accent || "left"}`
                 },
                 message.name
                   ? h("div", { className: "detail-comment-author" }, message.name)
@@ -136,6 +161,29 @@ export function PlaceDetailSheet({ place, onClose, onToggleSave, onShowMap }) {
                 h("div", { className: "detail-comment-bubble" }, message.text),
                 h("span", { className: "detail-comment-time" }, message.time)
               )
+            )
+          ),
+          h(
+            "form",
+            {
+              className: "detail-chat-form",
+              onSubmit: handleSubmitComment
+            },
+            h("input", {
+              className: "detail-chat-input",
+              type: "text",
+              value: draftComment,
+              onInput: (event) => setDraftComment(event.target.value),
+              placeholder: "한마디 남겨보세요"
+            }),
+            h(
+              "button",
+              {
+                type: "submit",
+                className: "detail-chat-send",
+                disabled: !draftComment.trim()
+              },
+              "입력"
             )
           )
         ),
@@ -169,6 +217,16 @@ export function PlaceDetailSheet({ place, onClose, onToggleSave, onShowMap }) {
               className: "detail-action-pill detail-action-pill-muted"
             },
             "네이버 지도"
+          ),
+          h(
+            "button",
+            {
+              type: "button",
+              className: "detail-action-icon",
+              onClick: () => onDeletePlace(place.id),
+              "aria-label": "장소 삭제"
+            },
+            h(TrashIcon, { className: "button-icon" })
           )
         )
       )
