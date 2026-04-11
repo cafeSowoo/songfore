@@ -36,6 +36,33 @@ function createScheduleId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function getPlaceScheduleBadge(entries, placeId) {
+  const matchedEntries = entries
+    .filter((entry) => entry.type === "place" && entry.placeId === placeId)
+    .sort((left, right) => {
+      const dayCompare = String(left.dayId).localeCompare(String(right.dayId));
+
+      if (dayCompare !== 0) {
+        return dayCompare;
+      }
+
+      return String(left.time).localeCompare(String(right.time));
+    });
+
+  const firstEntry = matchedEntries[0];
+
+  if (!firstEntry) {
+    return null;
+  }
+
+  const dayNumber = String(firstEntry.dayId).replace("day-", "");
+
+  return {
+    day: `DAY ${dayNumber}`,
+    time: firstEntry.time
+  };
+}
+
 export function App() {
   const [places, setPlaces] = useState(seedPlaces);
   const [scheduleEntries, setScheduleEntries] = useState(initialScheduleEntries);
@@ -63,6 +90,37 @@ export function App() {
           ...place,
           saved: nextSaved,
           saveCount: Math.max(place.baseSaveCount + (nextSaved ? 1 : 0), 0)
+        };
+      })
+    );
+  }
+
+  function handleAddPlaceComment(placeId, text) {
+    const normalizedText = String(text || "").trim();
+
+    if (!normalizedText) {
+      return;
+    }
+
+    setPlaces((currentPlaces) =>
+      currentPlaces.map((place) => {
+        if (place.id !== placeId) {
+          return place;
+        }
+
+        const nextComments = Array.isArray(place.comments) ? [...place.comments] : [];
+
+        nextComments.push({
+          id: `comment-${Date.now()}`,
+          name: "",
+          text: normalizedText,
+          time: "방금 남김",
+          accent: "right"
+        });
+
+        return {
+          ...place,
+          comments: nextComments
         };
       })
     );
@@ -109,6 +167,25 @@ export function App() {
     setScheduleEntries((currentEntries) =>
       currentEntries.filter((entry) => entry.id !== entryId)
     );
+  }
+
+  function handleDeletePlace(placeId) {
+    if (!window.confirm("삭제하시겠습니까?")) {
+      return;
+    }
+
+    setPlaces((currentPlaces) => currentPlaces.filter((place) => place.id !== placeId));
+    setScheduleEntries((currentEntries) =>
+      currentEntries.filter((entry) => entry.placeId !== placeId)
+    );
+
+    if (selectedPlaceId === placeId) {
+      setSelectedPlaceId(null);
+    }
+
+    if (focusedMapPlaceId === placeId) {
+      setFocusedMapPlaceId(null);
+    }
   }
 
   function handleOpenPlace(placeId) {
@@ -188,6 +265,7 @@ export function App() {
                         h(PlaceCard, {
                           key: place.id,
                           place,
+                          scheduleBadge: getPlaceScheduleBadge(scheduleEntries, place.id),
                           onOpen: handleOpenPlace,
                           onToggleSave: handleToggleSave
                         })
@@ -209,13 +287,25 @@ export function App() {
                   onClearFocus: handleClearMapFocus,
                   onOpenPlace: handleOpenPlace
                 })
-              : h(ScheduleTimeline, {
-                  places,
-                  entries: scheduleEntries,
-                  onAddFromCard: handleAddScheduleFromCard,
-                  onAddDirect: handleAddScheduleCustom,
-                  onDeleteEntry: handleDeleteScheduleEntry
-                })
+              : activeTab === "schedule"
+                ? h(ScheduleTimeline, {
+                    places,
+                    entries: scheduleEntries,
+                    onAddFromCard: handleAddScheduleFromCard,
+                    onAddDirect: handleAddScheduleCustom,
+                    onDeleteEntry: handleDeleteScheduleEntry,
+                    onOpenPlace: handleOpenPlace
+                  })
+                : h(
+                    "section",
+                    { className: "feed-section" },
+                    h(
+                      "div",
+                      { className: "empty-state" },
+                      h("strong", null, "잡담 메뉴는 다음 단계에서 붙일게요."),
+                      h("p", null, "친구들이 일정이나 장소에 대해 자유롭게 이야기하는 화면을 여기에 연결할 예정입니다.")
+                    )
+                  )
         ),
         h(BottomNav, {
           activeTab,
@@ -227,7 +317,9 @@ export function App() {
     selectedPlace
       ? h(PlaceDetailSheet, {
           place: selectedPlace,
+          onDeletePlace: handleDeletePlace,
           onClose: handleCloseDetail,
+          onAddComment: handleAddPlaceComment,
           onToggleSave: handleToggleSave,
           onShowMap: handleShowMapFromDetail
         })

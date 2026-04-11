@@ -176,3 +176,19 @@ export function TrashIcon({ className = "icon" }) {
     className
   );
 }
+
+export function ChatIcon({ className = "icon" }) {
+  return baseIcon(
+    [
+      h("path", {
+        key: "chat-1",
+        d: "M6.5 7.5h11a2.5 2.5 0 0 1 2.5 2.5v5a2.5 2.5 0 0 1-2.5 2.5H12l-4.5 3v-3H6.5A2.5 2.5 0 0 1 4 15v-5a2.5 2.5 0 0 1 2.5-2.5Z"
+      }),
+      h("path", {
+        key: "chat-2",
+        d: "M8.5 11.5h7M8.5 14h4.5"
+      })
+    ],
+    className
+  );
+}

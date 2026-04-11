@@ -1,4 +1,10 @@
-import { CalendarIcon, CompassIcon, PlusIcon, SparkleIcon } from "./Icons.js";
+import {
+  CalendarIcon,
+  ChatIcon,
+  CompassIcon,
+  PlusIcon,
+  SparkleIcon
+} from "./Icons.js";
 
 const { createElement: h } = window.React;
 
@@ -60,6 +66,20 @@ export function BottomNav({ activeTab, onChange, onOpenAdd }) {
           h(CalendarIcon, { className: "bottom-nav-icon" })
         ),
         h("span", { className: "bottom-nav-label" }, "일정")
+      ),
+      h(
+        "button",
+        {
+          type: "button",
+          className: `bottom-nav-item ${activeTab === "chat" ? "active" : ""}`,
+          onClick: () => onChange("chat")
+        },
+        h(
+          "span",
+          { className: "bottom-nav-icon-shell" },
+          h(ChatIcon, { className: "bottom-nav-icon" })
+        ),
+        h("span", { className: "bottom-nav-label" }, "잡담")
       )
     )
   );

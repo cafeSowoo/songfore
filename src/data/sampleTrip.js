@@ -52,7 +52,7 @@ export const seedPlaces = [
   {
     id: "hanbat-arboretum",
     name: "한밭수목원",
-    category: "walk",
+    category: "etc",
     reason: "중간에 쉬어가기 좋고, 초록 뷰 사진이 잘 나와서 산책 코스로 딱이에요.",
     description:
       "도심 한가운데에서 넓게 숨 돌릴 수 있는 수목원. 카페와 쇼핑 코스 사이에 넣으면 일정이 훨씬 부드러워져요.",
@@ -128,7 +128,7 @@ export const seedPlaces = [
   {
     id: "daeheung-winebar",
     name: "대흥동 와인바 골목",
-    category: "pub",
+    category: "shopping",
     reason: "둘째 날 밤에 한잔하면서 여행 얘기 정리하기 좋은 분위기라 저장했어요.",
     description:
       "너무 시끄럽지 않고 대화하기 좋은 바들이 모여 있는 동네. 일정 끝나고 가볍게 모여 수다 떨기 좋아요.",

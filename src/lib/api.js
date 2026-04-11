@@ -1,10 +1,9 @@
 export const categoryOptions = [
   { id: "all", label: "전체", tone: "#153328" },
-  { id: "cafe", label: "카페", tone: "#b8613d" },
+  { id: "cafe", label: "카페", tone: "#2d8f6f" },
   { id: "restaurant", label: "식당", tone: "#ff6d33" },
   { id: "tour", label: "관광지", tone: "#0071d9" },
-  { id: "pub", label: "술집", tone: "#7f5cff" },
-  { id: "walk", label: "산책", tone: "#2d8f6f" },
+  { id: "shopping", label: "쇼핑", tone: "#7f5cff" },
   { id: "etc", label: "기타", tone: "#6f7a73" }
 ];
 
@@ -143,8 +142,9 @@ export function createPlaceRecord(formData, index = 0) {
     saveCount: 1,
     baseSaveCount: 0,
     saved: true,
-    createdLabel: "방금 저장됨",
+    createdLabel: "방금 추천",
     mapPosition: marker,
-    tags: ["새로 추가됨", "이번 여행 후보"]
+    tags: ["새로 추가됨", "이번 여행 후보"],
+    comments: []
   };
 }

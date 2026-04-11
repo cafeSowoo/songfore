@@ -5,7 +5,6 @@ const { createElement: h } = window.React;
 
 export function DiscoveryMap({
   places,
-  activeFilter,
   focusedPlaceId,
   onFocusPlace,
   onClearFocus,
@@ -16,45 +15,27 @@ export function DiscoveryMap({
     : places;
   const cardPlaces = focusedPlaceId
     ? places.filter((place) => place.id === focusedPlaceId)
-    : places.slice(0, 3);
+    : places;
 
   return h(
     "section",
     { className: "map-section" },
     h(
       "div",
-      { className: "section-head" },
-      h(
-        "div",
-        null,
-        h("span", { className: "eyebrow subtle" }, "Discovery map"),
-        h(
-          "h3",
-          null,
-          focusedPlaceId
-            ? "선택한 장소만 지도에 남겼어요"
-            : activeFilter === "all"
-              ? "여행 동선으로 보는 후보 맵"
-              : "선택한 카테고리만 지도에서 보고 있어요"
-        )
-      ),
+      { className: "map-viewport" },
+      h("div", { className: "map-glow map-glow-one" }),
+      h("div", { className: "map-glow map-glow-two" }),
       focusedPlaceId
         ? h(
             "button",
             {
               type: "button",
-              className: "map-reset-button",
+              className: "map-reset-button map-reset-floating",
               onClick: onClearFocus
             },
             "전체 보기"
           )
-        : h("span", { className: "tiny-note" }, `${places.length}개 장소가 지도에 떠 있어요`)
-    ),
-    h(
-      "div",
-      { className: "map-viewport" },
-      h("div", { className: "map-glow map-glow-one" }),
-      h("div", { className: "map-glow map-glow-two" }),
+        : null,
       h(
         "div",
         { className: "map-river" },
@@ -84,20 +65,23 @@ export function DiscoveryMap({
     h(
       "div",
       { className: "map-card-stack" },
-      ...cardPlaces.map((place) =>
-        h(
+      ...cardPlaces.map((place) => {
+        const category = getCategoryById(place.category);
+
+        return h(
           "button",
           {
             key: place.id,
             type: "button",
             className: `map-summary-card ${focusedPlaceId === place.id ? "active" : ""}`,
+            style: { "--summary-tone": category.tone },
             onClick: () => onFocusPlace(place.id)
           },
           h("strong", null, place.name),
           h("p", null, place.reason),
           h("span", null, `${place.friendName} 추천 · ${place.address}`)
-        )
-      )
+        );
+      })
     )
   );
 }
