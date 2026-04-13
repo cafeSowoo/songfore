@@ -14,6 +14,7 @@ import { AppHeader } from "./components/AppHeader.js";
 import { BottomNav } from "./components/BottomNav.js";
 import { DiscoveryMap } from "./components/DiscoveryMap.js";
 import { FilterChips } from "./components/FilterChips.js";
+import { NicknamePrompt } from "./components/NicknamePrompt.js";
 import { PlaceCard } from "./components/PlaceCard.js";
 import { PlaceDetailSheet } from "./components/PlaceDetailSheet.js";
 import { ScheduleTimeline } from "./components/ScheduleTimeline.js";
@@ -118,6 +119,7 @@ export function App() {
   const [focusedMapPlaceId, setFocusedMapPlaceId] = useState(null);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [nickname, setNickname] = useState(getStoredNickname);
+  const [nicknameRequest, setNicknameRequest] = useState(null);
   const [dataMode, setDataMode] = useState("demo");
 
   const visiblePlaces = getVisiblePlaces(places, activeFilter);
@@ -196,22 +198,30 @@ export function App() {
     const currentNickname = String(nickname || "").trim();
 
     if (currentNickname) {
-      return currentNickname;
+      return Promise.resolve(currentNickname);
     }
 
-    const promptedNickname = window.prompt(
-      "친구들이 알아볼 수 있게 닉네임을 입력해 주세요.",
-      ""
-    );
-    const normalizedNickname = String(promptedNickname || "").trim();
+    return new Promise((resolve) => {
+      setNicknameRequest({ resolve });
+    });
+  }
+
+  function handleNicknameSubmit(nextNickname) {
+    const normalizedNickname = String(nextNickname || "").trim();
 
     if (!normalizedNickname) {
-      return null;
+      return;
     }
 
     window.localStorage.setItem("dj-nickname", normalizedNickname);
     setNickname(normalizedNickname);
-    return normalizedNickname;
+    nicknameRequest?.resolve(normalizedNickname);
+    setNicknameRequest(null);
+  }
+
+  function handleNicknameCancel() {
+    nicknameRequest?.resolve(null);
+    setNicknameRequest(null);
   }
 
   function handleToggleSave(placeId) {
@@ -239,7 +249,7 @@ export function App() {
       return;
     }
 
-    const authorNickname = ensureNickname();
+    const authorNickname = await ensureNickname();
 
     if (!authorNickname) {
       return;
@@ -290,7 +300,7 @@ export function App() {
   }
 
   async function handleAddPlace(formData) {
-    const authorNickname = ensureNickname();
+    const authorNickname = await ensureNickname();
 
     if (!authorNickname) {
       return;
@@ -547,6 +557,13 @@ export function App() {
           mapsClientId: runtimeConfig.naverMapsClientId,
           onClose: handleCloseAddSheet,
           onSubmit: handleAddPlace
+        })
+      : null,
+    nicknameRequest
+      ? h(NicknamePrompt, {
+          initialValue: nickname,
+          onCancel: handleNicknameCancel,
+          onSubmit: handleNicknameSubmit
         })
       : null
   );
