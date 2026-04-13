@@ -7,9 +7,8 @@ const outputFile = path.join(configDir, "runtime-config.js");
 
 const payload = {
   tripSlug: process.env.TRIP_SLUG || "dj",
-  tripTitle: process.env.TRIP_TITLE || "대전 여행 장소 모아보기",
-  tripDescription:
-    process.env.TRIP_DESCRIPTION || "8명이 함께 고르는 대전 스팟 모바일 프로토타입",
+  tripTitle: process.env.TRIP_TITLE || "대전여행",
+  tripDescription: process.env.TRIP_DESCRIPTION || "8명이 함께 고르는 대전 스팟",
   naverMapsClientId: process.env.NAVER_MAPS_CLIENT_ID || ""
 };
 
