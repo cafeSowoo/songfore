@@ -1926,13 +1926,36 @@ img {
     linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
 }
 
+.add-search-preview-map-shell {
+  position: relative;
+}
+
+.add-search-preview-pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 999px;
+  background: rgba(21, 51, 40, 0.9);
+  color: #fff;
+  box-shadow: 0 16px 28px rgba(21, 51, 40, 0.24);
+  pointer-events: none;
+}
+
 .add-search-preview-map-fallback {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   gap: 0.55rem;
   padding: 1rem;
   color: rgba(255, 255, 255, 0.88);
+  text-align: center;
+  line-height: 1.55;
 }
 
 .sheet-close {
