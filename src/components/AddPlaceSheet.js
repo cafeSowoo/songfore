@@ -62,6 +62,7 @@ function inferCategoryId(categoryText = "") {
 
 function PlaceSearchPreviewMap({ place, mapsClientId }) {
   const mapRef = useRef(null);
+  const [renderError, setRenderError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -72,6 +73,7 @@ function PlaceSearchPreviewMap({ place, mapsClientId }) {
       }
 
       try {
+        setRenderError("");
         const naver = await loadNaverMapsSdk(mapsClientId);
 
         if (cancelled || !mapRef.current || !naver?.maps?.Map) {
@@ -96,12 +98,6 @@ function PlaceSearchPreviewMap({ place, mapsClientId }) {
           keyboardShortcuts: false
         });
 
-        new naver.maps.Marker({
-          position,
-          map,
-          title: place.name
-        });
-
         window.requestAnimationFrame(() => {
           if (!target.isConnected) {
             return;
@@ -113,6 +109,11 @@ function PlaceSearchPreviewMap({ place, mapsClientId }) {
           map.autoResize();
         });
       } catch (error) {
+        if (!cancelled) {
+          setRenderError(
+            "지도 미리보기를 불러오지 못했어요. 브라우저 차단 설정이나 네이버 지도 허용 URL을 확인해 주세요."
+          );
+        }
         console.warn("Failed to render place search preview map.", error);
       }
     }
@@ -137,11 +138,31 @@ function PlaceSearchPreviewMap({ place, mapsClientId }) {
     );
   }
 
-  return h("div", {
-    ref: mapRef,
-    className: "add-search-preview-map",
-    "aria-label": `${place.name} 위치 미리보기`
-  });
+  if (renderError) {
+    return h(
+      "div",
+      { className: "add-search-preview-map add-search-preview-map-fallback" },
+      h(MapPinIcon, { className: "button-icon" }),
+      h("span", null, renderError)
+    );
+  }
+
+  return h(
+    "div",
+    {
+      className: "add-search-preview-map-shell"
+    },
+    h("div", {
+      ref: mapRef,
+      className: "add-search-preview-map",
+      "aria-label": `${place.name} 위치 미리보기`
+    }),
+    h(
+      "div",
+      { className: "add-search-preview-pin", "aria-hidden": "true" },
+      h(MapPinIcon, { className: "button-icon" })
+    )
+  );
 }
 
 function SearchResultCard({ place, isActive, onSelect }) {
