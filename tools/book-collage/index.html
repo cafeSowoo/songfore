@@ -441,13 +441,21 @@
       box-shadow: none;
     }
 
-    .inline-upload.is-disabled {
+    .inline-upload:disabled {
+      cursor: default;
       opacity: 0.45;
-      pointer-events: none;
     }
 
-    .inline-upload input {
-      display: none;
+    .visually-hidden-file-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .preview-panel {
@@ -718,10 +726,8 @@
 
           <div class="download-row">
             <button id="downloadSecondary" class="button subtle" type="button" disabled>이미지 저장하기</button>
-            <label id="bookCoverUploadLabel" class="inline-upload is-disabled">
-              표지 사진 직접 업로드
-              <input id="bookCoverInput" type="file" accept="image/*" />
-            </label>
+            <button id="bookCoverUploadButton" class="inline-upload" type="button" disabled>표지 사진 직접 업로드</button>
+            <input id="bookCoverInput" class="visually-hidden-file-input" type="file" accept="image/*" />
           </div>
         </div>
       </div>
@@ -739,7 +745,7 @@
       const previewCanvas = document.getElementById("previewCanvas");
       const canvasWrap = document.querySelector(".canvas-wrap");
       const downloadSecondary = document.getElementById("downloadSecondary");
-      const bookCoverUploadLabel = document.getElementById("bookCoverUploadLabel");
+      const bookCoverUploadButton = document.getElementById("bookCoverUploadButton");
       const bookCoverInput = document.getElementById("bookCoverInput");
       const ctx = previewCanvas.getContext("2d");
       const DRAG_SENSITIVITY = 70;
@@ -800,7 +806,7 @@
       function updateDownloadButtons() {
         const ready = Boolean(state.selectedBook && state.selectedBookImage && state.photos.every((photo) => photo.image));
         downloadSecondary.disabled = !ready;
-        bookCoverUploadLabel.classList.toggle("is-disabled", !state.selectedBook);
+        bookCoverUploadButton.disabled = !state.selectedBook;
       }
 
       function clearCustomBookCover() {
@@ -835,7 +841,6 @@
           </article>
           <div class="selected-note">판본 표지 화질이 떨어지는 경우 상세보기 버튼을 눌러 표지 이미지를 직접 저장해주세요</div>
         `;
-
         updateDownloadButtons();
       }
 
@@ -1510,6 +1515,15 @@
         });
       });
 
+      bookCoverUploadButton.addEventListener("click", function () {
+        if (!state.selectedBook) {
+          setStatus("먼저 대표 판본을 선택해 주세요.", true);
+          return;
+        }
+
+        bookCoverInput.value = "";
+        bookCoverInput.click();
+      });
       bookCoverInput.addEventListener("change", function (event) {
         const file = event.currentTarget.files && event.currentTarget.files[0];
         handleBookCoverUpload(file || null);
