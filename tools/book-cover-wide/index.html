@@ -651,6 +651,31 @@
         });
       }
 
+      function canvasToBlob(canvas, type) {
+        return new Promise((resolve, reject) => {
+          if (canvas.toBlob) {
+            canvas.toBlob(function (blob) {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error("PNG를 생성하지 못했습니다."));
+              }
+            }, type || "image/png");
+            return;
+          }
+
+          try {
+            const dataUrl = canvas.toDataURL(type || "image/png");
+            fetch(dataUrl)
+              .then((response) => response.blob())
+              .then(resolve)
+              .catch(reject);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }
+
       function clearUploadedObjectUrl() {
         if (state.uploadedObjectUrl) {
           URL.revokeObjectURL(state.uploadedObjectUrl);
@@ -1022,12 +1047,35 @@
           return;
         }
 
-        const anchor = document.createElement("a");
-        anchor.href = previewCanvas.toDataURL("image/png");
-        anchor.download = `${safeFileName(state.selectedBook.title)}_16x9.png`;
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
+        const originalLabel = downloadButton.textContent;
+        downloadButton.disabled = true;
+        downloadButton.textContent = "PNG 생성 중...";
+
+        canvasToBlob(previewCanvas, "image/png")
+          .then((blob) => {
+            const objectUrl = URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = objectUrl;
+            anchor.download = `${safeFileName(state.selectedBook.title)}_16x9.png`;
+            anchor.target = "_blank";
+            anchor.rel = "noopener";
+            document.body.appendChild(anchor);
+            anchor.click();
+
+            window.setTimeout(function () {
+              URL.revokeObjectURL(objectUrl);
+              if (anchor.parentNode) {
+                anchor.parentNode.removeChild(anchor);
+              }
+            }, 60000);
+          })
+          .catch(() => {
+            setStatus("PNG 다운로드를 준비하지 못했습니다. 다시 시도해 주세요.", true);
+          })
+          .finally(() => {
+            downloadButton.disabled = false;
+            downloadButton.textContent = originalLabel;
+          });
       }
 
       searchForm.addEventListener("submit", function (event) {
