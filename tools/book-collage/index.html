@@ -726,7 +726,7 @@
 
           <div class="download-row">
             <button id="downloadSecondary" class="button subtle" type="button" disabled>이미지 저장하기</button>
-            <button id="bookCoverUploadButton" class="inline-upload" type="button" disabled>표지 사진 직접 업로드</button>
+            <button id="bookCoverUploadButton" class="inline-upload" type="button">표지 사진 직접 업로드</button>
             <input id="bookCoverInput" class="visually-hidden-file-input" type="file" accept="image/*" />
           </div>
         </div>
@@ -804,9 +804,8 @@
       }
 
       function updateDownloadButtons() {
-        const ready = Boolean(state.selectedBook && state.selectedBookImage && state.photos.every((photo) => photo.image));
+        const ready = Boolean(state.selectedBookImage && state.photos.every((photo) => photo.image));
         downloadSecondary.disabled = !ready;
-        bookCoverUploadButton.disabled = !state.selectedBook;
       }
 
       function clearCustomBookCover() {
@@ -818,12 +817,15 @@
 
       function renderSelectedBook() {
         if (!state.selectedBook) {
-          selectedWrap.innerHTML = '<div class="empty-state">위에서 검색한 뒤 한 권을 선택하면 여기와 미리보기에 바로 반영됩니다.</div><div class="selected-note">판본 표지 화질이 떨어지는 경우 상세보기 버튼을 눌러주세요.</div>';
+          selectedWrap.innerHTML = '<div class="empty-state">위에서 판본을 검색해 선택하거나, 아래의 표지 직접 업로드로 이미지를 바로 넣을 수 있습니다.</div><div class="selected-note">판본 표지 화질이 떨어지면 직접 업로드한 이미지로 바로 대체할 수 있습니다.</div>';
           updateDownloadButtons();
           return;
         }
 
         const book = state.selectedBook;
+        const detailAction = book.link
+          ? `<a class="button subtle" href="${escapeHtml(book.link)}" target="_blank" rel="noreferrer">상세보기</a>`
+          : '<span class="pill">직접 업로드한 표지</span>';
         selectedWrap.innerHTML = `
           <article class="selected-card">
             <img class="thumb" src="${escapeHtml(state.selectedBookProxyUrl)}" alt="${escapeHtml(book.title)} 표지" />
@@ -835,7 +837,7 @@
                 <span class="pill">${escapeHtml(formatDate(book.pubDate))}</span>
               </div>
               <div class="card-actions">
-                <a class="button subtle" href="${escapeHtml(book.link || "#")}" target="_blank" rel="noreferrer">상세보기</a>
+                ${detailAction}
               </div>
             </div>
           </article>
@@ -897,20 +899,31 @@
       }
 
       async function handleBookCoverUpload(file) {
-        if (!state.selectedBook || !file) return;
+        if (!file) return;
 
         clearCustomBookCover();
         const objectUrl = URL.createObjectURL(file);
 
         try {
           const image = await loadImage(objectUrl);
+          if (!state.selectedBook) {
+            state.selectedBook = {
+              title: "직접 업로드한 표지",
+              author: "사용자 업로드",
+              publisher: "",
+              pubDate: "",
+              link: "",
+              isbn13: "",
+            };
+            state.selectedBookBaseProxyUrl = "";
+          }
           state.selectedBookImage = image;
           state.selectedBookProxyUrl = objectUrl;
           state.selectedBookCustomObjectUrl = objectUrl;
           state.bookTransform = { zoom: 1, offsetX: 0, offsetY: 0 };
           renderSelectedBook();
           drawCanvas();
-          setStatus("업로드한 이미지로 대표 판본 표지를 교체했습니다.", false);
+          setStatus("업로드한 이미지로 대표 표지를 설정했습니다.", false);
         } catch (error) {
           URL.revokeObjectURL(objectUrl);
           setStatus(String(error.message || error), true);
@@ -1516,11 +1529,6 @@
       });
 
       bookCoverUploadButton.addEventListener("click", function () {
-        if (!state.selectedBook) {
-          setStatus("먼저 대표 판본을 선택해 주세요.", true);
-          return;
-        }
-
         bookCoverInput.value = "";
         bookCoverInput.click();
       });
