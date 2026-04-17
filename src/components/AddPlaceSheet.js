@@ -1,4 +1,4 @@
-import { searchPlaceCandidates } from "../lib/api.js";
+import { searchPlaceCandidates, searchPlaceImageCandidates } from "../lib/api.js";
 import { loadNaverMapsSdk } from "../lib/naverMaps.js";
 import { CloseIcon, MapPinIcon } from "./Icons.js";
 
@@ -15,50 +15,16 @@ const searchInitialState = {
   query: "",
   results: [],
   selectedPlace: null,
+  category: "",
   reason: "",
+  imageResults: [],
+  selectedImageUrl: "",
+  imageErrorMessage: "",
+  isSearchingImages: false,
   isSearching: false,
   hasSearched: false,
   errorMessage: ""
 };
-
-function inferCategoryId(categoryText = "") {
-  const normalized = String(categoryText).toLowerCase();
-
-  if (normalized.includes("카페") || normalized.includes("커피") || normalized.includes("디저트")) {
-    return "cafe";
-  }
-
-  if (
-    normalized.includes("식당") ||
-    normalized.includes("음식점") ||
-    normalized.includes("칼국수") ||
-    normalized.includes("국밥") ||
-    normalized.includes("레스토랑")
-  ) {
-    return "restaurant";
-  }
-
-  if (
-    normalized.includes("백화점") ||
-    normalized.includes("쇼핑") ||
-    normalized.includes("소품") ||
-    normalized.includes("편집숍")
-  ) {
-    return "shopping";
-  }
-
-  if (
-    normalized.includes("공원") ||
-    normalized.includes("미술관") ||
-    normalized.includes("전시") ||
-    normalized.includes("관광") ||
-    normalized.includes("전망")
-  ) {
-    return "tour";
-  }
-
-  return "etc";
-}
 
 function PlaceSearchPreviewMap({ place, mapsClientId }) {
   const mapRef = useRef(null);
@@ -196,9 +162,64 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
     [categories]
   );
 
-  const selectedSearchCategory = searchState.selectedPlace
-    ? inferCategoryId(searchState.selectedPlace.category)
-    : "etc";
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchImageCandidates() {
+      if (!searchState.selectedPlace) {
+        return;
+      }
+
+      setSearchState((current) => ({
+        ...current,
+        imageResults: [],
+        selectedImageUrl: "",
+        imageErrorMessage: "",
+        isSearchingImages: true
+      }));
+
+      try {
+        const payload = await searchPlaceImageCandidates({
+          name: searchState.selectedPlace.name,
+          address: searchState.selectedPlace.address
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        const suggestions = Array.isArray(payload?.suggestions) ? payload.suggestions : [];
+        setSearchState((current) => ({
+          ...current,
+          imageResults: suggestions,
+          selectedImageUrl: suggestions[0]?.imageUrl || "",
+          imageErrorMessage: suggestions.length
+            ? ""
+            : "대표사진 후보를 찾지 못해 기본 이미지를 사용할게요.",
+          isSearchingImages: false
+        }));
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        setSearchState((current) => ({
+          ...current,
+          imageResults: [],
+          selectedImageUrl: "",
+          imageErrorMessage:
+            error instanceof Error ? error.message : "사진 후보를 불러오지 못했어요.",
+          isSearchingImages: false
+        }));
+      }
+    }
+
+    fetchImageCandidates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchState.selectedPlace]);
 
   async function handleSearchSubmit(event) {
     event.preventDefault();
@@ -239,6 +260,11 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
         isSearching: false,
         results: mappedResults,
         selectedPlace: mappedResults[0] || null,
+        category: "",
+        imageResults: [],
+        selectedImageUrl: "",
+        imageErrorMessage: "",
+        isSearchingImages: false,
         errorMessage: mappedResults.length ? "" : "검색 결과가 없어요. 직접 입력으로 바로 추가할 수 있어요."
       }));
     } catch (error) {
@@ -247,6 +273,11 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
         isSearching: false,
         results: [],
         selectedPlace: null,
+        category: "",
+        imageResults: [],
+        selectedImageUrl: "",
+        imageErrorMessage: "",
+        isSearchingImages: false,
         errorMessage:
           error instanceof Error ? error.message : "장소 검색에 실패했어요."
       }));
@@ -256,16 +287,17 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
   function handleSearchSave(event) {
     event.preventDefault();
 
-    if (!searchState.selectedPlace || !searchState.reason.trim()) {
+    if (!searchState.selectedPlace || !searchState.category || !searchState.reason.trim()) {
       return;
     }
 
     onSubmit({
-      category: selectedSearchCategory,
+      category: searchState.category,
       name: searchState.selectedPlace.name,
       address: searchState.selectedPlace.address,
       reason: searchState.reason.trim(),
       description: searchState.reason.trim(),
+      imageUrl: searchState.selectedImageUrl,
       latitude: searchState.selectedPlace.latitude,
       longitude: searchState.selectedPlace.longitude,
       resolvedAddress:
@@ -417,7 +449,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
                         h(
                           "p",
                           null,
-                          "장소명이나 지역으로 검색하면 후보를 바로 고를 수 있어요."
+                          "검색창에 장소명이나 지역을 입력하면 아래 리스트에서 바로 골라볼 수 있어요."
                         )
                       )
               ),
@@ -430,22 +462,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
                         "div",
                         { key: "head", className: "add-search-preview-copy" },
                         h("span", { className: "eyebrow subtle" }, "선택한 장소"),
-                        h("strong", null, searchState.selectedPlace.name),
-                        h("p", null, searchState.selectedPlace.address),
-                        h(
-                          "div",
-                          { className: "add-search-preview-meta" },
-                          h(
-                            "span",
-                            { className: "tag-pill" },
-                            selectableCategories.find(
-                              (category) => category.id === selectedSearchCategory
-                            )?.label || "기타"
-                          ),
-                          searchState.selectedPlace.distanceLabel
-                            ? h("span", { className: "tiny-note" }, searchState.selectedPlace.distanceLabel)
-                            : null
-                        )
+                        h("strong", null, searchState.selectedPlace.name)
                       ),
                       h(PlaceSearchPreviewMap, {
                         key: "map",
@@ -453,10 +470,60 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
                         mapsClientId
                       }),
                       h(
+                        "div",
+                        { key: "images", className: "field" },
+                        h("span", { className: "field-label" }, "대표사진 선택"),
+                        searchState.isSearchingImages
+                          ? h(
+                              "div",
+                              { className: "add-search-image-empty" },
+                              h("p", null, "사진 후보를 불러오는 중이에요.")
+                            )
+                          : searchState.imageResults.length
+                            ? h(
+                                "div",
+                                { className: "add-search-image-list" },
+                                ...searchState.imageResults.map((image) =>
+                                  h(
+                                    "button",
+                                    {
+                                      key: image.id,
+                                      type: "button",
+                                      className: `add-search-image-option ${
+                                        searchState.selectedImageUrl === image.imageUrl ? "active" : ""
+                                      }`,
+                                      onClick: () =>
+                                        setSearchState((current) => ({
+                                          ...current,
+                                          selectedImageUrl: image.imageUrl
+                                        })),
+                                      "aria-label": `${image.title} 대표사진 선택`
+                                    },
+                                    h("img", {
+                                      src: image.thumbnailUrl || image.imageUrl,
+                                      alt: image.title,
+                                      loading: "lazy"
+                                    })
+                                  )
+                                )
+                              )
+                            : h(
+                                "div",
+                                { className: "add-search-image-empty" },
+                                h(
+                                  "p",
+                                  null,
+                                  searchState.imageErrorMessage ||
+                                    "사진 후보를 찾지 못했어요. 기본 이미지를 사용할게요."
+                                )
+                              )
+                      ),
+                      h(
                         "label",
                         { key: "reason", className: "field" },
                         h("span", { className: "field-label" }, "한줄 추천 이유"),
-                        h("textarea", {
+                        h("input", {
+                          type: "text",
                           value: searchState.reason,
                           onInput: (event) =>
                             setSearchState((current) => ({
@@ -464,16 +531,46 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
                               reason: event.target.value
                             })),
                           placeholder: "왜 우리 여행에 어울리는지 짧게 적어주세요",
-                          rows: 4,
                           required: true
                         })
+                      ),
+                      h(
+                        "div",
+                        { key: "category", className: "field" },
+                        h("span", { className: "field-label" }, "분류 카테고리"),
+                        h(
+                          "div",
+                          { className: "category-chip-row" },
+                          ...selectableCategories.map((category) =>
+                            h(
+                              "button",
+                              {
+                                key: category.id,
+                                type: "button",
+                                className: `category-select-chip ${
+                                  searchState.category === category.id ? "active" : ""
+                                }`,
+                                onClick: () =>
+                                  setSearchState((current) => ({
+                                    ...current,
+                                    category: category.id
+                                  }))
+                              },
+                              category.label
+                            )
+                          )
+                        )
                       ),
                       h(
                         "button",
                         {
                           key: "submit",
                           type: "submit",
-                          className: "submit-button"
+                          className: "submit-button",
+                          disabled:
+                            !searchState.selectedPlace ||
+                            !searchState.category ||
+                            !searchState.reason.trim()
                         },
                         "등록하기"
                       )
@@ -481,11 +578,11 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
                   : h(
                       "div",
                       { className: "add-search-preview-empty" },
-                      h("strong", null, "검색 결과에서 장소를 하나 골라주세요."),
+                      h("strong", null, "먼저 아래 검색 결과에서 장소를 골라주세요."),
                       h(
                         "p",
                         null,
-                        "선택 후에는 작은 지도와 추천 이유 입력만 보여드릴게요."
+                        "장소를 선택하면 이 영역이 위에서 바로 업데이트되고, 지도와 추천 이유 입력도 함께 열려요."
                       )
                     )
               )

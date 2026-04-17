@@ -1,34 +1,191 @@
 import { getCategoryById } from "../lib/api.js";
+import { loadNaverMapsSdk, searchAddressCandidates } from "../lib/naverMaps.js";
 import { ArrowLeftIcon, HeartIcon, MapPinIcon, TrashIcon } from "./Icons.js";
 import { PlaceImage } from "./PlaceImage.js";
 
-const { createElement: h, useMemo, useState } = window.React;
+const { createElement: h, useEffect, useMemo, useRef, useState } = window.React;
 
 function buildFriendMessages(place) {
-  const seededMessages = [
-    {
+  const seededMessages = [];
+
+  if (place.friendNote) {
+    seededMessages.push({
       id: `${place.id}-primary`,
       name: place.friendName,
       text: place.friendNote,
       time: String(place.createdLabel || "방금 추천").replace("저장", "추천"),
       accent: "left"
-    },
-    {
-      id: `${place.id}-secondary`,
-      name: "",
-      text: place.reason,
-      time: "지금 보고 있음",
-      accent: "right"
-    }
-  ];
+    });
+  }
 
   const extraMessages = Array.isArray(place.comments) ? place.comments : [];
 
   return [...seededMessages, ...extraMessages];
 }
 
+function buildNaverMapUrl(place) {
+  const query = String(place.address || place.name || "").trim();
+  return query
+    ? `https://map.naver.com/p/search/${encodeURIComponent(query)}`
+    : "https://map.naver.com/p/";
+}
+
+function DetailLocationMap({ place, mapsClientId = "" }) {
+  const mapRef = useRef(null);
+  const [resolvedPoint, setResolvedPoint] = useState(null);
+  const [renderError, setRenderError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function resolvePoint() {
+      const latitude = Number(place.latitude);
+      const longitude = Number(place.longitude);
+
+      if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+        setResolvedPoint({ latitude, longitude });
+        return;
+      }
+
+      if (!mapsClientId) {
+        setResolvedPoint(null);
+        return;
+      }
+
+      try {
+        const candidates = await searchAddressCandidates(place.address || place.name, mapsClientId);
+
+        if (cancelled) {
+          return;
+        }
+
+        const firstCandidate = candidates[0];
+        if (firstCandidate) {
+          setResolvedPoint({
+            latitude: Number(firstCandidate.latitude),
+            longitude: Number(firstCandidate.longitude)
+          });
+          setRenderError("");
+          return;
+        }
+      } catch (error) {
+        console.warn("Failed to resolve detail map coordinates.", error);
+      }
+
+      if (!cancelled) {
+        setResolvedPoint(null);
+      }
+    }
+
+    setRenderError("");
+    setResolvedPoint(null);
+    resolvePoint();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mapsClientId, place]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function renderMap() {
+      if (!mapRef.current || !mapsClientId || !resolvedPoint) {
+        return;
+      }
+
+      try {
+        const naver = await loadNaverMapsSdk(mapsClientId);
+
+        if (cancelled || !mapRef.current || !naver?.maps?.Map) {
+          return;
+        }
+
+        const target = mapRef.current;
+        const position = new naver.maps.LatLng(resolvedPoint.latitude, resolvedPoint.longitude);
+        target.replaceChildren();
+
+        const map = new naver.maps.Map(target, {
+          center: position,
+          zoom: 16,
+          zoomControl: false,
+          mapDataControl: false,
+          scaleControl: false,
+          logoControl: false,
+          draggable: false,
+          scrollWheel: false,
+          disableDoubleTapZoom: true,
+          pinchZoom: false,
+          keyboardShortcuts: false
+        });
+
+        new naver.maps.Marker({
+          position,
+          map
+        });
+
+        window.requestAnimationFrame(() => {
+          if (!target.isConnected) {
+            return;
+          }
+
+          const width = Math.max(target.clientWidth, 280);
+          const height = Math.max(target.clientHeight, 160);
+          map.setSize(new naver.maps.Size(width, height));
+          map.autoResize();
+        });
+
+        setRenderError("");
+      } catch (error) {
+        if (!cancelled) {
+          setRenderError("지도를 불러오지 못해 위치 프리뷰로 표시하고 있어요.");
+        }
+        console.warn("Failed to render detail map.", error);
+      }
+    }
+
+    renderMap();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mapsClientId, resolvedPoint]);
+
+  const showRealMap = Boolean(mapsClientId && resolvedPoint);
+
+  return h(
+    "div",
+    {
+      className: `detail-location-map ${showRealMap ? "is-live" : ""}`
+    },
+    h("div", {
+      ref: mapRef,
+      className: "detail-location-real-map",
+      hidden: !showRealMap,
+      "aria-label": `${place.name} 위치 지도`
+    }),
+    h("div", { className: "detail-location-grid", hidden: showRealMap }),
+    h(
+      "div",
+      {
+        className: "detail-location-pin",
+        hidden: showRealMap
+      },
+      h(MapPinIcon, { className: "button-icon" })
+    ),
+    !mapsClientId || renderError
+      ? h(
+          "p",
+          { className: "detail-location-status" },
+          renderError || "네이버 지도 키가 연결되면 여기서 실제 위치를 바로 보여드릴게요."
+        )
+      : null
+  );
+}
+
 export function PlaceDetailSheet({
   place,
+  mapsClientId = "",
   onAddComment,
   onClose,
   onDeletePlace,
@@ -125,16 +282,7 @@ export function PlaceDetailSheet({
         h(
           "section",
           { className: "detail-location-card" },
-          h(
-            "div",
-            { className: "detail-location-map" },
-            h("div", { className: "detail-location-grid" }),
-            h(
-              "div",
-              { className: "detail-location-pin" },
-              h(MapPinIcon, { className: "button-icon" })
-            )
-          )
+          h(DetailLocationMap, { place, mapsClientId })
         ),
         h(
           "section",
@@ -211,10 +359,12 @@ export function PlaceDetailSheet({
             "우리지도"
           ),
           h(
-            "button",
+            "a",
             {
-              type: "button",
-              className: "detail-action-pill detail-action-pill-muted"
+              className: "detail-action-pill detail-action-pill-muted",
+              href: buildNaverMapUrl(place),
+              target: "_blank",
+              rel: "noreferrer"
             },
             "네이버 지도"
           ),

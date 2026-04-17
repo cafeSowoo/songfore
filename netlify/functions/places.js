@@ -1,5 +1,6 @@
 import { json } from "./lib/http.js";
 import { geocodeAddress } from "./lib/naverGeocode.js";
+import { serializePlaceDescription } from "./lib/placeDescription.js";
 import {
   buildTripSnapshot,
   ensureMember,
@@ -22,12 +23,77 @@ function hasCoordinates(body) {
   );
 }
 
+function validateDeletePayload(body) {
+  const required = ["slug", "placeId"];
+
+  for (const field of required) {
+    if (!body[field] || String(body[field]).trim() === "") {
+      throw new Error(`${field} is required.`);
+    }
+  }
+}
+
+async function getTripBySlug(supabase, slug) {
+  const { data, error } = await supabase.from("trips").select("*").eq("slug", slug).maybeSingle();
+
+  if (error) {
+    throw new Error(error.message || "Failed to read trip.");
+  }
+
+  if (!data) {
+    throw new Error("Trip not found.");
+  }
+
+  return data;
+}
+
+async function insertPlace(supabase, payload) {
+  const attempt = await supabase.from("places").insert(payload);
+
+  if (!attempt.error) {
+    return attempt;
+  }
+
+  if (String(attempt.error.message || "").includes("image_url")) {
+    const { image_url, ...fallbackPayload } = payload;
+    return supabase.from("places").insert(fallbackPayload);
+  }
+
+  return attempt;
+}
+
 export default async (request) => {
-  if (request.method !== "POST") {
+  if (!["POST", "DELETE"].includes(request.method)) {
     return json({ error: "Method not allowed." }, { status: 405 });
   }
 
   try {
+    if (request.method === "DELETE") {
+      const body = await request.json();
+      validateDeletePayload(body);
+
+      const supabase = getSupabaseAdmin();
+      const trip = await getTripBySlug(supabase, String(body.slug).trim());
+      const { data, error } = await supabase
+        .from("places")
+        .delete()
+        .eq("trip_id", trip.id)
+        .eq("id", String(body.placeId).trim())
+        .select("id")
+        .maybeSingle();
+
+      if (error) {
+        throw new Error(error.message || "Failed to delete place.");
+      }
+
+      if (!data) {
+        throw new Error("삭제할 장소를 찾지 못했어요.");
+      }
+
+      const snapshot = await buildTripSnapshot(trip.slug);
+      return json(snapshot, { status: 200 });
+    }
+
     const body = await request.json();
     validatePlacePayload(body);
 
@@ -43,14 +109,15 @@ export default async (request) => {
         }
       : await geocodeAddress(String(body.address));
 
-    const { error } = await supabase.from("places").insert({
+    const { error } = await insertPlace(supabase, {
       trip_id: trip.id,
       category: String(body.category),
       name: String(body.name).trim(),
       address: location.roadAddress || location.jibunAddress || String(body.address).trim(),
       latitude: location.latitude,
       longitude: location.longitude,
-      description: String(body.description || "").trim(),
+      image_url: String(body.imageUrl || "").trim() || null,
+      description: serializePlaceDescription(body.description, body.imageUrl),
       created_by_member_id: member.id
     });
 

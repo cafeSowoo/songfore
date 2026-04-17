@@ -315,6 +315,7 @@ export function App() {
           address: formData.address,
           reason: formData.reason,
           description: formData.description,
+          imageUrl: formData.imageUrl,
           nickname: authorNickname,
           latitude: formData.latitude,
           longitude: formData.longitude,
@@ -460,10 +461,10 @@ export function App() {
       h(
         "div",
         { className: "phone-frame" },
-        h(AppHeader, { meta: trip }),
         h(
           "main",
           { className: "app-content" },
+          h(AppHeader, { meta: trip }),
           activeTab !== "schedule"
             ? h(FilterChips, {
                 categories: categoryOptions,
@@ -505,6 +506,7 @@ export function App() {
                   places: visiblePlaces.length ? visiblePlaces : places,
                   activeFilter,
                   focusedPlaceId: hasFocusedPlace ? focusedMapPlaceId : null,
+                  mapsClientId: runtimeConfig.naverMapsClientId,
                   onFocusPlace: handleFocusMapPlace,
                   onClearFocus: handleClearMapFocus,
                   onOpenPlace: handleOpenPlace
@@ -543,6 +545,7 @@ export function App() {
     selectedPlace
       ? h(PlaceDetailSheet, {
           place: selectedPlace,
+          mapsClientId: runtimeConfig.naverMapsClientId,
           onDeletePlace: handleDeletePlace,
           onClose: handleCloseDetail,
           onAddComment: handleAddPlaceComment,

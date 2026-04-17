@@ -109,6 +109,42 @@ function pad(value) {
   return String(value).padStart(2, "0");
 }
 
+function getPlaceImageCache() {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  return parseJsonSafely(window.localStorage.getItem("dj-place-image-cache")) || {};
+}
+
+function setPlaceImageCache(cache) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem("dj-place-image-cache", JSON.stringify(cache));
+}
+
+function buildPlaceImageCacheKey(placeLike = {}) {
+  return `${slugify(placeLike.id || "")}:${slugify(placeLike.name || "")}:${slugify(placeLike.address || "")}`;
+}
+
+function resolveCachedImageUrl(placeLike = {}) {
+  return getPlaceImageCache()[buildPlaceImageCacheKey(placeLike)] || "";
+}
+
+export function rememberPlaceImage(placeLike = {}, imageUrl = "") {
+  const normalizedImageUrl = String(imageUrl || "").trim();
+
+  if (!normalizedImageUrl) {
+    return;
+  }
+
+  const cache = getPlaceImageCache();
+  cache[buildPlaceImageCacheKey(placeLike)] = normalizedImageUrl;
+  setPlaceImageCache(cache);
+}
+
 function formatRelativeTime(dateLike) {
   const timestamp = new Date(dateLike).getTime();
 
@@ -277,7 +313,10 @@ function toUiPlace(remotePlace, index) {
     address: remotePlace.address || "",
     latitude: Number(remotePlace.latitude),
     longitude: Number(remotePlace.longitude),
-    imageUrl: chooseImageForPlace(remotePlace.category, remotePlace.name),
+    imageUrl:
+      String(remotePlace.imageUrl || "").trim() ||
+      resolveCachedImageUrl(remotePlace) ||
+      chooseImageForPlace(remotePlace.category, remotePlace.name),
     friendName,
     friendNote,
     saveCount,
@@ -376,7 +415,8 @@ export function createPlaceRecord(formData, index = 0, authorName = "") {
     reason: buildGeneratedReason(categoryId, normalizedAddress),
     description: String(formData.description || "").trim(),
     address: normalizedAddress,
-    imageUrl: chooseImageForPlace(categoryId, name),
+    imageUrl:
+      String(formData.imageUrl || "").trim() || chooseImageForPlace(categoryId, name),
     friendName,
     friendNote:
       String(formData.reason || "").trim() ||
@@ -415,6 +455,19 @@ export async function searchPlaceCandidates(query) {
   return readJsonResponse(response);
 }
 
+export async function searchPlaceImageCandidates({ name, address }) {
+  const response = await fetch(
+    `/.netlify/functions/place-image-search?name=${encodeURIComponent(
+      String(name || "").trim()
+    )}&address=${encodeURIComponent(String(address || "").trim())}`,
+    {
+      headers: { Accept: "application/json" }
+    }
+  );
+
+  return readJsonResponse(response);
+}
+
 export async function createPlace(payload) {
   const address = String(payload.address || "").trim();
   const category = payload.category || "etc";
@@ -433,9 +486,30 @@ export async function createPlace(payload) {
       address,
       description: String(payload.description || payload.reason || "").trim(),
       nickname: String(payload.nickname || "").trim(),
+      imageUrl: String(payload.imageUrl || "").trim(),
       latitude: payload.latitude,
       longitude: payload.longitude,
       resolvedAddress: payload.resolvedAddress
+    })
+  });
+
+  const snapshot = await readJsonResponse(response);
+  if (payload.imageUrl && snapshot?.places?.[0]) {
+    rememberPlaceImage(snapshot.places[0], payload.imageUrl);
+  }
+  return toUiSnapshot(snapshot);
+}
+
+export async function deletePlace(payload) {
+  const response = await fetch("/.netlify/functions/places", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify({
+      slug: payload.slug || "dj",
+      placeId: payload.placeId
     })
   });
 

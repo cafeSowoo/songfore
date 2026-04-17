@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "./supabaseAdmin.js";
+import { parsePlaceDescription } from "./placeDescription.js";
 
 function getDefaultTripTitle(slug) {
   return process.env.TRIP_TITLE || `${slug.toUpperCase()} 여행 보드`;
@@ -114,6 +115,8 @@ export async function buildTripSnapshot(slug) {
 
   const normalizedPlaces = (places || []).map((place) => {
     const author = memberById.get(place.created_by_member_id);
+    const decodedDescription = parsePlaceDescription(place.description);
+
     return {
       id: place.id,
       category: place.category,
@@ -121,7 +124,8 @@ export async function buildTripSnapshot(slug) {
       address: place.address,
       latitude: Number(place.latitude),
       longitude: Number(place.longitude),
-      description: place.description || "",
+      imageUrl: place.image_url || decodedDescription.imageUrl || "",
+      description: decodedDescription.reason,
       author: author?.nickname || "익명 멤버",
       createdAt: place.created_at,
       comments: commentsByPlaceId.get(place.id) || []

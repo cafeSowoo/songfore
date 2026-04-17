@@ -26,6 +26,7 @@ create table public.places (
   address text not null,
   latitude numeric(10, 7) not null,
   longitude numeric(10, 7) not null,
+  image_url text,
   description text,
   created_by_member_id uuid not null references public.members(id) on delete restrict,
   created_at timestamptz not null default now(),
