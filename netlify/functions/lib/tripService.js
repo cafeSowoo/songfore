@@ -125,6 +125,7 @@ export async function buildTripSnapshot(slug) {
       latitude: Number(place.latitude),
       longitude: Number(place.longitude),
       imageUrl: place.image_url || decodedDescription.imageUrl || "",
+      naverLink: decodedDescription.naverLink || "",
       description: decodedDescription.reason,
       author: author?.nickname || "익명 멤버",
       createdAt: place.created_at,

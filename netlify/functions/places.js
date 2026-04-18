@@ -117,7 +117,7 @@ export default async (request) => {
       latitude: location.latitude,
       longitude: location.longitude,
       image_url: String(body.imageUrl || "").trim() || null,
-      description: serializePlaceDescription(body.description, body.imageUrl),
+      description: serializePlaceDescription(body.description, body.imageUrl, body.naverLink),
       created_by_member_id: member.id
     });
 

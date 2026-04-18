@@ -35,7 +35,14 @@ function formatMessageMetaLabel(value) {
 }
 
 function buildNaverMapUrl(place) {
-  const query = String(place.address || place.name || "").trim();
+  const directLink = String(place.naverLink || "").trim();
+
+  if (/^https?:\/\//i.test(directLink)) {
+    return directLink;
+  }
+
+  const query = String(place.name || place.address || "").trim();
+
   return query
     ? `https://map.naver.com/p/search/${encodeURIComponent(query)}`
     : "https://map.naver.com/p/";

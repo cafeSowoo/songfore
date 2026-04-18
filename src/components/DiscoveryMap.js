@@ -83,6 +83,24 @@ function getMarkerColor(categoryId, isActive) {
   return CATEGORY_MARKER_COLORS[categoryId] || CATEGORY_MARKER_COLORS.etc;
 }
 
+function getMapSummaryCopy(place) {
+  const recommendationNote = String(place.friendNote || place.description || "").trim();
+
+  if (recommendationNote) {
+    return recommendationNote;
+  }
+
+  const firstComment = Array.isArray(place.comments)
+    ? place.comments.find((comment) => String(comment?.text || "").trim())
+    : null;
+
+  if (firstComment) {
+    return String(firstComment.text).trim();
+  }
+
+  return String(place.reason || "").trim();
+}
+
 function createMarkerIcon(naver, place, isActive) {
   const size = isActive ? 26 : 20;
   const fill = getMarkerColor(place.category, isActive);
@@ -391,7 +409,7 @@ export function DiscoveryMap({
             onClick: () => onFocusPlace(place.id)
           },
           h("strong", null, place.name),
-          h("p", null, place.reason),
+          h("p", null, getMapSummaryCopy(place)),
           h("span", null, `${place.friendName} 추천 · ${place.address}`)
         );
       })

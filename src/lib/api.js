@@ -281,8 +281,8 @@ function buildGeneratedReason(categoryId, address) {
   return `${location} 근처에서 바로 들르기 좋은 ${category.label} 코스예요.`;
 }
 
-function buildSaveCount(name, commentCount) {
-  return 3 + (hashString(name) % 4) + Number(commentCount || 0);
+function buildSaveCount() {
+  return 0;
 }
 
 function toUiComment(comment, index) {
@@ -310,6 +310,7 @@ function toUiPlace(remotePlace, index) {
     category: remotePlace.category || "etc",
     reason,
     description,
+    naverLink: String(remotePlace.naverLink || "").trim(),
     address: remotePlace.address || "",
     latitude: Number(remotePlace.latitude),
     longitude: Number(remotePlace.longitude),
@@ -414,6 +415,7 @@ export function createPlaceRecord(formData, index = 0, authorName = "") {
     category: categoryId,
     reason: buildGeneratedReason(categoryId, normalizedAddress),
     description: String(formData.description || "").trim(),
+    naverLink: String(formData.naverLink || "").trim(),
     address: normalizedAddress,
     imageUrl:
       String(formData.imageUrl || "").trim() || chooseImageForPlace(categoryId, name),
@@ -487,6 +489,7 @@ export async function createPlace(payload) {
       description: String(payload.description || payload.reason || "").trim(),
       nickname: String(payload.nickname || "").trim(),
       imageUrl: String(payload.imageUrl || "").trim(),
+      naverLink: String(payload.naverLink || "").trim(),
       latitude: payload.latitude,
       longitude: payload.longitude,
       resolvedAddress: payload.resolvedAddress

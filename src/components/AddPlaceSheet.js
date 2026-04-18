@@ -245,6 +245,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
         address: item.address || item.roadAddress || item.jibunAddress || normalizedQuery,
         roadAddress: item.roadAddress || "",
         jibunAddress: item.jibunAddress || "",
+        naverLink: String(item.link || "").trim(),
         category: item.category || "",
         latitude: Number(item.latitude),
         longitude: Number(item.longitude),
@@ -298,6 +299,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
       reason: searchState.reason.trim(),
       description: searchState.reason.trim(),
       imageUrl: searchState.selectedImageUrl,
+      naverLink: searchState.selectedPlace.naverLink,
       latitude: searchState.selectedPlace.latitude,
       longitude: searchState.selectedPlace.longitude,
       resolvedAddress:
