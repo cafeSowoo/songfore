@@ -3,6 +3,7 @@ import {
   createComment,
   createPlace,
   createPlaceRecord,
+  deletePlace,
   fetchTripSnapshot,
   friendRoster,
   getRuntimeConfig,
@@ -33,7 +34,7 @@ const defaultTimelineSlots = [
   { dayId: "day-2", time: "19:00" }
 ];
 
-const initialScheduleEntries = buildSuggestedScheduleEntries(seedPlaces);
+const initialScheduleEntries = [];
 
 function createScheduleId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -111,7 +112,7 @@ export function App() {
     title: runtimeConfig.tripTitle || tripMeta.title,
     description: runtimeConfig.tripDescription || tripMeta.description
   });
-  const [places, setPlaces] = useState(seedPlaces);
+  const [places, setPlaces] = useState([]);
   const [scheduleEntries, setScheduleEntries] = useState(initialScheduleEntries);
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("feed");
@@ -121,6 +122,7 @@ export function App() {
   const [nickname, setNickname] = useState(getStoredNickname);
   const [nicknameRequest, setNicknameRequest] = useState(null);
   const [dataMode, setDataMode] = useState("demo");
+  const [isHydrating, setIsHydrating] = useState(true);
 
   const visiblePlaces = getVisiblePlaces(places, activeFilter);
   const selectedPlace = places.find((place) => place.id === selectedPlaceId) || null;
@@ -147,7 +149,13 @@ export function App() {
         }
 
         console.warn("Failed to load /dj trip snapshot. Falling back to demo data.", error);
+        setPlaces(seedPlaces);
+        setScheduleEntries(buildSuggestedScheduleEntries(seedPlaces));
         setDataMode("demo");
+      } finally {
+        if (!cancelled) {
+          setIsHydrating(false);
+        }
       }
     }
 
@@ -165,7 +173,7 @@ export function App() {
     setTrip((currentTrip) => ({
       ...currentTrip,
       slug: nextTrip.slug || currentTrip.slug,
-      title: nextTrip.title || currentTrip.title,
+      title: runtimeConfig.tripTitle || nextTrip.title || currentTrip.title,
       description: nextTrip.description || currentTrip.description
     }));
 
@@ -323,8 +331,20 @@ export function App() {
         });
 
         const newestPlaceId = snapshot.places[0]?.id || null;
+        const normalizedSnapshot = {
+          ...snapshot,
+          places: snapshot.places.map((place) =>
+            place.id === newestPlaceId
+              ? {
+                  ...place,
+                  saveCount: 0,
+                  baseSaveCount: 0
+                }
+              : place
+          )
+        };
 
-        applySnapshot(snapshot, {
+        applySnapshot(normalizedSnapshot, {
           selectedPlaceId: newestPlaceId,
           syncSchedule: false
         });
@@ -389,7 +409,24 @@ export function App() {
     }
 
     if (dataMode === "remote") {
-      window.alert("장소 삭제는 아직 운영 API와 연결되지 않아 준비 중이에요.");
+      deletePlace({
+        slug: trip.slug,
+        placeId
+      })
+        .then((snapshot) => {
+          applySnapshot(snapshot, { syncSchedule: true });
+          setSelectedPlaceId((currentSelectedPlaceId) =>
+            currentSelectedPlaceId === placeId ? null : currentSelectedPlaceId
+          );
+          setFocusedMapPlaceId((currentFocusedPlaceId) =>
+            currentFocusedPlaceId === placeId ? null : currentFocusedPlaceId
+          );
+        })
+        .catch((error) => {
+          const message =
+            error instanceof Error ? error.message : "장소를 삭제하지 못했어요.";
+          window.alert(message);
+        });
       return;
     }
 
@@ -465,7 +502,7 @@ export function App() {
           "main",
           { className: "app-content" },
           h(AppHeader, { meta: trip }),
-          activeTab !== "schedule"
+          activeTab === "feed" || activeTab === "map"
             ? h(FilterChips, {
                 categories: categoryOptions,
                 activeFilter,
@@ -476,7 +513,36 @@ export function App() {
             ? h(
                 "section",
                 { className: "feed-section" },
-                visiblePlaces.length
+                isHydrating
+                  ? h(
+                      "div",
+                      { className: "loading-state" },
+                      h(
+                        "div",
+                        { className: "loading-state-copy" },
+                        h("strong", null, "장소를 불러오는 중이에요."),
+                        h("p", null, "이전 샘플 카드 대신 현재 여행 보드를 바로 연결하고 있어요.")
+                      ),
+                      h(
+                        "div",
+                        { className: "loading-card-list" },
+                        ...Array.from({ length: 2 }, (_, index) =>
+                          h(
+                            "article",
+                            { key: `loading-card-${index}`, className: "loading-card" },
+                            h("div", { className: "loading-card-image shimmer-block" }),
+                            h(
+                              "div",
+                              { className: "loading-card-body" },
+                              h("span", { className: "loading-line loading-line-title shimmer-block" }),
+                              h("span", { className: "loading-line loading-line-meta shimmer-block" }),
+                              h("span", { className: "loading-line loading-line-note shimmer-block" })
+                            )
+                          )
+                        )
+                      )
+                    )
+                  : visiblePlaces.length
                   ? h(
                       "div",
                       { className: "place-list" },
@@ -502,24 +568,46 @@ export function App() {
                     )
               )
             : activeTab === "map"
-              ? h(DiscoveryMap, {
-                  places: visiblePlaces.length ? visiblePlaces : places,
-                  activeFilter,
-                  focusedPlaceId: hasFocusedPlace ? focusedMapPlaceId : null,
-                  mapsClientId: runtimeConfig.naverMapsClientId,
-                  onFocusPlace: handleFocusMapPlace,
-                  onClearFocus: handleClearMapFocus,
-                  onOpenPlace: handleOpenPlace
-                })
-              : activeTab === "schedule"
-                ? h(ScheduleTimeline, {
-                    places,
-                    entries: scheduleEntries,
-                    onAddFromCard: handleAddScheduleFromCard,
-                    onAddDirect: handleAddScheduleCustom,
-                    onDeleteEntry: handleDeleteScheduleEntry,
+              ? isHydrating
+                ? h(
+                    "section",
+                    { className: "feed-section" },
+                    h(
+                      "div",
+                      { className: "empty-state" },
+                      h("strong", null, "지도를 준비하는 중이에요."),
+                      h("p", null, "현재 여행 장소를 불러오면 지도도 바로 연결됩니다.")
+                    )
+                  )
+                : h(DiscoveryMap, {
+                    places: visiblePlaces.length ? visiblePlaces : places,
+                    activeFilter,
+                    focusedPlaceId: hasFocusedPlace ? focusedMapPlaceId : null,
+                    mapsClientId: runtimeConfig.naverMapsClientId,
+                    onFocusPlace: handleFocusMapPlace,
+                    onClearFocus: handleClearMapFocus,
                     onOpenPlace: handleOpenPlace
                   })
+              : activeTab === "schedule"
+                ? isHydrating
+                  ? h(
+                      "section",
+                      { className: "feed-section" },
+                      h(
+                        "div",
+                        { className: "empty-state" },
+                        h("strong", null, "일정을 불러오는 중이에요."),
+                        h("p", null, "현재 여행 보드가 준비되면 DAY 구조와 장소 일정이 같이 보일 거예요.")
+                      )
+                    )
+                  : h(ScheduleTimeline, {
+                      places,
+                      entries: scheduleEntries,
+                      onAddFromCard: handleAddScheduleFromCard,
+                      onAddDirect: handleAddScheduleCustom,
+                      onDeleteEntry: handleDeleteScheduleEntry,
+                      onOpenPlace: handleOpenPlace
+                    })
                 : h(
                     "section",
                     { className: "feed-section" },

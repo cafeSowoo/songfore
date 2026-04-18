@@ -6,17 +6,19 @@ function parseJsonSafely(value) {
   }
 }
 
-export function serializePlaceDescription(reason = "", imageUrl = "") {
+export function serializePlaceDescription(reason = "", imageUrl = "", naverLink = "") {
   const normalizedReason = String(reason || "").trim();
   const normalizedImageUrl = String(imageUrl || "").trim();
+  const normalizedNaverLink = String(naverLink || "").trim();
 
-  if (!normalizedImageUrl) {
+  if (!normalizedImageUrl && !normalizedNaverLink) {
     return normalizedReason;
   }
 
   return JSON.stringify({
     reason: normalizedReason,
-    imageUrl: normalizedImageUrl
+    imageUrl: normalizedImageUrl,
+    naverLink: normalizedNaverLink
   });
 }
 
@@ -26,7 +28,8 @@ export function parsePlaceDescription(value = "") {
   if (!rawValue) {
     return {
       reason: "",
-      imageUrl: ""
+      imageUrl: "",
+      naverLink: ""
     };
   }
 
@@ -35,12 +38,14 @@ export function parsePlaceDescription(value = "") {
   if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") {
     return {
       reason: rawValue,
-      imageUrl: ""
+      imageUrl: "",
+      naverLink: ""
     };
   }
 
   return {
     reason: String(parsed.reason || rawValue).trim(),
-    imageUrl: String(parsed.imageUrl || "").trim()
+    imageUrl: String(parsed.imageUrl || "").trim(),
+    naverLink: String(parsed.naverLink || "").trim()
   };
 }

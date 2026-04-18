@@ -6,6 +6,10 @@ const { createElement: h, useEffect, useMemo, useState } = window.React;
 const meridiemOptions = ["오전", "오후"];
 const hourOptions = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, "0"));
 const minuteOptions = ["00", "30"];
+const defaultDayTabs = [
+  { id: "day-1", dayLabel: "DAY 1" },
+  { id: "day-2", dayLabel: "DAY 2" }
+];
 
 function toTimeString(period, hour, minute) {
   let numericHour = Number(hour);
@@ -37,11 +41,18 @@ function sortEntries(entries) {
 }
 
 function buildDayTabs(entries) {
-  const dayIds = [...new Set(entries.map((entry) => entry.dayId))];
+  const mergedDayIds = [
+    ...new Set([...defaultDayTabs.map((day) => day.id), ...entries.map((entry) => entry.dayId)])
+  ].sort((left, right) => {
+    const leftNumber = Number(String(left).replace("day-", ""));
+    const rightNumber = Number(String(right).replace("day-", ""));
 
-  return dayIds.map((dayId, index) => ({
+    return leftNumber - rightNumber;
+  });
+
+  return mergedDayIds.map((dayId) => ({
     id: dayId,
-    dayLabel: `DAY ${index + 1}`
+    dayLabel: `DAY ${String(dayId).replace("day-", "")}`
   }));
 }
 
@@ -367,80 +378,91 @@ export function ScheduleTimeline({
       h(
         "div",
         { className: "schedule-timeline" },
-        ...groupedEntries.map((group, groupIndex) =>
-          h(
-            "div",
-            {
-              key: `${activeDayId}-${group.time}-${groupIndex}`,
-              className: "schedule-entry-group"
-            },
-            h("div", { className: "schedule-time" }, group.time),
-            h("div", { className: "schedule-line" }),
-            h(
-              "div",
-              {
-                className: `schedule-entry-stack ${group.items.length > 1 ? "schedule-entry-stack-compact" : ""}`
-              },
-              ...group.items.map((entry) => {
-                const place =
-                  entry.type === "place" ? places.find((item) => item.id === entry.placeId) : null;
-                const category = place ? getCategoryById(place.category) : null;
-
-                return h(
+        groupedEntries.length
+          ? groupedEntries.map((group, groupIndex) =>
+              h(
+                "div",
+                {
+                  key: `${activeDayId}-${group.time}-${groupIndex}`,
+                  className: "schedule-entry-group"
+                },
+                h("div", { className: "schedule-time" }, group.time),
+                h("div", { className: "schedule-line" }),
+                h(
                   "div",
                   {
-                    key: entry.id,
-                    className: `schedule-entry-card ${entry.type === "note" ? "schedule-note" : ""} ${
-                      group.items.length > 1 ? "schedule-entry-card-compact" : ""
-                    }`,
-                    style: category ? { "--schedule-tone": category.tone } : null,
-                    onClick: place ? () => onOpenPlace(place.id) : undefined
+                    className: `schedule-entry-stack ${
+                      group.items.length > 1 ? "schedule-entry-stack-compact" : ""
+                    }`
                   },
-                  h(
-                    "div",
-                    { className: "schedule-entry-head" },
-                    h(
+                  ...group.items.map((entry) => {
+                    const place =
+                      entry.type === "place"
+                        ? places.find((item) => item.id === entry.placeId)
+                        : null;
+                    const category = place ? getCategoryById(place.category) : null;
+
+                    return h(
                       "div",
-                      { className: "schedule-entry-copy" },
-                      place
-                        ? h("span", { className: "schedule-entry-label" }, category.label)
-                        : h("span", { className: "schedule-entry-label" }, "직접 입력"),
-                      h("strong", null, place ? place.name : entry.title)
-                    ),
-                    h(
-                      "div",
-                      { className: "schedule-entry-actions" },
-                      place
-                        ? h(
-                            "span",
-                            { className: "schedule-like-badge" },
-                            h(HeartIcon, {
-                              className: "schedule-like-icon",
-                              filled: true
-                            }),
-                            h("span", null, place.saveCount)
-                          )
-                        : null,
+                      {
+                        key: entry.id,
+                        className: `schedule-entry-card ${
+                          entry.type === "note" ? "schedule-note" : ""
+                        } ${group.items.length > 1 ? "schedule-entry-card-compact" : ""}`,
+                        style: category ? { "--schedule-tone": category.tone } : null,
+                        onClick: place ? () => onOpenPlace(place.id) : undefined
+                      },
                       h(
-                        "button",
-                        {
-                          type: "button",
-                          className: "schedule-delete-button",
-                          onClick: (event) => {
-                            event.stopPropagation();
-                            handleDelete(entry.id);
-                          },
-                          "aria-label": "일정 삭제"
-                        },
-                        h(TrashIcon, { className: "schedule-delete-icon" })
+                        "div",
+                        { className: "schedule-entry-head" },
+                        h(
+                          "div",
+                          { className: "schedule-entry-copy" },
+                          place
+                            ? h("span", { className: "schedule-entry-label" }, category.label)
+                            : h("span", { className: "schedule-entry-label" }, "직접 입력"),
+                          h("strong", null, place ? place.name : entry.title)
+                        ),
+                        h(
+                          "div",
+                          { className: "schedule-entry-actions" },
+                          place
+                            ? h(
+                                "span",
+                                { className: "schedule-like-badge" },
+                                h(HeartIcon, {
+                                  className: "schedule-like-icon",
+                                  filled: true
+                                }),
+                                h("span", null, place.saveCount)
+                              )
+                            : null,
+                          h(
+                            "button",
+                            {
+                              type: "button",
+                              className: "schedule-delete-button",
+                              onClick: (event) => {
+                                event.stopPropagation();
+                                handleDelete(entry.id);
+                              },
+                              "aria-label": "일정 삭제"
+                            },
+                            h(TrashIcon, { className: "schedule-delete-icon" })
+                          )
+                        )
                       )
-                    )
-                  )
-                );
-              })
+                    );
+                  })
+                )
+              )
             )
-          )
-        )
+          : h(
+              "div",
+              { className: "schedule-empty-state" },
+              h("strong", null, `${dayTabs.find((day) => day.id === activeDayId)?.dayLabel || "DAY 1"} 일정이 아직 없어요.`),
+              h("p", null, "오른쪽 위 일정 추가 버튼으로 장소나 메모를 바로 넣어보세요.")
+            )
       )
     )
   );
