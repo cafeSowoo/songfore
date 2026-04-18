@@ -406,7 +406,7 @@ export function createPlaceRecord(formData, index = 0, authorName = "") {
   const name =
     String(formData.name || "").trim() ||
     inferPlaceNameFromAddress(normalizedAddress, categoryId);
-  const saveCount = 3 + (index % 5);
+  const saveCount = 0;
 
   return {
     id: `place-${Date.now()}-${slugify(name) || index}`,

@@ -8,7 +8,16 @@ export function AppHeader({ meta }) {
       "div",
       { className: "header-copy" },
       h("span", { className: "eyebrow" }, "DajeonStargram"),
-      h("h1", null, meta.title)
+      h(
+        "div",
+        { className: "header-title-row" },
+        h(
+          "span",
+          { className: "header-parody-mark", "aria-hidden": "true" },
+          h("span", { className: "header-parody-emoji" }, "🥖")
+        ),
+        h("h1", null, meta.title)
+      )
     )
   );
 }

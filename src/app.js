@@ -3,6 +3,7 @@ import {
   createComment,
   createPlace,
   createPlaceRecord,
+  deletePlace,
   fetchTripSnapshot,
   friendRoster,
   getRuntimeConfig,
@@ -165,7 +166,7 @@ export function App() {
     setTrip((currentTrip) => ({
       ...currentTrip,
       slug: nextTrip.slug || currentTrip.slug,
-      title: nextTrip.title || currentTrip.title,
+      title: runtimeConfig.tripTitle || nextTrip.title || currentTrip.title,
       description: nextTrip.description || currentTrip.description
     }));
 
@@ -323,8 +324,20 @@ export function App() {
         });
 
         const newestPlaceId = snapshot.places[0]?.id || null;
+        const normalizedSnapshot = {
+          ...snapshot,
+          places: snapshot.places.map((place) =>
+            place.id === newestPlaceId
+              ? {
+                  ...place,
+                  saveCount: 0,
+                  baseSaveCount: 0
+                }
+              : place
+          )
+        };
 
-        applySnapshot(snapshot, {
+        applySnapshot(normalizedSnapshot, {
           selectedPlaceId: newestPlaceId,
           syncSchedule: false
         });
@@ -389,7 +402,24 @@ export function App() {
     }
 
     if (dataMode === "remote") {
-      window.alert("장소 삭제는 아직 운영 API와 연결되지 않아 준비 중이에요.");
+      deletePlace({
+        slug: trip.slug,
+        placeId
+      })
+        .then((snapshot) => {
+          applySnapshot(snapshot, { syncSchedule: true });
+          setSelectedPlaceId((currentSelectedPlaceId) =>
+            currentSelectedPlaceId === placeId ? null : currentSelectedPlaceId
+          );
+          setFocusedMapPlaceId((currentFocusedPlaceId) =>
+            currentFocusedPlaceId === placeId ? null : currentFocusedPlaceId
+          );
+        })
+        .catch((error) => {
+          const message =
+            error instanceof Error ? error.message : "장소를 삭제하지 못했어요.";
+          window.alert(message);
+        });
       return;
     }
 
@@ -465,7 +495,7 @@ export function App() {
           "main",
           { className: "app-content" },
           h(AppHeader, { meta: trip }),
-          activeTab !== "schedule"
+          activeTab === "feed" || activeTab === "map"
             ? h(FilterChips, {
                 categories: categoryOptions,
                 activeFilter,

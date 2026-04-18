@@ -2,7 +2,7 @@ import { mapPositions } from "../lib/api.js";
 
 export const tripMeta = {
   slug: "dj",
-  title: "대전여행",
+  title: "송포레 대전 여행",
   subtitle: "8명이 함께 고르는 대전 스팟",
   description:
     "친구들이 가고 싶은 장소를 저장하고 바로 일정으로 옮겨보는 대전 여행 위시리스트 보드",

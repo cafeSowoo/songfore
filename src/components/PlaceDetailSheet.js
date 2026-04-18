@@ -4,6 +4,7 @@ import { ArrowLeftIcon, HeartIcon, MapPinIcon, TrashIcon } from "./Icons.js";
 import { PlaceImage } from "./PlaceImage.js";
 
 const { createElement: h, useEffect, useMemo, useRef, useState } = window.React;
+const NAVER_MAP_APP_NAME = "com.songfore.dajeonstargram";
 
 function buildFriendMessages(place) {
   const seededMessages = [];
@@ -23,11 +24,54 @@ function buildFriendMessages(place) {
   return [...seededMessages, ...extraMessages];
 }
 
+function formatMessageMetaLabel(value) {
+  const label = String(value || "").trim();
+
+  if (!label) {
+    return "";
+  }
+
+  return label.replace(/^.+?[이가]\s+/, "");
+}
+
 function buildNaverMapUrl(place) {
   const query = String(place.address || place.name || "").trim();
   return query
     ? `https://map.naver.com/p/search/${encodeURIComponent(query)}`
     : "https://map.naver.com/p/";
+}
+
+function buildNaverAppUrl(place) {
+  const latitude = Number(place.latitude);
+  const longitude = Number(place.longitude);
+  const name = String(place.name || "").trim();
+  const query = String(place.address || place.name || "").trim();
+  const appName = encodeURIComponent(NAVER_MAP_APP_NAME);
+
+  if (Number.isFinite(latitude) && Number.isFinite(longitude) && name) {
+    return `nmap://place?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(
+      longitude
+    )}&name=${encodeURIComponent(name)}&appname=${appName}`;
+  }
+
+  if (query) {
+    return `nmap://search?query=${encodeURIComponent(query)}&appname=${appName}`;
+  }
+
+  return `nmap://map?appname=${appName}`;
+}
+
+function buildAndroidIntentUrl(appUrl) {
+  return appUrl.replace(/^nmap:\/\//, "intent://") +
+    "#Intent;scheme=nmap;package=com.nhn.android.nmap;end";
+}
+
+function isAndroidDevice() {
+  return /android/i.test(window.navigator.userAgent || "");
+}
+
+function isIosDevice() {
+  return /iphone|ipad|ipod/i.test(window.navigator.userAgent || "");
 }
 
 function DetailLocationMap({ place, mapsClientId = "" }) {
@@ -164,15 +208,16 @@ function DetailLocationMap({ place, mapsClientId = "" }) {
       hidden: !showRealMap,
       "aria-label": `${place.name} 위치 지도`
     }),
-    h("div", { className: "detail-location-grid", hidden: showRealMap }),
-    h(
-      "div",
-      {
-        className: "detail-location-pin",
-        hidden: showRealMap
-      },
-      h(MapPinIcon, { className: "button-icon" })
-    ),
+    !showRealMap ? h("div", { className: "detail-location-grid" }) : null,
+    !showRealMap
+      ? h(
+          "div",
+          {
+            className: "detail-location-pin"
+          },
+          h(MapPinIcon, { className: "button-icon" })
+        )
+      : null,
     !mapsClientId || renderError
       ? h(
           "p",
@@ -207,6 +252,46 @@ export function PlaceDetailSheet({
 
     onAddComment(place.id, normalized);
     setDraftComment("");
+  }
+
+  function handleOpenNaverMap(event) {
+    event.preventDefault();
+
+    const webUrl = buildNaverMapUrl(place);
+    const appUrl = buildNaverAppUrl(place);
+
+    if (!isAndroidDevice() && !isIosDevice()) {
+      window.location.assign(webUrl);
+      return;
+    }
+
+    let fallbackTimer = 0;
+
+    const cleanup = () => {
+      if (fallbackTimer) {
+        window.clearTimeout(fallbackTimer);
+        fallbackTimer = 0;
+      }
+
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", cleanup);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        cleanup();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", cleanup, { once: true });
+
+    fallbackTimer = window.setTimeout(() => {
+      cleanup();
+      window.location.assign(webUrl);
+    }, 900);
+
+    window.location.assign(isAndroidDevice() ? buildAndroidIntentUrl(appUrl) : appUrl);
   }
 
   return h(
@@ -291,7 +376,7 @@ export function PlaceDetailSheet({
             "div",
             { className: "detail-section-head detail-section-head-comments" },
             h("strong", null, "친구들의 한마디"),
-            h("span", { className: "detail-comment-count" }, friendMessages.length)
+            h("span", { className: "detail-comment-count" }, `댓글 ${friendMessages.length}`)
           ),
           h(
             "div",
@@ -303,11 +388,23 @@ export function PlaceDetailSheet({
                   key: message.id,
                   className: `detail-comment-item ${message.accent || "left"}`
                 },
-                message.name
-                  ? h("div", { className: "detail-comment-author" }, message.name)
+                message.name || message.time
+                  ? h(
+                      "div",
+                      { className: "detail-comment-meta" },
+                      message.name
+                        ? h("div", { className: "detail-comment-author" }, message.name)
+                        : null,
+                      message.time
+                        ? h(
+                            "span",
+                            { className: "detail-comment-time" },
+                            formatMessageMetaLabel(message.time)
+                          )
+                        : null
+                    )
                   : null,
                 h("div", { className: "detail-comment-bubble" }, message.text),
-                h("span", { className: "detail-comment-time" }, message.time)
               )
             )
           ),
@@ -363,7 +460,7 @@ export function PlaceDetailSheet({
             {
               className: "detail-action-pill detail-action-pill-muted",
               href: buildNaverMapUrl(place),
-              target: "_blank",
+              onClick: handleOpenNaverMap,
               rel: "noreferrer"
             },
             "네이버 지도"
