@@ -4,6 +4,7 @@ import {
   searchPlaceImageCandidates
 } from "../lib/api.js";
 import { loadNaverMapsSdk } from "../lib/naverMaps.js";
+import { normalizeNaverMapLink } from "../lib/naverLinks.js";
 import { CloseIcon, MapPinIcon } from "./Icons.js";
 
 const { createElement: h, useEffect, useMemo, useRef, useState } = window.React;
@@ -31,26 +32,18 @@ const searchInitialState = {
   errorMessage: ""
 };
 
-function normalizeNaverMapLink(value) {
-  const raw = String(value || "").trim();
-
-  if (!raw) {
-    return "";
-  }
-
-  if (/^https?:\/\/(naver\.me|map\.naver\.com)(\/|$)/i.test(raw)) {
-    return raw;
-  }
-
-  if (/^\/\/(naver\.me|map\.naver\.com)(\/|$)/i.test(raw)) {
-    return `https:${raw}`;
-  }
-
-  if (/^(naver\.me|map\.naver\.com)\//i.test(raw)) {
-    return `https://${raw}`;
-  }
-
-  return "";
+function SubmitButton({ disabled = false, isLoading = false, label = "등록하기" }) {
+  return h(
+    "button",
+    {
+      type: "submit",
+      className: `submit-button ${isLoading ? "is-loading" : ""}`,
+      disabled,
+      "aria-busy": isLoading ? "true" : "false"
+    },
+    isLoading ? h("span", { className: "submit-spinner", "aria-hidden": "true" }) : null,
+    h("span", null, label)
+  );
 }
 
 function PlaceSearchPreviewMap({ place, mapsClientId }) {
@@ -183,6 +176,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
   const [activeMode, setActiveMode] = useState("search");
   const [searchState, setSearchState] = useState(searchInitialState);
   const [directForm, setDirectForm] = useState(directInitialForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectableCategories = useMemo(
     () => categories.filter((category) => category.id !== "all"),
@@ -395,47 +389,65 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
     }
   }
 
-  function handleSearchSave(event) {
+  async function handleSearchSave(event) {
     event.preventDefault();
 
     if (
       !searchState.selectedPlace ||
       !searchState.category ||
       !searchState.reason.trim() ||
-      searchState.isResolvingDetailLink
+      searchState.isResolvingDetailLink ||
+      isSubmitting
     ) {
       return;
     }
 
-    onSubmit({
-      category: searchState.category,
-      name: searchState.selectedPlace.name,
-      address: searchState.selectedPlace.address,
-      reason: searchState.reason.trim(),
-      description: searchState.reason.trim(),
-      imageUrl: searchState.selectedImageUrl,
-      naverLink: searchState.selectedPlace.naverLink,
-      latitude: searchState.selectedPlace.latitude,
-      longitude: searchState.selectedPlace.longitude,
-      resolvedAddress:
-        searchState.selectedPlace.roadAddress || searchState.selectedPlace.address
-    });
+    setIsSubmitting(true);
+
+    try {
+      await onSubmit({
+        category: searchState.category,
+        name: searchState.selectedPlace.name,
+        address: searchState.selectedPlace.address,
+        reason: searchState.reason.trim(),
+        description: searchState.reason.trim(),
+        imageUrl: searchState.selectedImageUrl,
+        naverLink: searchState.selectedPlace.naverLink,
+        latitude: searchState.selectedPlace.latitude,
+        longitude: searchState.selectedPlace.longitude,
+        resolvedAddress:
+          searchState.selectedPlace.roadAddress || searchState.selectedPlace.address
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
-  function handleDirectSave(event) {
+  async function handleDirectSave(event) {
     event.preventDefault();
 
-    if (!directForm.name.trim() || !directForm.address.trim() || !directForm.reason.trim()) {
+    if (
+      !directForm.name.trim() ||
+      !directForm.address.trim() ||
+      !directForm.reason.trim() ||
+      isSubmitting
+    ) {
       return;
     }
 
-    onSubmit({
-      category: directForm.category,
-      name: directForm.name.trim(),
-      address: directForm.address.trim(),
-      reason: directForm.reason.trim(),
-      description: directForm.reason.trim()
-    });
+    setIsSubmitting(true);
+
+    try {
+      await onSubmit({
+        category: directForm.category,
+        name: directForm.name.trim(),
+        address: directForm.address.trim(),
+        reason: directForm.reason.trim(),
+        description: directForm.reason.trim()
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return h(
@@ -678,20 +690,21 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
                           )
                         )
                       ),
-                      h(
-                        "button",
-                        {
-                          key: "submit",
-                          type: "submit",
-                          className: "submit-button",
-                          disabled:
-                            !searchState.selectedPlace ||
-                            !searchState.category ||
-                            !searchState.reason.trim() ||
-                            searchState.isResolvingDetailLink
-                        },
-                        searchState.isResolvingDetailLink ? "링크 확인 중..." : "등록하기"
-                      )
+                      h(SubmitButton, {
+                        key: "submit",
+                        disabled:
+                          !searchState.selectedPlace ||
+                          !searchState.category ||
+                          !searchState.reason.trim() ||
+                          searchState.isResolvingDetailLink ||
+                          isSubmitting,
+                        isLoading: searchState.isResolvingDetailLink || isSubmitting,
+                        label: searchState.isResolvingDetailLink
+                          ? "링크 확인 중..."
+                          : isSubmitting
+                            ? "저장 중..."
+                            : "등록하기"
+                      })
                     ]
                   : h(
                       "div",
@@ -782,7 +795,15 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
                 required: true
               })
             ),
-            h("button", { type: "submit", className: "submit-button" }, "등록하기")
+            h(SubmitButton, {
+              disabled:
+                !directForm.name.trim() ||
+                !directForm.address.trim() ||
+                !directForm.reason.trim() ||
+                isSubmitting,
+              isLoading: isSubmitting,
+              label: isSubmitting ? "저장 중..." : "등록하기"
+            })
           )
     )
   );

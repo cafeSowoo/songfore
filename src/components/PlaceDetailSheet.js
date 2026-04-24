@@ -1,10 +1,17 @@
 import { getCategoryById, resolvePlaceNaverLink } from "../lib/api.js";
 import { loadNaverMapsSdk, searchAddressCandidates } from "../lib/naverMaps.js";
+import {
+  buildAndroidIntentUrl,
+  buildNaverAppUrl,
+  buildNaverMapUrl,
+  isAndroidDevice,
+  isIosDevice,
+  normalizeNaverMapLink
+} from "../lib/naverLinks.js";
 import { ArrowLeftIcon, HeartIcon, MapPinIcon, TrashIcon } from "./Icons.js";
 import { PlaceImage } from "./PlaceImage.js";
 
 const { createElement: h, useEffect, useMemo, useRef, useState } = window.React;
-const NAVER_MAP_APP_NAME = "com.songfore.dajeonstargram";
 
 function buildFriendMessages(place) {
   const seededMessages = [];
@@ -32,86 +39,6 @@ function formatMessageMetaLabel(value) {
   }
 
   return label.replace(/^.+?[이가]\s+/, "");
-}
-
-function normalizeNaverDetailLink(value) {
-  const raw = String(value || "").trim();
-
-  if (!raw) {
-    return "";
-  }
-
-  const isAllowedHost = (candidate) =>
-    /^(https?:)?\/\/(naver\.me|map\.naver\.com)(\/|$)/i.test(candidate);
-
-  if (/^https?:\/\//i.test(raw)) {
-    return isAllowedHost(raw) ? raw : "";
-  }
-
-  if (raw.startsWith("//")) {
-    return isAllowedHost(raw) ? `https:${raw}` : "";
-  }
-
-  if (/^map\.naver\.com\//i.test(raw)) {
-    return `https://${raw}`;
-  }
-
-  if (/^naver\.me\//i.test(raw)) {
-    return `https://${raw}`;
-  }
-
-  if (raw.startsWith("/")) {
-    return `https://map.naver.com${raw}`;
-  }
-
-  return "";
-}
-
-function buildNaverMapUrl(place) {
-  const directLink = normalizeNaverDetailLink(place.naverLink);
-
-  if (directLink) {
-    return directLink;
-  }
-
-  const query = String(place.name || place.address || "").trim();
-
-  return query
-    ? `https://map.naver.com/p/search/${encodeURIComponent(query)}`
-    : "https://map.naver.com/p/";
-}
-
-function buildNaverAppUrl(place) {
-  const latitude = Number(place.latitude);
-  const longitude = Number(place.longitude);
-  const name = String(place.name || "").trim();
-  const query = String(place.address || place.name || "").trim();
-  const appName = encodeURIComponent(NAVER_MAP_APP_NAME);
-
-  if (Number.isFinite(latitude) && Number.isFinite(longitude) && name) {
-    return `nmap://place?lat=${encodeURIComponent(latitude)}&lng=${encodeURIComponent(
-      longitude
-    )}&name=${encodeURIComponent(name)}&appname=${appName}`;
-  }
-
-  if (query) {
-    return `nmap://search?query=${encodeURIComponent(query)}&appname=${appName}`;
-  }
-
-  return `nmap://map?appname=${appName}`;
-}
-
-function buildAndroidIntentUrl(appUrl) {
-  return appUrl.replace(/^nmap:\/\//, "intent://") +
-    "#Intent;scheme=nmap;package=com.nhn.android.nmap;end";
-}
-
-function isAndroidDevice() {
-  return /android/i.test(window.navigator.userAgent || "");
-}
-
-function isIosDevice() {
-  return /iphone|ipad|ipod/i.test(window.navigator.userAgent || "");
 }
 
 function openBlankExternalWindow() {
@@ -320,9 +247,10 @@ export function PlaceDetailSheet({
   async function handleOpenNaverMap(event) {
     event.preventDefault();
 
-    const shouldOpenInApp = isAndroidDevice() || isIosDevice();
+    const userAgent = window.navigator.userAgent || "";
+    const shouldOpenInApp = isAndroidDevice(userAgent) || isIosDevice(userAgent);
     const externalWindow = shouldOpenInApp ? null : openBlankExternalWindow();
-    let detailUrl = normalizeNaverDetailLink(place.naverLink);
+    let detailUrl = normalizeNaverMapLink(place.naverLink);
 
     if (!detailUrl) {
       try {
@@ -330,7 +258,7 @@ export function PlaceDetailSheet({
           name: place.name,
           address: place.address
         });
-        detailUrl = normalizeNaverDetailLink(payload?.naverLink);
+        detailUrl = normalizeNaverMapLink(payload?.naverLink);
       } catch (error) {
         console.warn("Failed to resolve Naver place detail link on demand.", error);
       }
@@ -370,7 +298,7 @@ export function PlaceDetailSheet({
         window.location.assign(webUrl);
       }, 900);
 
-      window.location.assign(isAndroidDevice() ? buildAndroidIntentUrl(appUrl) : appUrl);
+      window.location.assign(isAndroidDevice(userAgent) ? buildAndroidIntentUrl(appUrl) : appUrl);
       return;
     }
 
