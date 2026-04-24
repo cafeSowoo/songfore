@@ -1,4 +1,4 @@
-import { getCategoryById } from "../lib/api.js";
+import { getCategoryById, resolvePlaceNaverLink } from "../lib/api.js";
 import { loadNaverMapsSdk, searchAddressCandidates } from "../lib/naverMaps.js";
 import { ArrowLeftIcon, HeartIcon, MapPinIcon, TrashIcon } from "./Icons.js";
 import { PlaceImage } from "./PlaceImage.js";
@@ -34,10 +34,43 @@ function formatMessageMetaLabel(value) {
   return label.replace(/^.+?[이가]\s+/, "");
 }
 
-function buildNaverMapUrl(place) {
-  const directLink = String(place.naverLink || "").trim();
+function normalizeNaverDetailLink(value) {
+  const raw = String(value || "").trim();
 
-  if (/^https?:\/\//i.test(directLink)) {
+  if (!raw) {
+    return "";
+  }
+
+  const isAllowedHost = (candidate) =>
+    /^(https?:)?\/\/(naver\.me|map\.naver\.com)(\/|$)/i.test(candidate);
+
+  if (/^https?:\/\//i.test(raw)) {
+    return isAllowedHost(raw) ? raw : "";
+  }
+
+  if (raw.startsWith("//")) {
+    return isAllowedHost(raw) ? `https:${raw}` : "";
+  }
+
+  if (/^map\.naver\.com\//i.test(raw)) {
+    return `https://${raw}`;
+  }
+
+  if (/^naver\.me\//i.test(raw)) {
+    return `https://${raw}`;
+  }
+
+  if (raw.startsWith("/")) {
+    return `https://map.naver.com${raw}`;
+  }
+
+  return "";
+}
+
+function buildNaverMapUrl(place) {
+  const directLink = normalizeNaverDetailLink(place.naverLink);
+
+  if (directLink) {
     return directLink;
   }
 
@@ -79,6 +112,29 @@ function isAndroidDevice() {
 
 function isIosDevice() {
   return /iphone|ipad|ipod/i.test(window.navigator.userAgent || "");
+}
+
+function openBlankExternalWindow() {
+  const externalWindow = window.open("", "_blank");
+
+  if (externalWindow) {
+    externalWindow.opener = null;
+  }
+
+  return externalWindow;
+}
+
+function openExternalUrl(url, externalWindow = null) {
+  if (externalWindow && !externalWindow.closed) {
+    externalWindow.location.href = url;
+    return;
+  }
+
+  const openedWindow = window.open(url, "_blank", "noopener,noreferrer");
+
+  if (!openedWindow) {
+    window.location.assign(url);
+  }
 }
 
 function DetailLocationMap({ place, mapsClientId = "" }) {
@@ -261,44 +317,64 @@ export function PlaceDetailSheet({
     setDraftComment("");
   }
 
-  function handleOpenNaverMap(event) {
+  async function handleOpenNaverMap(event) {
     event.preventDefault();
 
-    const webUrl = buildNaverMapUrl(place);
-    const appUrl = buildNaverAppUrl(place);
+    const shouldOpenInApp = isAndroidDevice() || isIosDevice();
+    const externalWindow = shouldOpenInApp ? null : openBlankExternalWindow();
+    let detailUrl = normalizeNaverDetailLink(place.naverLink);
 
-    if (!isAndroidDevice() && !isIosDevice()) {
-      window.location.assign(webUrl);
+    if (!detailUrl) {
+      try {
+        const payload = await resolvePlaceNaverLink({
+          name: place.name,
+          address: place.address
+        });
+        detailUrl = normalizeNaverDetailLink(payload?.naverLink);
+      } catch (error) {
+        console.warn("Failed to resolve Naver place detail link on demand.", error);
+      }
+    }
+
+    const webUrl = detailUrl || buildNaverMapUrl(place);
+    if (shouldOpenInApp) {
+      if (detailUrl) {
+        window.location.assign(detailUrl);
+        return;
+      }
+
+      const appUrl = buildNaverAppUrl(place);
+      let fallbackTimer = 0;
+
+      const cleanup = () => {
+        if (fallbackTimer) {
+          window.clearTimeout(fallbackTimer);
+          fallbackTimer = 0;
+        }
+
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        window.removeEventListener("pagehide", cleanup);
+      };
+
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === "hidden") {
+          cleanup();
+        }
+      };
+
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+      window.addEventListener("pagehide", cleanup, { once: true });
+
+      fallbackTimer = window.setTimeout(() => {
+        cleanup();
+        window.location.assign(webUrl);
+      }, 900);
+
+      window.location.assign(isAndroidDevice() ? buildAndroidIntentUrl(appUrl) : appUrl);
       return;
     }
 
-    let fallbackTimer = 0;
-
-    const cleanup = () => {
-      if (fallbackTimer) {
-        window.clearTimeout(fallbackTimer);
-        fallbackTimer = 0;
-      }
-
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("pagehide", cleanup);
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        cleanup();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("pagehide", cleanup, { once: true });
-
-    fallbackTimer = window.setTimeout(() => {
-      cleanup();
-      window.location.assign(webUrl);
-    }, 900);
-
-    window.location.assign(isAndroidDevice() ? buildAndroidIntentUrl(appUrl) : appUrl);
+    openExternalUrl(webUrl, externalWindow);
   }
 
   return h(
@@ -468,7 +544,8 @@ export function PlaceDetailSheet({
               className: "detail-action-pill detail-action-pill-muted",
               href: buildNaverMapUrl(place),
               onClick: handleOpenNaverMap,
-              rel: "noreferrer"
+              target: "_blank",
+              rel: "noopener noreferrer"
             },
             "네이버 지도"
           ),

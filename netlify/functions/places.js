@@ -1,5 +1,6 @@
 import { json } from "./lib/http.js";
 import { geocodeAddress } from "./lib/naverGeocode.js";
+import { resolveNaverPlaceDetailUrl } from "./lib/naverPlaceDetailSearch.js";
 import { serializePlaceDescription } from "./lib/placeDescription.js";
 import {
   buildTripSnapshot,
@@ -23,6 +24,28 @@ function hasCoordinates(body) {
   );
 }
 
+function normalizeNaverMapLink(value) {
+  const raw = String(value || "").trim();
+
+  if (!raw) {
+    return "";
+  }
+
+  if (/^https?:\/\/(naver\.me|map\.naver\.com)(\/|$)/i.test(raw)) {
+    return raw;
+  }
+
+  if (/^\/\/(naver\.me|map\.naver\.com)(\/|$)/i.test(raw)) {
+    return `https:${raw}`;
+  }
+
+  if (/^(naver\.me|map\.naver\.com)\//i.test(raw)) {
+    return `https://${raw}`;
+  }
+
+  return "";
+}
+
 function validateDeletePayload(body) {
   const required = ["slug", "placeId"];
 
@@ -30,6 +53,24 @@ function validateDeletePayload(body) {
     if (!body[field] || String(body[field]).trim() === "") {
       throw new Error(`${field} is required.`);
     }
+  }
+}
+
+async function resolveStoredNaverLink(body) {
+  const directLink = normalizeNaverMapLink(body.naverLink);
+
+  if (directLink) {
+    return directLink;
+  }
+
+  try {
+    return await resolveNaverPlaceDetailUrl({
+      name: String(body.name || "").trim(),
+      address: String(body.resolvedAddress || body.address || "").trim()
+    });
+  } catch (error) {
+    console.warn("Failed to resolve Naver place detail link while creating place.", error);
+    return "";
   }
 }
 
@@ -108,6 +149,7 @@ export default async (request) => {
           jibunAddress: String(body.address).trim()
         }
       : await geocodeAddress(String(body.address));
+    const storedNaverLink = await resolveStoredNaverLink(body);
 
     const { error } = await insertPlace(supabase, {
       trip_id: trip.id,
@@ -117,7 +159,7 @@ export default async (request) => {
       latitude: location.latitude,
       longitude: location.longitude,
       image_url: String(body.imageUrl || "").trim() || null,
-      description: serializePlaceDescription(body.description, body.imageUrl, body.naverLink),
+      description: serializePlaceDescription(body.description, body.imageUrl, storedNaverLink),
       created_by_member_id: member.id
     });
 

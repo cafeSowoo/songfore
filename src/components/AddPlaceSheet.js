@@ -1,4 +1,8 @@
-import { searchPlaceCandidates, searchPlaceImageCandidates } from "../lib/api.js";
+import {
+  resolvePlaceNaverLink,
+  searchPlaceCandidates,
+  searchPlaceImageCandidates
+} from "../lib/api.js";
 import { loadNaverMapsSdk } from "../lib/naverMaps.js";
 import { CloseIcon, MapPinIcon } from "./Icons.js";
 
@@ -21,10 +25,33 @@ const searchInitialState = {
   selectedImageUrl: "",
   imageErrorMessage: "",
   isSearchingImages: false,
+  isResolvingDetailLink: false,
   isSearching: false,
   hasSearched: false,
   errorMessage: ""
 };
+
+function normalizeNaverMapLink(value) {
+  const raw = String(value || "").trim();
+
+  if (!raw) {
+    return "";
+  }
+
+  if (/^https?:\/\/(naver\.me|map\.naver\.com)(\/|$)/i.test(raw)) {
+    return raw;
+  }
+
+  if (/^\/\/(naver\.me|map\.naver\.com)(\/|$)/i.test(raw)) {
+    return `https:${raw}`;
+  }
+
+  if (/^(naver\.me|map\.naver\.com)\//i.test(raw)) {
+    return `https://${raw}`;
+  }
+
+  return "";
+}
 
 function PlaceSearchPreviewMap({ place, mapsClientId }) {
   const mapRef = useRef(null);
@@ -221,6 +248,86 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
     };
   }, [searchState.selectedPlace]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchDetailLink() {
+      const selectedPlace = searchState.selectedPlace;
+
+      if (!selectedPlace || String(selectedPlace.naverLink || "").trim()) {
+        return;
+      }
+
+      setSearchState((current) => {
+        if (!current.selectedPlace || current.selectedPlace.id !== selectedPlace.id) {
+          return current;
+        }
+
+        return {
+          ...current,
+          isResolvingDetailLink: true
+        };
+      });
+
+      try {
+        const payload = await resolvePlaceNaverLink({
+          name: selectedPlace.name,
+          address: selectedPlace.roadAddress || selectedPlace.address
+        });
+        const resolvedLink = String(payload?.naverLink || "").trim();
+
+        if (cancelled) {
+          return;
+        }
+
+        if (!resolvedLink) {
+          setSearchState((current) => ({
+            ...current,
+            isResolvingDetailLink: false
+          }));
+          return;
+        }
+
+        setSearchState((current) => {
+          if (!current.selectedPlace || current.selectedPlace.id !== selectedPlace.id) {
+            return current;
+          }
+
+          return {
+            ...current,
+            isResolvingDetailLink: false,
+            selectedPlace: {
+              ...current.selectedPlace,
+              naverLink: resolvedLink
+            },
+            results: current.results.map((result) =>
+              result.id === selectedPlace.id
+                ? {
+                    ...result,
+                    naverLink: resolvedLink
+                  }
+                : result
+            )
+          };
+        });
+      } catch (error) {
+        if (!cancelled) {
+          setSearchState((current) => ({
+            ...current,
+            isResolvingDetailLink: false
+          }));
+          console.warn("Failed to resolve Naver place detail link.", error);
+        }
+      }
+    }
+
+    fetchDetailLink();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchState.selectedPlace]);
+
   async function handleSearchSubmit(event) {
     event.preventDefault();
     const normalizedQuery = searchState.query.trim();
@@ -232,6 +339,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
     setSearchState((current) => ({
       ...current,
       isSearching: true,
+      isResolvingDetailLink: false,
       hasSearched: true,
       errorMessage: ""
     }));
@@ -245,7 +353,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
         address: item.address || item.roadAddress || item.jibunAddress || normalizedQuery,
         roadAddress: item.roadAddress || "",
         jibunAddress: item.jibunAddress || "",
-        naverLink: String(item.link || "").trim(),
+        naverLink: normalizeNaverMapLink(item.link),
         category: item.category || "",
         latitude: Number(item.latitude),
         longitude: Number(item.longitude),
@@ -259,6 +367,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
       setSearchState((current) => ({
         ...current,
         isSearching: false,
+        isResolvingDetailLink: false,
         results: mappedResults,
         selectedPlace: mappedResults[0] || null,
         category: "",
@@ -272,6 +381,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
       setSearchState((current) => ({
         ...current,
         isSearching: false,
+        isResolvingDetailLink: false,
         results: [],
         selectedPlace: null,
         category: "",
@@ -288,7 +398,12 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
   function handleSearchSave(event) {
     event.preventDefault();
 
-    if (!searchState.selectedPlace || !searchState.category || !searchState.reason.trim()) {
+    if (
+      !searchState.selectedPlace ||
+      !searchState.category ||
+      !searchState.reason.trim() ||
+      searchState.isResolvingDetailLink
+    ) {
       return;
     }
 
@@ -572,9 +687,10 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
                           disabled:
                             !searchState.selectedPlace ||
                             !searchState.category ||
-                            !searchState.reason.trim()
+                            !searchState.reason.trim() ||
+                            searchState.isResolvingDetailLink
                         },
-                        "등록하기"
+                        searchState.isResolvingDetailLink ? "링크 확인 중..." : "등록하기"
                       )
                     ]
                   : h(

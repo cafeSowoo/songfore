@@ -470,6 +470,19 @@ export async function searchPlaceImageCandidates({ name, address }) {
   return readJsonResponse(response);
 }
 
+export async function resolvePlaceNaverLink({ name, address }) {
+  const response = await fetch(
+    `/.netlify/functions/place-detail-link?name=${encodeURIComponent(
+      String(name || "").trim()
+    )}&address=${encodeURIComponent(String(address || "").trim())}`,
+    {
+      headers: { Accept: "application/json" }
+    }
+  );
+
+  return readJsonResponse(response);
+}
+
 export async function createPlace(payload) {
   const address = String(payload.address || "").trim();
   const category = payload.category || "etc";
