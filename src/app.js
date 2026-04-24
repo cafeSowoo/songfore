@@ -562,7 +562,8 @@ export function App() {
     if (dataMode === "remote") {
       deletePlace({
         slug: trip.slug,
-        placeId
+        placeId,
+        nickname
       })
         .then((snapshot) => {
           applySnapshot(snapshot, { syncSchedule: true });

@@ -5,6 +5,7 @@ import { serializePlaceDescription } from "./lib/placeDescription.js";
 import {
   buildTripSnapshot,
   ensureMember,
+  findMemberByNickname,
   getOrCreateTripBySlug
 } from "./lib/tripService.js";
 import { getSupabaseAdmin } from "./lib/supabaseAdmin.js";
@@ -47,7 +48,7 @@ function normalizeNaverMapLink(value) {
 }
 
 function validateDeletePayload(body) {
-  const required = ["slug", "placeId"];
+  const required = ["slug", "placeId", "nickname"];
 
   for (const field of required) {
     if (!body[field] || String(body[field]).trim() === "") {
@@ -115,11 +116,18 @@ export default async (request) => {
 
       const supabase = getSupabaseAdmin();
       const trip = await getTripBySlug(supabase, String(body.slug).trim());
+      const member = await findMemberByNickname(trip.id, String(body.nickname));
+
+      if (!member) {
+        return json({ error: "작성한 닉네임이 일치해야 삭제할 수 있어요." }, { status: 403 });
+      }
+
       const { data, error } = await supabase
         .from("places")
         .delete()
         .eq("trip_id", trip.id)
         .eq("id", String(body.placeId).trim())
+        .eq("created_by_member_id", member.id)
         .select("id")
         .maybeSingle();
 
@@ -128,10 +136,10 @@ export default async (request) => {
       }
 
       if (!data) {
-        throw new Error("삭제할 장소를 찾지 못했어요.");
+        return json({ error: "작성한 닉네임이 일치해야 삭제할 수 있어요." }, { status: 403 });
       }
 
-      const snapshot = await buildTripSnapshot(trip.slug);
+      const snapshot = await buildTripSnapshot(trip.slug, { nickname: member.nickname });
       return json(snapshot, { status: 200 });
     }
 

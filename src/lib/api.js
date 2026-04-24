@@ -542,7 +542,8 @@ export async function deletePlace(payload) {
     },
     body: JSON.stringify({
       slug: payload.slug || "dj",
-      placeId: payload.placeId
+      placeId: payload.placeId,
+      nickname: String(payload.nickname || "").trim()
     })
   });
 
