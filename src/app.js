@@ -119,12 +119,23 @@ export function App() {
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
   const [focusedMapPlaceId, setFocusedMapPlaceId] = useState(null);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [nickname, setNickname] = useState(getStoredNickname);
   const [nicknameRequest, setNicknameRequest] = useState(null);
   const [dataMode, setDataMode] = useState("demo");
   const [isHydrating, setIsHydrating] = useState(true);
 
   const visiblePlaces = getVisiblePlaces(places, activeFilter);
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const feedPlaces = normalizedSearchQuery
+    ? visiblePlaces.filter((place) =>
+        [place.name, place.address].some((value) =>
+          String(value || "")
+            .toLowerCase()
+            .includes(normalizedSearchQuery)
+        )
+      )
+    : visiblePlaces;
   const selectedPlace = places.find((place) => place.id === selectedPlaceId) || null;
   const hasFocusedPlace = visiblePlaces.some((place) => place.id === focusedMapPlaceId);
 
@@ -501,7 +512,12 @@ export function App() {
         h(
           "main",
           { className: "app-content" },
-          h(AppHeader, { meta: trip }),
+          h(AppHeader, {
+            meta: trip,
+            searchQuery,
+            onSearchChange: setSearchQuery,
+            onOpenAdd: handleOpenAddSheet
+          }),
           activeTab === "feed" || activeTab === "map"
             ? h(FilterChips, {
                 categories: categoryOptions,
@@ -542,28 +558,53 @@ export function App() {
                         )
                       )
                     )
-                  : visiblePlaces.length
+                  : feedPlaces.length
                   ? h(
                       "div",
                       { className: "place-list" },
-                      ...visiblePlaces.map((place) =>
+                      h(
+                        "div",
+                        { key: "recommended-section", className: "place-list-section-head" },
+                        h("strong", null, "친구들이 추천한 장소")
+                      ),
+                      ...feedPlaces.map((place) =>
                         h(PlaceCard, {
                           key: place.id,
                           place,
+                          variant: "compact",
                           scheduleBadge: getPlaceScheduleBadge(scheduleEntries, place.id),
                           onOpen: handleOpenPlace,
                           onToggleSave: handleToggleSave
                         })
+                      ),
+                      h(
+                        "div",
+                        { className: "place-list-bottom-action" },
+                        h(
+                          "button",
+                          {
+                            type: "button",
+                            className: "header-add-pill-button",
+                            onClick: handleOpenAddSheet
+                          },
+                          "+ 장소 추천"
+                        )
                       )
                     )
                   : h(
                       "div",
                       { className: "empty-state" },
-                      h("strong", null, "아직 이 카테고리에는 장소가 없어요."),
+                      h(
+                        "strong",
+                        null,
+                        normalizedSearchQuery ? "검색 결과가 없어요." : "아직 이 카테고리에는 장소가 없어요."
+                      ),
                       h(
                         "p",
                         null,
-                        "필터를 바꾸거나 오른쪽 아래 플러스 버튼으로 다음 후보를 바로 모아보세요."
+                        normalizedSearchQuery
+                          ? "장소명이나 주소를 조금 다르게 입력해보세요."
+                          : "필터를 바꾸거나 오른쪽 아래 플러스 버튼으로 다음 후보를 바로 모아보세요."
                       )
                     )
               )

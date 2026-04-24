@@ -1,5 +1,5 @@
 import { getCategoryById } from "../lib/api.js";
-import { HeartIcon } from "./Icons.js";
+import { HeartIcon, MapPinIcon } from "./Icons.js";
 import { PlaceImage } from "./PlaceImage.js";
 
 const { createElement: h } = window.React;
@@ -20,13 +20,30 @@ function toRecommendedLabel(label, friendName) {
   return `${safeFriendName} ${replaced}`;
 }
 
-export function PlaceCard({ place, scheduleBadge, onOpen, onToggleSave }) {
+function getFriendInitial(name) {
+  const normalized = String(name || "").trim();
+  return normalized ? normalized.slice(0, 1) : "친";
+}
+
+export function PlaceCard({
+  place,
+  scheduleBadge,
+  variant = "featured",
+  className = "",
+  style = null,
+  showSave = true,
+  compactAction = null,
+  onOpen,
+  onToggleSave
+}) {
   const category = getCategoryById(place.category);
+  const isCompact = variant === "compact";
 
   return h(
     "article",
     {
-      className: "place-card",
+      className: `place-card place-card-${variant} ${className}`.trim(),
+      style,
       onClick: () => onOpen(place.id)
     },
     h(PlaceImage, {
@@ -36,7 +53,7 @@ export function PlaceCard({ place, scheduleBadge, onOpen, onToggleSave }) {
       overlay: h(
         "div",
         { className: "place-card-overlay-grid" },
-        scheduleBadge
+        scheduleBadge && !isCompact
           ? h(
               "div",
               { className: "place-schedule-badge" },
@@ -44,22 +61,24 @@ export function PlaceCard({ place, scheduleBadge, onOpen, onToggleSave }) {
               h("span", { className: "place-schedule-time" }, scheduleBadge.time)
             )
           : null,
-        h(
-          "button",
-          {
-            type: "button",
-            className: `save-toggle-button ${place.saved ? "active" : ""}`,
-            onClick: (event) => {
-              event.stopPropagation();
-              onToggleSave(place.id);
-            },
-            "aria-label": place.saved ? "좋아요 취소" : "좋아요"
-          },
-          h(HeartIcon, {
-            className: "save-icon",
-            filled: place.saved
-          })
-        ),
+        showSave
+          ? h(
+              "button",
+              {
+                type: "button",
+                className: `save-toggle-button ${place.saved ? "active" : ""}`,
+                onClick: (event) => {
+                  event.stopPropagation();
+                  onToggleSave?.(place.id);
+                },
+                "aria-label": place.saved ? "좋아요 취소" : "좋아요"
+              },
+              h(HeartIcon, {
+                className: "save-icon",
+                filled: place.saved
+              })
+            )
+          : null,
         h(
           "span",
           {
@@ -88,7 +107,15 @@ export function PlaceCard({ place, scheduleBadge, onOpen, onToggleSave }) {
         h(
           "div",
           { className: "place-card-heading" },
-          h("h3", null, place.name)
+          h("h3", null, place.name),
+          h(
+            "span",
+            {
+              className: "place-card-category",
+              style: { "--category-tone": category.tone }
+            },
+            category.label
+          )
         ),
         h(
           "span",
@@ -96,14 +123,50 @@ export function PlaceCard({ place, scheduleBadge, onOpen, onToggleSave }) {
           toRecommendedLabel(place.createdLabel, place.friendName)
         )
       ),
+      isCompact && showSave
+        ? h(
+            "button",
+            {
+              type: "button",
+              className: `save-toggle-button place-card-body-save ${place.saved ? "active" : ""}`,
+              onClick: (event) => {
+                event.stopPropagation();
+                onToggleSave?.(place.id);
+              },
+              "aria-label": place.saved ? "좋아요 취소" : "좋아요"
+            },
+            h(HeartIcon, {
+              className: "save-icon",
+              filled: place.saved
+            })
+          )
+        : compactAction,
       h(
         "p",
-        {
-          className: "friend-note",
-          style: { "--note-tone": category.tone }
-        },
-        `"${place.friendNote}"`
-      )
+        { className: "place-card-address" },
+        h(MapPinIcon, { className: "place-card-address-icon" }),
+        h("span", null, place.address)
+      ),
+      place.friendNote
+        ? h(
+            "p",
+            {
+              className: "friend-note",
+              style: { "--note-tone": category.tone }
+            },
+            isCompact
+              ? [
+                  h("span", { key: "avatar", className: "friend-note-avatar" }, getFriendInitial(place.friendName)),
+                  h(
+                    "span",
+                    { key: "copy", className: "friend-note-copy" },
+                    h("strong", null, place.friendName || "친구"),
+                    h("span", null, place.friendNote)
+                  )
+                ]
+              : `"${place.friendNote}"`
+          )
+        : null
     )
   );
 }

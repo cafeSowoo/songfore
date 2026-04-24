@@ -1,10 +1,10 @@
 const CATEGORY_DEFINITIONS = [
-  { id: "all", label: "전체", tone: "#dbe4df" },
-  { id: "cafe", label: "카페", tone: "#dff3eb" },
-  { id: "restaurant", label: "식당", tone: "#fde7dd" },
-  { id: "tour", label: "관광지", tone: "#deedff" },
-  { id: "shopping", label: "쇼핑", tone: "#ece7ff" },
-  { id: "etc", label: "기타", tone: "#eef1ec" }
+  { id: "all", label: "전체", tone: "#ff385c" },
+  { id: "cafe", label: "카페", tone: "#00a676" },
+  { id: "restaurant", label: "식당", tone: "#ff5a1f" },
+  { id: "tour", label: "관광지", tone: "#2878ff" },
+  { id: "shopping", label: "쇼핑", tone: "#8b5cf6" },
+  { id: "etc", label: "기타", tone: "#5b6472" }
 ];
 
 const CATEGORY_LOOKUP = new Map(

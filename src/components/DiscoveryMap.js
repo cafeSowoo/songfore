@@ -1,16 +1,17 @@
 import { getCategoryById } from "../lib/api.js";
 import { loadNaverMapsSdk } from "../lib/naverMaps.js";
 import { MapPinIcon } from "./Icons.js";
+import { PlaceCard } from "./PlaceCard.js";
 
 const { createElement: h, useEffect, useMemo, useRef, useState } = window.React;
 
 const MAP_CENTER = { latitude: 36.3504119, longitude: 127.3845475 };
 const CATEGORY_MARKER_COLORS = {
-  cafe: "#2d8f6f",
-  restaurant: "#ff6d33",
-  tour: "#2f80ed",
-  shopping: "#8465d1",
-  etc: "#6b7b73"
+  cafe: "#00a676",
+  restaurant: "#ff5a1f",
+  tour: "#2878ff",
+  shopping: "#8b5cf6",
+  etc: "#5b6472"
 };
 
 function toRadians(value) {
@@ -75,11 +76,7 @@ function hasCoordinates(place) {
   );
 }
 
-function getMarkerColor(categoryId, isActive) {
-  if (isActive) {
-    return "#153328";
-  }
-
+function getMarkerColor(categoryId) {
   return CATEGORY_MARKER_COLORS[categoryId] || CATEGORY_MARKER_COLORS.etc;
 }
 
@@ -103,7 +100,7 @@ function getMapSummaryCopy(place) {
 
 function createMarkerIcon(naver, place, isActive) {
   const size = isActive ? 26 : 20;
-  const fill = getMarkerColor(place.category, isActive);
+  const fill = getMarkerColor(place.category);
   const label = String(place.name || "").trim();
   const labelFontSize = isActive ? 13 : 12;
   const labelPaddingX = isActive ? 10 : 9;
@@ -399,19 +396,28 @@ export function DiscoveryMap({
       ...cardPlaces.map((place) => {
         const category = getCategoryById(place.category);
 
-        return h(
-          "button",
-          {
-            key: place.id,
-            type: "button",
-            className: `map-summary-card ${focusedPlaceId === place.id ? "active" : ""}`,
-            style: { "--summary-tone": category.tone },
-            onClick: () => onFocusPlace(place.id)
-          },
-          h("strong", null, place.name),
-          h("p", null, getMapSummaryCopy(place)),
-          h("span", null, `${place.friendName} 추천 · ${place.address}`)
-        );
+        return h(PlaceCard, {
+          key: place.id,
+          place,
+          variant: "compact",
+          className: `place-card-map ${focusedPlaceId === place.id ? "active" : ""}`,
+          style: { "--map-tone": category.tone },
+          showSave: false,
+          compactAction: h(
+            "button",
+            {
+              type: "button",
+              className: "place-card-info-button",
+              onClick: (event) => {
+                event.stopPropagation();
+                onOpenPlace(place.id);
+              }
+            },
+            "정보 보기"
+          ),
+          onOpen: onFocusPlace,
+          onToggleSave: null
+        });
       })
     )
   );

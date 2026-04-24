@@ -119,6 +119,11 @@ export function ScheduleTimeline({
       : places.filter((place) => place.category === selectedCategory);
   const activeEntries = sortEntries(entries.filter((entry) => entry.dayId === activeDayId));
   const groupedEntries = groupEntriesByTime(activeEntries);
+  const scheduledPlaceIds = new Set(
+    activeEntries
+      .filter((entry) => entry.type === "place")
+      .map((entry) => entry.placeId)
+  );
 
   useEffect(() => {
     if (!filteredPlaces.some((place) => place.id === selectedPlaceId)) {
@@ -296,20 +301,22 @@ export function ScheduleTimeline({
             h(
               "div",
               { className: "schedule-place-list" },
-              ...filteredPlaces.map((place) =>
-                h(
+              ...filteredPlaces.map((place) => {
+                const isScheduled = scheduledPlaceIds.has(place.id);
+
+                return h(
                   "button",
                   {
                     key: place.id,
                     type: "button",
                     className: `schedule-place-option ${
                       selectedPlaceId === place.id ? "active" : ""
-                    }`,
+                    } ${isScheduled ? "is-scheduled" : ""}`,
                     onClick: () => setSelectedPlaceId(place.id)
                   },
                   place.name
-                )
-              )
+                );
+              })
             )
           ),
           h(

@@ -465,15 +465,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
         h(
           "div",
           { className: "add-sheet-title-block" },
-          h("span", { className: "eyebrow subtle" }, "Add A Spot"),
-          h("h2", null, "새로운 장소 추가"),
-          h(
-            "p",
-            { className: "add-sheet-subcopy" },
-            activeMode === "search"
-              ? "장소를 먼저 고르고, 마지막에 추천 이유만 적으면 바로 저장돼요."
-              : "검색에 안 보이는 장소는 직접 간단하게 입력해둘 수 있어요."
-          )
+          h("h2", null, "새로운 장소 추가")
         ),
         h(
           "button",
@@ -539,54 +531,45 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
             h(
               "div",
               { className: "add-search-content" },
-              h(
-                "div",
-                { className: "add-search-results" },
-                searchState.results.length
-                  ? h(
-                      "div",
-                      { className: "add-search-result-list" },
-                      ...searchState.results.map((place) =>
-                        h(SearchResultCard, {
-                          key: place.id,
-                          place,
-                          isActive: searchState.selectedPlace?.id === place.id,
-                          onSelect: (selectedPlace) =>
-                            setSearchState((current) => ({
-                              ...current,
-                              selectedPlace
-                            }))
-                        })
-                      )
-                    )
-                  : searchState.hasSearched
-                    ? h(
-                        "div",
-                        { className: "add-search-empty" },
-                        h("strong", null, "원하는 장소가 안 보이나요?"),
-                        h(
-                          "p",
-                          null,
-                          searchState.errorMessage ||
-                            "검색 결과가 없으면 직접 입력 탭에서 바로 추가할 수 있어요."
+              searchState.results.length || searchState.hasSearched
+                ? h(
+                    "div",
+                    { className: "add-search-results" },
+                    searchState.results.length
+                      ? h(
+                          "div",
+                          { className: "add-search-result-list" },
+                          ...searchState.results.map((place) =>
+                            h(SearchResultCard, {
+                              key: place.id,
+                              place,
+                              isActive: searchState.selectedPlace?.id === place.id,
+                              onSelect: (selectedPlace) =>
+                                setSearchState((current) => ({
+                                  ...current,
+                                  selectedPlace
+                                }))
+                            })
+                          )
                         )
-                      )
-                    : h(
-                        "div",
-                        { className: "add-search-empty" },
-                        h("strong", null, "장소를 먼저 찾아볼까요?"),
-                        h(
-                          "p",
-                          null,
-                          "검색창에 장소명이나 지역을 입력하면 아래 리스트에서 바로 골라볼 수 있어요."
+                      : h(
+                          "div",
+                          { className: "add-search-empty" },
+                          h("strong", null, "원하는 장소가 안 보이나요?"),
+                          h(
+                            "p",
+                            null,
+                            searchState.errorMessage ||
+                              "검색 결과가 없으면 직접 입력 탭에서 바로 추가할 수 있어요."
+                          )
                         )
-                      )
-              ),
-              h(
-                "form",
-                { className: "add-search-preview-card", onSubmit: handleSearchSave },
-                searchState.selectedPlace
-                  ? [
+                  )
+                : null,
+              searchState.selectedPlace
+                ? h(
+                    "form",
+                    { className: "add-search-preview-card", onSubmit: handleSearchSave },
+                    [
                       h(
                         "div",
                         { key: "head", className: "add-search-preview-copy" },
@@ -679,6 +662,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
                                 className: `category-select-chip ${
                                   searchState.category === category.id ? "active" : ""
                                 }`,
+                                style: { "--chip-tone": category.tone },
                                 onClick: () =>
                                   setSearchState((current) => ({
                                     ...current,
@@ -703,20 +687,11 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
                           ? "링크 확인 중..."
                           : isSubmitting
                             ? "저장 중..."
-                            : "등록하기"
+                          : "등록하기"
                       })
                     ]
-                  : h(
-                      "div",
-                      { className: "add-search-preview-empty" },
-                      h("strong", null, "먼저 아래 검색 결과에서 장소를 골라주세요."),
-                      h(
-                        "p",
-                        null,
-                        "장소를 선택하면 이 영역이 위에서 바로 업데이트되고, 지도와 추천 이유 입력도 함께 열려요."
-                      )
-                    )
-              )
+                  )
+                : null
             )
           )
         : h(
@@ -738,6 +713,7 @@ export function AddPlaceSheet({ categories, mapsClientId = "", onClose, onSubmit
                       className: `category-select-chip ${
                         directForm.category === category.id ? "active" : ""
                       }`,
+                      style: { "--chip-tone": category.tone },
                       onClick: () =>
                         setDirectForm((current) => ({
                           ...current,
