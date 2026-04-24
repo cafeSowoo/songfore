@@ -1,7 +1,7 @@
 import {
   CalendarIcon,
-  ChatIcon,
   CompassIcon,
+  PeopleIcon,
   SparkleIcon
 } from "./Icons.js";
 
@@ -60,15 +60,15 @@ export function BottomNav({ activeTab, onChange }) {
         "button",
         {
           type: "button",
-          className: `bottom-nav-item ${activeTab === "chat" ? "active" : ""}`,
-          onClick: () => onChange("chat")
+          className: `bottom-nav-item ${activeTab === "profile" ? "active" : ""}`,
+          onClick: () => onChange("profile")
         },
         h(
           "span",
           { className: "bottom-nav-icon-shell" },
-          h(ChatIcon, { className: "bottom-nav-icon" })
+          h(PeopleIcon, { className: "bottom-nav-icon" })
         ),
-        h("span", { className: "bottom-nav-label" }, "잡담")
+        h("span", { className: "bottom-nav-label" }, "마이")
       )
     )
   );

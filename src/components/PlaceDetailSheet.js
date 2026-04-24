@@ -22,7 +22,8 @@ function buildFriendMessages(place) {
       name: place.friendName,
       text: place.friendNote,
       time: String(place.createdLabel || "방금 추천").replace("저장", "추천"),
-      accent: "left"
+      accent: "left",
+      isPrimary: true
     });
   }
 
@@ -221,8 +222,11 @@ function DetailLocationMap({ place, mapsClientId = "" }) {
 export function PlaceDetailSheet({
   place,
   mapsClientId = "",
+  currentNickname = "",
+  highlightedCommentId = null,
   onAddComment,
   onClose,
+  onDeleteComment,
   onDeletePlace,
   onToggleSave,
   onShowMap
@@ -230,6 +234,19 @@ export function PlaceDetailSheet({
   const category = getCategoryById(place.category);
   const friendMessages = useMemo(() => buildFriendMessages(place), [place]);
   const [draftComment, setDraftComment] = useState("");
+  const commentListRef = useRef(null);
+
+  useEffect(() => {
+    if (!highlightedCommentId || !commentListRef.current) {
+      return;
+    }
+
+    const target = commentListRef.current.querySelector(
+      `[data-comment-id="${CSS.escape(highlightedCommentId)}"]`
+    );
+
+    target?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [highlightedCommentId, friendMessages]);
 
   function handleSubmitComment(event) {
     event.preventDefault();
@@ -391,33 +408,55 @@ export function PlaceDetailSheet({
           ),
           h(
             "div",
-            { className: "detail-comment-list" },
-            ...friendMessages.map((message) =>
-              h(
+            { ref: commentListRef, className: "detail-comment-list" },
+            ...friendMessages.map((message) => {
+              const canDelete =
+                String(message.name || "").trim() === String(currentNickname || "").trim();
+
+              return h(
                 "article",
                 {
                   key: message.id,
-                  className: `detail-comment-item ${message.accent || "left"}`
+                  className: `detail-comment-item ${message.accent || "left"} ${
+                    highlightedCommentId === message.id ? "highlighted" : ""
+                  }`,
+                  "data-comment-id": message.id
                 },
-                message.name || message.time
+                h(
+                  "div",
+                  { className: "detail-comment-content" },
+                  message.name || message.time
+                    ? h(
+                        "div",
+                        { className: "detail-comment-meta" },
+                        message.name
+                          ? h("div", { className: "detail-comment-author" }, message.name)
+                          : null,
+                        message.time
+                          ? h(
+                              "span",
+                              { className: "detail-comment-time" },
+                              formatMessageMetaLabel(message.time)
+                            )
+                          : null
+                      )
+                    : null,
+                  h("div", { className: "detail-comment-bubble" }, message.text)
+                ),
+                canDelete
                   ? h(
-                      "div",
-                      { className: "detail-comment-meta" },
-                      message.name
-                        ? h("div", { className: "detail-comment-author" }, message.name)
-                        : null,
-                      message.time
-                        ? h(
-                            "span",
-                            { className: "detail-comment-time" },
-                            formatMessageMetaLabel(message.time)
-                          )
-                        : null
+                      "button",
+                      {
+                        type: "button",
+                        className: "detail-comment-delete-button",
+                        "aria-label": "한마디 삭제",
+                        onClick: () => onDeleteComment?.(place.id, message.id)
+                      },
+                      h(TrashIcon, { className: "detail-comment-delete-icon" })
                     )
-                  : null,
-                h("div", { className: "detail-comment-bubble" }, message.text),
-              )
-            )
+                  : null
+              );
+            })
           ),
           h(
             "form",

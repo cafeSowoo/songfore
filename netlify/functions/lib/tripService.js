@@ -15,6 +15,19 @@ function assertNoError(error, fallbackMessage) {
   }
 }
 
+function isMissingOptionalTable(error) {
+  const message = String(error?.message || "").toLowerCase();
+  return (
+    error?.code === "42P01" ||
+    message.includes("does not exist") ||
+    message.includes("schema cache")
+  );
+}
+
+function normalizeNickname(value) {
+  return String(value || "").trim();
+}
+
 export async function getOrCreateTripBySlug(slug) {
   const supabase = getSupabaseAdmin();
   const { data: existingTrip, error: readError } = await supabase
@@ -66,9 +79,101 @@ export async function ensureMember(tripId, nickname) {
   return data;
 }
 
-export async function buildTripSnapshot(slug) {
+export async function findMemberByNickname(tripId, nickname) {
+  const supabase = getSupabaseAdmin();
+  const normalizedNickname = normalizeNickname(nickname);
+
+  if (!normalizedNickname) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("members")
+    .select("*")
+    .eq("trip_id", tripId)
+    .eq("nickname", normalizedNickname)
+    .maybeSingle();
+
+  assertNoError(error, "Failed to read member.");
+  return data || null;
+}
+
+async function loadPlaceSaves(supabase, placeIds, currentMemberId) {
+  if (!placeIds.length) {
+    return {
+      saveCountsByPlaceId: new Map(),
+      savedPlaceIds: new Set()
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("place_saves")
+    .select("place_id, member_id")
+    .in("place_id", placeIds);
+
+  if (error) {
+    if (isMissingOptionalTable(error)) {
+      return {
+        saveCountsByPlaceId: new Map(),
+        savedPlaceIds: new Set()
+      };
+    }
+
+    throw new Error(error.message || "Failed to load saves.");
+  }
+
+  const saveCountsByPlaceId = new Map();
+  const savedPlaceIds = new Set();
+
+  for (const save of data || []) {
+    saveCountsByPlaceId.set(
+      save.place_id,
+      (saveCountsByPlaceId.get(save.place_id) || 0) + 1
+    );
+
+    if (currentMemberId && save.member_id === currentMemberId) {
+      savedPlaceIds.add(save.place_id);
+    }
+  }
+
+  return {
+    saveCountsByPlaceId,
+    savedPlaceIds
+  };
+}
+
+async function loadScheduleEntries(supabase, tripId) {
+  const { data, error } = await supabase
+    .from("schedule_entries")
+    .select("*")
+    .eq("trip_id", tripId)
+    .order("day_id", { ascending: true })
+    .order("time", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    if (isMissingOptionalTable(error)) {
+      return [];
+    }
+
+    throw new Error(error.message || "Failed to load schedule entries.");
+  }
+
+  return (data || []).map((entry) => ({
+    id: entry.id,
+    dayId: entry.day_id,
+    time: entry.time,
+    type: entry.entry_type,
+    placeId: entry.place_id,
+    title: entry.title || "",
+    createdAt: entry.created_at
+  }));
+}
+
+export async function buildTripSnapshot(slug, options = {}) {
   const supabase = getSupabaseAdmin();
   const trip = await getOrCreateTripBySlug(slug);
+  const currentMember = await findMemberByNickname(trip.id, options.nickname);
 
   const [{ data: members, error: membersError }, { data: places, error: placesError }] =
     await Promise.all([
@@ -97,6 +202,11 @@ export async function buildTripSnapshot(slug) {
     assertNoError(error, "Failed to load comments.");
     comments = data || [];
   }
+
+  const [{ saveCountsByPlaceId, savedPlaceIds }, scheduleEntries] = await Promise.all([
+    loadPlaceSaves(supabase, placeIds, currentMember?.id),
+    loadScheduleEntries(supabase, trip.id)
+  ]);
 
   const commentsByPlaceId = new Map();
   for (const comment of comments) {
@@ -129,6 +239,8 @@ export async function buildTripSnapshot(slug) {
       description: decodedDescription.reason,
       author: author?.nickname || "익명 멤버",
       createdAt: place.created_at,
+      saveCount: saveCountsByPlaceId.get(place.id) || 0,
+      saved: savedPlaceIds.has(place.id),
       comments: commentsByPlaceId.get(place.id) || []
     };
   });
@@ -139,6 +251,7 @@ export async function buildTripSnapshot(slug) {
       title: trip.title,
       description: trip.description || getDefaultTripDescription()
     },
-    places: normalizedPlaces
+    places: normalizedPlaces,
+    scheduleEntries
   };
 }

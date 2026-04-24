@@ -44,7 +44,7 @@ export function parsePlaceDescription(value = "") {
   }
 
   return {
-    reason: String(parsed.reason || rawValue).trim(),
+    reason: String(parsed.reason || "").trim(),
     imageUrl: String(parsed.imageUrl || "").trim(),
     naverLink: String(parsed.naverLink || "").trim()
   };

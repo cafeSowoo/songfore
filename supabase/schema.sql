@@ -41,10 +41,43 @@ create table public.place_comments (
   created_at timestamptz not null default now()
 );
 
+create table public.place_saves (
+  id uuid primary key default gen_random_uuid(),
+  place_id uuid not null references public.places(id) on delete cascade,
+  member_id uuid not null references public.members(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (place_id, member_id)
+);
+
+create table public.schedule_entries (
+  id uuid primary key default gen_random_uuid(),
+  trip_id uuid not null references public.trips(id) on delete cascade,
+  day_id text not null,
+  time text not null,
+  entry_type text not null check (entry_type in ('place', 'note')),
+  place_id uuid references public.places(id) on delete cascade,
+  title text,
+  created_by_member_id uuid references public.members(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (
+    (entry_type = 'place' and place_id is not null)
+    or
+    (entry_type = 'note' and title is not null and btrim(title) <> '')
+  )
+);
+
 create index idx_members_trip_id on public.members(trip_id);
 create index idx_places_trip_id on public.places(trip_id);
 create index idx_places_category on public.places(category);
 create index idx_place_comments_place_id on public.place_comments(place_id);
+create index idx_place_saves_place_id on public.place_saves(place_id);
+create index idx_place_saves_member_id on public.place_saves(member_id);
+create index idx_schedule_entries_trip_id on public.schedule_entries(trip_id);
+create index idx_schedule_entries_place_id on public.schedule_entries(place_id);
+
+alter table public.place_saves enable row level security;
+alter table public.schedule_entries enable row level security;
 
 create or replace function public.set_updated_at()
 returns trigger as $$
@@ -56,4 +89,8 @@ $$ language plpgsql;
 
 create trigger trg_places_updated_at
 before update on public.places
+for each row execute function public.set_updated_at();
+
+create trigger trg_schedule_entries_updated_at
+before update on public.schedule_entries
 for each row execute function public.set_updated_at();

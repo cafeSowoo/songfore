@@ -3,11 +3,15 @@ import {
   createComment,
   createPlace,
   createPlaceRecord,
+  createScheduleEntry,
+  deleteComment,
   deletePlace,
+  deleteScheduleEntry,
   fetchTripSnapshot,
   friendRoster,
   getRuntimeConfig,
-  getVisiblePlaces
+  getVisiblePlaces,
+  togglePlaceSave
 } from "./lib/api.js";
 import { seedPlaces, tripMeta } from "./data/sampleTrip.js";
 import { AddPlaceSheet } from "./components/AddPlaceSheet.js";
@@ -18,6 +22,7 @@ import { FilterChips } from "./components/FilterChips.js";
 import { NicknamePrompt } from "./components/NicknamePrompt.js";
 import { PlaceCard } from "./components/PlaceCard.js";
 import { PlaceDetailSheet } from "./components/PlaceDetailSheet.js";
+import { MyPage } from "./components/MyPage.js";
 import { ScheduleTimeline } from "./components/ScheduleTimeline.js";
 
 const { createElement: h, useEffect, useState } = window.React;
@@ -117,6 +122,7 @@ export function App() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("feed");
   const [selectedPlaceId, setSelectedPlaceId] = useState(null);
+  const [highlightedCommentId, setHighlightedCommentId] = useState(null);
   const [focusedMapPlaceId, setFocusedMapPlaceId] = useState(null);
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -144,7 +150,9 @@ export function App() {
 
     async function hydrateRemoteTrip() {
       try {
-        const snapshot = await fetchTripSnapshot(runtimeConfig.tripSlug);
+        const snapshot = await fetchTripSnapshot(runtimeConfig.tripSlug, {
+          nickname: getStoredNickname()
+        });
 
         if (cancelled) {
           return;
@@ -190,6 +198,10 @@ export function App() {
 
     setPlaces(nextPlaces);
 
+    if (Array.isArray(snapshot?.scheduleEntries)) {
+      setScheduleEntries(snapshot.scheduleEntries);
+    }
+
     setSelectedPlaceId((currentSelectedPlaceId) => {
       if (options.selectedPlaceId && nextPlaces.some((place) => place.id === options.selectedPlaceId)) {
         return options.selectedPlaceId;
@@ -208,7 +220,7 @@ export function App() {
         : null
     );
 
-    if (options.syncSchedule) {
+    if (!Array.isArray(snapshot?.scheduleEntries) && options.syncSchedule) {
       setScheduleEntries((currentEntries) => syncScheduleEntries(currentEntries, nextPlaces));
     }
   }
@@ -234,6 +246,13 @@ export function App() {
 
     window.localStorage.setItem("dj-nickname", normalizedNickname);
     setNickname(normalizedNickname);
+    if (dataMode === "remote") {
+      fetchTripSnapshot(trip.slug, { nickname: normalizedNickname })
+        .then((snapshot) => applySnapshot(snapshot))
+        .catch((error) => {
+          console.warn("Failed to refresh trip snapshot after nickname change.", error);
+        });
+    }
     nicknameRequest?.resolve(normalizedNickname);
     setNicknameRequest(null);
   }
@@ -243,7 +262,31 @@ export function App() {
     setNicknameRequest(null);
   }
 
-  function handleToggleSave(placeId) {
+  async function handleToggleSave(placeId) {
+    const authorNickname = await ensureNickname();
+
+    if (!authorNickname) {
+      return;
+    }
+
+    if (dataMode === "remote") {
+      try {
+        const snapshot = await togglePlaceSave({
+          slug: trip.slug,
+          placeId,
+          nickname: authorNickname
+        });
+
+        applySnapshot(snapshot);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "좋아요를 저장하지 못했어요.";
+        window.alert(message);
+      }
+
+      return;
+    }
+
     setPlaces((currentPlaces) =>
       currentPlaces.map((place) => {
         if (place.id !== placeId) {
@@ -318,6 +361,52 @@ export function App() {
     );
   }
 
+  async function handleDeletePlaceComment(placeId, commentId) {
+    const authorNickname = await ensureNickname();
+
+    if (!authorNickname) {
+      return;
+    }
+
+    if (!window.confirm("삭제하시겠습니까?")) {
+      return;
+    }
+
+    if (dataMode === "remote") {
+      try {
+        const snapshot = await deleteComment({
+          slug: trip.slug,
+          placeId,
+          commentId,
+          nickname: authorNickname
+        });
+
+        applySnapshot(snapshot, {
+          selectedPlaceId: placeId
+        });
+        setHighlightedCommentId(null);
+        return;
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "한마디를 삭제하지 못했어요.";
+        window.alert(message);
+      }
+    }
+
+    setPlaces((currentPlaces) =>
+      currentPlaces.map((place) =>
+        place.id === placeId
+          ? {
+              ...place,
+              friendNote: commentId === `${place.id}-primary` ? "" : place.friendNote,
+              comments: (place.comments || []).filter((comment) => comment.id !== commentId)
+            }
+          : place
+      )
+    );
+    setHighlightedCommentId(null);
+  }
+
   async function handleAddPlace(formData) {
     const authorNickname = await ensureNickname();
 
@@ -383,6 +472,24 @@ export function App() {
   }
 
   function handleAddScheduleFromCard(dayId, time, placeId) {
+    if (dataMode === "remote") {
+      createScheduleEntry({
+        slug: trip.slug,
+        dayId,
+        time,
+        type: "place",
+        placeId,
+        nickname
+      })
+        .then((snapshot) => applySnapshot(snapshot))
+        .catch((error) => {
+          const message =
+            error instanceof Error ? error.message : "일정을 저장하지 못했어요.";
+          window.alert(message);
+        });
+      return;
+    }
+
     setScheduleEntries((currentEntries) => [
       ...currentEntries,
       {
@@ -396,6 +503,24 @@ export function App() {
   }
 
   function handleAddScheduleCustom(dayId, time, title) {
+    if (dataMode === "remote") {
+      createScheduleEntry({
+        slug: trip.slug,
+        dayId,
+        time,
+        type: "note",
+        title: title.trim(),
+        nickname
+      })
+        .then((snapshot) => applySnapshot(snapshot))
+        .catch((error) => {
+          const message =
+            error instanceof Error ? error.message : "일정을 저장하지 못했어요.";
+          window.alert(message);
+        });
+      return;
+    }
+
     setScheduleEntries((currentEntries) => [
       ...currentEntries,
       {
@@ -409,6 +534,21 @@ export function App() {
   }
 
   function handleDeleteScheduleEntry(entryId) {
+    if (dataMode === "remote") {
+      deleteScheduleEntry({
+        slug: trip.slug,
+        entryId,
+        nickname
+      })
+        .then((snapshot) => applySnapshot(snapshot))
+        .catch((error) => {
+          const message =
+            error instanceof Error ? error.message : "일정을 삭제하지 못했어요.";
+          window.alert(message);
+        });
+      return;
+    }
+
     setScheduleEntries((currentEntries) =>
       currentEntries.filter((entry) => entry.id !== entryId)
     );
@@ -457,6 +597,12 @@ export function App() {
 
   function handleOpenPlace(placeId) {
     setSelectedPlaceId(placeId);
+    setHighlightedCommentId(null);
+  }
+
+  function handleOpenComment(placeId, commentId) {
+    setSelectedPlaceId(placeId);
+    setHighlightedCommentId(commentId);
   }
 
   function handleCloseDetail() {
@@ -469,6 +615,15 @@ export function App() {
 
   function handleCloseAddSheet() {
     setIsAddSheetOpen(false);
+  }
+
+  function handleEditNickname() {
+    setNicknameRequest({ resolve: () => {} });
+  }
+
+  function handleLogoutNickname() {
+    window.localStorage.removeItem("dj-nickname");
+    setNickname("");
   }
 
   function handleShowMapFromDetail() {
@@ -536,24 +691,21 @@ export function App() {
                       h(
                         "div",
                         { className: "loading-state-copy" },
-                        h("strong", null, "장소를 불러오는 중이에요."),
-                        h("p", null, "이전 샘플 카드 대신 현재 여행 보드를 바로 연결하고 있어요.")
+                        h("strong", null, "불러오는 중이에요")
                       ),
                       h(
                         "div",
                         { className: "loading-card-list" },
-                        ...Array.from({ length: 2 }, (_, index) =>
+                        h(
+                          "article",
+                          { className: "loading-card loading-card-compact" },
+                          h("div", { className: "loading-card-image shimmer-block" }),
                           h(
-                            "article",
-                            { key: `loading-card-${index}`, className: "loading-card" },
-                            h("div", { className: "loading-card-image shimmer-block" }),
-                            h(
-                              "div",
-                              { className: "loading-card-body" },
-                              h("span", { className: "loading-line loading-line-title shimmer-block" }),
-                              h("span", { className: "loading-line loading-line-meta shimmer-block" }),
-                              h("span", { className: "loading-line loading-line-note shimmer-block" })
-                            )
+                            "div",
+                            { className: "loading-card-body" },
+                            h("span", { className: "loading-line loading-line-title shimmer-block" }),
+                            h("span", { className: "loading-line loading-line-meta shimmer-block" }),
+                            h("span", { className: "loading-line loading-line-note shimmer-block" })
                           )
                         )
                       )
@@ -604,8 +756,19 @@ export function App() {
                         null,
                         normalizedSearchQuery
                           ? "장소명이나 주소를 조금 다르게 입력해보세요."
-                          : "필터를 바꾸거나 오른쪽 아래 플러스 버튼으로 다음 후보를 바로 모아보세요."
-                      )
+                          : "필터를 바꾸거나 장소 추천 버튼으로 다음 후보를 모아보세요."
+                      ),
+                      normalizedSearchQuery
+                        ? null
+                        : h(
+                            "button",
+                            {
+                              type: "button",
+                              className: "header-add-pill-button",
+                              onClick: handleOpenAddSheet
+                            },
+                            "+ 장소 추천"
+                          )
                     )
               )
             : activeTab === "map"
@@ -621,12 +784,13 @@ export function App() {
                     )
                   )
                 : h(DiscoveryMap, {
-                    places: visiblePlaces.length ? visiblePlaces : places,
+                    places: visiblePlaces,
                     activeFilter,
                     focusedPlaceId: hasFocusedPlace ? focusedMapPlaceId : null,
                     mapsClientId: runtimeConfig.naverMapsClientId,
                     onFocusPlace: handleFocusMapPlace,
                     onClearFocus: handleClearMapFocus,
+                    onOpenAdd: handleOpenAddSheet,
                     onOpenPlace: handleOpenPlace
                   })
               : activeTab === "schedule"
@@ -649,20 +813,18 @@ export function App() {
                       onDeleteEntry: handleDeleteScheduleEntry,
                       onOpenPlace: handleOpenPlace
                     })
-                : h(
-                    "section",
-                    { className: "feed-section" },
-                    h(
-                      "div",
-                      { className: "empty-state" },
-                      h("strong", null, "잡담 메뉴는 다음 단계에서 붙일게요."),
-                      h(
-                        "p",
-                        null,
-                        "친구들이 일정이나 장소에 대해 편하게 이야기하는 공간은 여기로 연결할 예정입니다."
-                      )
-                    )
-                  )
+                : h(MyPage, {
+                    nickname,
+                    places,
+                    onDeletePlace: handleDeletePlace,
+                    onEditNickname: handleEditNickname,
+                    onLogout: handleLogoutNickname,
+                    onOpenAdd: handleOpenAddSheet,
+                    onOpenComment: handleOpenComment,
+                    onOpenPlace: handleOpenPlace,
+                    onToggleSave: handleToggleSave,
+                    onDeleteComment: handleDeletePlaceComment
+                  })
         ),
         h(BottomNav, {
           activeTab,
@@ -675,6 +837,9 @@ export function App() {
       ? h(PlaceDetailSheet, {
           place: selectedPlace,
           mapsClientId: runtimeConfig.naverMapsClientId,
+          currentNickname: nickname,
+          highlightedCommentId,
+          onDeleteComment: handleDeletePlaceComment,
           onDeletePlace: handleDeletePlace,
           onClose: handleCloseDetail,
           onAddComment: handleAddPlaceComment,

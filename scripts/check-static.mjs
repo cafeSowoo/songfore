@@ -12,7 +12,9 @@ const requiredFiles = [
   "netlify/functions/place-search.js",
   "netlify/functions/trip.js",
   "netlify/functions/places.js",
-  "netlify/functions/comments.js"
+  "netlify/functions/comments.js",
+  "netlify/functions/saves.js",
+  "netlify/functions/schedule.js"
 ];
 
 for (const file of requiredFiles) {

@@ -46,7 +46,7 @@ export function NicknamePrompt({ initialValue = "", onCancel, onSubmit }) {
           ref: inputRef,
           value,
           onInput: (event) => setValue(event.target.value),
-          placeholder: "예: 지원, 민호, js",
+          placeholder: "예: JS, 지석",
           maxLength: 20,
           "aria-label": "닉네임"
         }),

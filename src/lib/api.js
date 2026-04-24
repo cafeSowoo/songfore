@@ -299,10 +299,11 @@ function toUiPlace(remotePlace, index) {
   const friendName = remotePlace.author || friendRoster[index % friendRoster.length];
   const comments = Array.isArray(remotePlace.comments) ? remotePlace.comments : [];
   const description = String(remotePlace.description || "").trim();
-  const friendNote =
-    description || FRIEND_NOTE_TEMPLATES[remotePlace.category] || FRIEND_NOTE_TEMPLATES.etc;
+  const friendNote = description;
   const reason = buildGeneratedReason(remotePlace.category, remotePlace.address);
-  const saveCount = buildSaveCount(remotePlace.name, comments.length);
+  const saveCount = Number(
+    remotePlace.saveCount ?? buildSaveCount(remotePlace.name, comments.length)
+  );
 
   return {
     id: remotePlace.id,
@@ -322,7 +323,7 @@ function toUiPlace(remotePlace, index) {
     friendNote,
     saveCount,
     baseSaveCount: saveCount,
-    saved: false,
+    saved: Boolean(remotePlace.saved),
     createdLabel: `${friendName}이 ${formatRelativeTime(remotePlace.createdAt)} 추천`,
     comments: comments.map(toUiComment),
     tags: [],
@@ -342,7 +343,17 @@ function toUiSnapshot(snapshot) {
       description:
         snapshot?.trip?.description || "8명이 함께 고르는 대전 스팟"
     },
-    places: mappedPlaces
+    places: mappedPlaces,
+    scheduleEntries: Array.isArray(snapshot?.scheduleEntries)
+      ? snapshot.scheduleEntries.map((entry) => ({
+          id: entry.id,
+          dayId: entry.dayId || "day-1",
+          time: entry.time || "09:00",
+          type: entry.type === "note" ? "note" : "place",
+          placeId: entry.placeId || "",
+          title: entry.title || ""
+        }))
+      : null
   };
 }
 
@@ -434,13 +445,19 @@ export function createPlaceRecord(formData, index = 0, authorName = "") {
   };
 }
 
-export async function fetchTripSnapshot(slug = "dj") {
-  const response = await fetch(
-    `/.netlify/functions/trip?slug=${encodeURIComponent(slug)}`,
-    {
-      headers: { Accept: "application/json" }
-    }
-  );
+export async function fetchTripSnapshot(slug = "dj", options = {}) {
+  const params = new URLSearchParams({
+    slug: String(slug || "dj")
+  });
+  const nickname = String(options.nickname || "").trim();
+
+  if (nickname) {
+    params.set("nickname", nickname);
+  }
+
+  const response = await fetch(`/.netlify/functions/trip?${params.toString()}`, {
+    headers: { Accept: "application/json" }
+  });
 
   const payload = await readJsonResponse(response);
   return toUiSnapshot(payload);
@@ -545,6 +562,83 @@ export async function createComment(payload) {
       placeId: payload.placeId,
       nickname: String(payload.nickname || "").trim(),
       content: String(payload.content || "").trim()
+    })
+  });
+
+  const snapshot = await readJsonResponse(response);
+  return toUiSnapshot(snapshot);
+}
+
+export async function deleteComment(payload) {
+  const response = await fetch("/.netlify/functions/comments", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify({
+      slug: payload.slug || "dj",
+      placeId: payload.placeId,
+      commentId: payload.commentId,
+      nickname: String(payload.nickname || "").trim()
+    })
+  });
+
+  const snapshot = await readJsonResponse(response);
+  return toUiSnapshot(snapshot);
+}
+
+export async function togglePlaceSave(payload) {
+  const response = await fetch("/.netlify/functions/saves", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify({
+      slug: payload.slug || "dj",
+      placeId: payload.placeId,
+      nickname: String(payload.nickname || "").trim()
+    })
+  });
+
+  const snapshot = await readJsonResponse(response);
+  return toUiSnapshot(snapshot);
+}
+
+export async function createScheduleEntry(payload) {
+  const response = await fetch("/.netlify/functions/schedule", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify({
+      slug: payload.slug || "dj",
+      dayId: payload.dayId,
+      time: payload.time,
+      type: payload.type,
+      placeId: payload.placeId,
+      title: payload.title,
+      nickname: String(payload.nickname || "").trim()
+    })
+  });
+
+  const snapshot = await readJsonResponse(response);
+  return toUiSnapshot(snapshot);
+}
+
+export async function deleteScheduleEntry(payload) {
+  const response = await fetch("/.netlify/functions/schedule", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify({
+      slug: payload.slug || "dj",
+      entryId: payload.entryId,
+      nickname: String(payload.nickname || "").trim()
     })
   });
 

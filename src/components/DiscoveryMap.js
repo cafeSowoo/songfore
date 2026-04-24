@@ -196,6 +196,7 @@ export function DiscoveryMap({
   mapsClientId = "",
   onFocusPlace,
   onClearFocus,
+  onOpenAdd,
   onOpenPlace
 }) {
   const mapRef = useRef(null);
@@ -210,10 +211,7 @@ export function DiscoveryMap({
     () => (focusedPlaceId ? places.filter((place) => place.id === focusedPlaceId) : places),
     [focusedPlaceId, places]
   );
-  const coordinatePlaces = useMemo(
-    () => mapPlaces.filter(hasCoordinates),
-    [mapPlaces]
-  );
+  const coordinatePlaces = useMemo(() => mapPlaces.filter(hasCoordinates), [mapPlaces]);
   const viewportPlaces = useMemo(
     () => (focusedPlaceId ? coordinatePlaces : getViewportPlaces(coordinatePlaces)),
     [coordinatePlaces, focusedPlaceId]
@@ -240,12 +238,8 @@ export function DiscoveryMap({
         return;
       }
 
-      if (!mapRef.current || coordinatePlaces.length === 0) {
-        setMapStatus(
-          places.length
-            ? "좌표가 있는 장소부터 실제 지도로 보여드릴게요."
-            : ""
-        );
+      if (!mapRef.current) {
+        setMapStatus("");
         return;
       }
 
@@ -268,7 +262,8 @@ export function DiscoveryMap({
             selectedPlace?.longitude || MAP_CENTER.longitude
           ),
           zoom: focusedPlaceId ? 16 : 14,
-          zoomControl: true,
+          zoomControl: false,
+          mapTypeControl: false,
           mapDataControl: false,
           scaleControl: false,
           logoControl: false
@@ -393,7 +388,9 @@ export function DiscoveryMap({
     h(
       "div",
       { className: "map-card-stack" },
-      ...cardPlaces.map((place) => {
+      h("p", { className: "map-card-hint" }, "카드를 선택하면 지도의 위치로 이동합니다."),
+      cardPlaces.length
+        ? cardPlaces.map((place) => {
         const category = getCategoryById(place.category);
 
         return h(PlaceCard, {
@@ -418,7 +415,22 @@ export function DiscoveryMap({
           onOpen: onFocusPlace,
           onToggleSave: null
         });
-      })
+        })
+        : h(
+            "div",
+            { className: "map-empty-state" },
+            h("strong", null, "아직 이 카테고리에는 장소가 없어요."),
+            h("p", null, "필터를 바꾸거나 장소 추천 버튼으로 다음 후보를 모아보세요."),
+            h(
+              "button",
+              {
+                type: "button",
+                className: "header-add-pill-button",
+                onClick: onOpenAdd
+              },
+              "+ 장소 추천"
+            )
+          )
     )
   );
 }

@@ -9,7 +9,8 @@ export default async (request) => {
   try {
     const url = new URL(request.url);
     const slug = url.searchParams.get("slug") || process.env.TRIP_SLUG || "dj";
-    const snapshot = await buildTripSnapshot(slug);
+    const nickname = url.searchParams.get("nickname") || "";
+    const snapshot = await buildTripSnapshot(slug, { nickname });
     return json(snapshot);
   } catch (error) {
     return json(
