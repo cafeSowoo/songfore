@@ -130,10 +130,11 @@
       background: linear-gradient(135deg, #5fb8ff, #8ce8ff);
     }
 
-    .brand-mark img {
+    .brand-mark svg {
       width: 34px;
       height: 34px;
-      filter: brightness(0) invert(1);
+      color: #fff;
+      stroke-width: 1.7;
     }
 
     .hero-copy {
@@ -625,7 +626,9 @@
       <div class="hero-slot">
       <section class="hero" aria-label="service intro">
         <div class="brand-mark" aria-hidden="true">
-          <img src="assets/favicon/favicon.svg" alt="" />
+          <svg>
+            <use href="#icon-book"></use>
+          </svg>
         </div>
         <div class="hero-copy">
           <h1>&#49569;&#46020; &#46021;&#49436; &#54252;&#47112;&#49828;&#53944;</h1>
@@ -662,21 +665,6 @@
             <div class="card-copy">
               <h2>&#51221;&#47784; &#51312; &#44277;&#51648; &#51089;&#49457;</h2>
               <p>&#47784;&#51076;&#32;&#51204;&#45216;&#32;&#52196;&#32;&#50732;&#47532;&#45716;&#32;&#44163;</p>
-            </div>
-          </div>
-          <span class="cta">&#44277;&#51648; &#51089;&#49457;</span>
-        </a>
-
-        <a class="feature-card delay-3" href="./tools/regular-notice-v2/index.html">
-          <div class="card-head">
-            <div class="card-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <use href="#icon-calendar"></use>
-              </svg>
-            </div>
-            <div class="card-copy">
-              <h2>&#51221;&#44592; &#47784;&#51076; &#44277;&#51648; &#44544; &#50416;&#44592;</h2>
-              <p>&#47784;&#51076; 2&#51452; &#51204;&#50640; &#50732;&#47532;&#45716; &#44172;&#49884;&#44544;</p>
             </div>
           </div>
           <span class="cta">&#44277;&#51648; &#51089;&#49457;</span>
@@ -767,7 +755,7 @@
         <div class="legacy-links">
           <a class="legacy-link" href="./tools/grouping-dnd-v2/index.html">구버전 조 편성 도구</a>
           <a class="legacy-link" href="./notice-mail.html">구버전 정모 조 공지 작성</a>
-          <a class="legacy-link" href="./regular-notice.html">구버전 정기 모임 공지</a>
+          <a class="legacy-link" href="./tools/regular-notice-v2/index.html">구버전 정기 모임 공지</a>
         </div>
       </details>
 
