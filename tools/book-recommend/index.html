@@ -967,6 +967,14 @@
 
             <div class="gap"></div>
 
+            <!-- 인용문 -->
+            <div class="form-group">
+                <label for="book-quote">💬 인용문 한마디</label>
+                <input type="text" id="book-quote" placeholder="예) 이 몸은 고양이로다." autocomplete="off" />
+            </div>
+
+            <div class="gap"></div>
+
             <!-- 책 검색 -->
             <div class="search-row">
                 <div class="form-group">
@@ -1618,6 +1626,7 @@
         async function generate() {
             const title = document.getElementById('book-title').value.trim();
             const author = document.getElementById('book-author').value.trim();
+            const quote = document.getElementById('book-quote').value.trim();
             const desc = document.getElementById('book-desc').value.trim();
             const dateVal = document.getElementById('pick-date').value;
             const errorEl = document.getElementById('error-msg');
@@ -1731,7 +1740,7 @@ ${descTrimmed}
                 if (!aiBody) throw new Error('응답이 비어있습니다. 다시 시도해 주세요.');
 
                 const aladinUrl = await resolvePreferredAladinUrl(title);
-                renderResult(parsedMonth, parsedDay, title, author, aiBody, usedModel, aladinUrl);
+                renderResult(parsedMonth, parsedDay, title, author, quote, aiBody, usedModel, aladinUrl);
 
             } catch (err) {
                 showError('❌ ' + err.message);
@@ -1741,20 +1750,27 @@ ${descTrimmed}
         }
 
         /* ─── 결과 렌더링 ────────────────────────────────── */
-        function renderResult(month, day, title, author, aiBody, usedModel = 'Gemini', aladinUrl = '') {
+        function renderResult(month, day, title, author, quote, aiBody, usedModel = 'Gemini', aladinUrl = '') {
             // 사용 모델 표시
             const labelEl = document.getElementById('result-label');
-            if (usedModel === 'Gemini') {
-                labelEl.innerHTML = '✅ 생성된 추천글 <span style="font-size:0.78rem;font-weight:500;opacity:0.7;margin-left:6px;">✦ Gemini</span>';
+            const isOpenAiFallback = /chatgpt|gpt|openai/i.test(usedModel);
+            const providerLabel = isOpenAiFallback ? 'OpenAI' : 'Gemini';
+            const modelLabel = usedModel && usedModel !== providerLabel ? `${providerLabel}: ${usedModel}` : providerLabel;
+
+            if (isOpenAiFallback) {
+                labelEl.innerHTML = '✅ 생성된 추천글 <span style="font-size:0.78rem;font-weight:500;color:#10a37f;margin-left:6px;">✦ ' + esc(modelLabel) + ' (Gemini 실패 후 사용)</span>';
             } else {
-                labelEl.innerHTML = '✅ 생성된 추천글 <span style="font-size:0.78rem;font-weight:500;color:#10a37f;margin-left:6px;">✦ ' + usedModel + ' (Gemini 한도 초과로 전환)</span>';
+                labelEl.innerHTML = '✅ 생성된 추천글 <span style="font-size:0.78rem;font-weight:500;opacity:0.7;margin-left:6px;">✦ ' + esc(modelLabel) + '</span>';
             }
             const finalAladinUrl = aladinUrl || buildFallbackAladinUrl(title);
             const bookHeading = `📖 ${title} - ✍️ ${author}`;
+            const quoteBlock = quote ? `\n'${quote}'\n` : '';
+            const quoteHtml = quote ? `<br><br>'${esc(quote)}'` : '';
 
             const plain =
                 `여러분 안녕하세요,
 ${month}월 ${day}일 지정 도서 ${bookHeading} 안내드립니다.
+${quoteBlock}
 
 ${aiBody}
 
@@ -1765,7 +1781,7 @@ ${aiBody}
             preview.dataset.plainText = plain;
             preview.innerHTML =
                 `여러분 안녕하세요,<br>
-${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ✍️ ${esc(author)} 안내드립니다.<br><br>
+${month}월 ${day}일 지정 도서 📖 <strong>${esc(title)}</strong> - ✍️ ${esc(author)} 안내드립니다.${quoteHtml}<br><br>
 <span class="ai-highlight">${esc(aiBody)}</span><br><br>
 해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다🤗<br>
 [도서 정보] <a href="${esc(finalAladinUrl)}" target="_blank" style="color:var(--primary);font-size:0.88rem;word-break:break-all;">${esc(finalAladinUrl)}</a>`;
