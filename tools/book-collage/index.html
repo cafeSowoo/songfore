@@ -247,6 +247,52 @@
       color: #a3422d;
     }
 
+    .format-options {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .format-option {
+      display: grid;
+      gap: 7px;
+      min-height: 102px;
+      padding: 14px;
+      border: 1px solid rgba(46, 92, 77, 0.14);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--ink);
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease;
+    }
+
+    .format-option:hover {
+      transform: translateY(-1px);
+      border-color: rgba(74, 130, 112, 0.34);
+      box-shadow: 0 10px 22px rgba(46, 92, 77, 0.1);
+    }
+
+    .format-option.active {
+      border-color: rgba(74, 130, 112, 0.54);
+      background: rgba(239, 248, 244, 0.94);
+      box-shadow: 0 12px 26px rgba(46, 92, 77, 0.12);
+    }
+
+    .format-name {
+      font-size: 0.92rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .format-copy {
+      margin: 0;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
     .results {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
@@ -363,6 +409,10 @@
       border-radius: 18px;
       border: 1px solid rgba(46, 92, 77, 0.1);
       background: rgba(255, 255, 255, 0.84);
+    }
+
+    .upload-card[hidden] {
+      display: none;
     }
 
     .upload-top {
@@ -564,6 +614,14 @@
         grid-template-columns: 1fr;
       }
 
+      .format-options {
+        grid-template-columns: 1fr;
+      }
+
+      .format-option {
+        min-height: 0;
+      }
+
       .result-card,
       .selected-card {
         grid-template-columns: 84px minmax(0, 1fr);
@@ -648,6 +706,27 @@
           <section class="section">
             <div class="section-header">
               <span class="badge">1</span>
+              <div class="section-title">콜라주 형식</div>
+            </div>
+            <div class="format-options" role="group" aria-label="콜라주 형식 선택">
+              <button class="format-option active" type="button" data-layout-mode="three-split" aria-pressed="true">
+                <span class="format-name">3분할</span>
+                <span class="format-copy">왼쪽 책 표지, 오른쪽 사진 2장</span>
+              </button>
+              <button class="format-option" type="button" data-layout-mode="right-stack" aria-pressed="false">
+                <span class="format-name">4분할 A</span>
+                <span class="format-copy">왼쪽 책 표지, 오른쪽 사진 3장</span>
+              </button>
+              <button class="format-option" type="button" data-layout-mode="grid-quad" aria-pressed="false">
+                <span class="format-name">4분할 B</span>
+                <span class="format-copy">왼쪽 위 책 표지, 나머지 사진 3장</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-header">
+              <span class="badge">2</span>
               <div class="section-title">대표 판본 검색</div>
             </div>
             <form id="searchForm">
@@ -662,7 +741,7 @@
 
           <section class="section">
             <div class="section-header">
-              <span class="badge">2</span>
+              <span class="badge">3</span>
               <div class="section-title">선택한 대표 판본</div>
             </div>
             <div id="selectedWrap" class="selected-wrap">
@@ -673,8 +752,8 @@
 
           <section class="section">
             <div class="section-header">
-              <span class="badge">3</span>
-              <div class="section-title">오른쪽 사진 2장 업로드</div>
+              <span class="badge">4</span>
+              <div id="uploadSectionTitle" class="section-title">오른쪽 사진 2장 업로드</div>
             </div>
 
             <div class="upload-grid">
@@ -700,6 +779,19 @@
                       <input type="file" accept="image/*" data-file-input="1" />
                     </label>
                     <button class="button subtle" type="button" data-reset-photo="1">초기화</button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="upload-card" data-slot="2" hidden>
+                <div class="upload-top">
+                  <div class="upload-title">세 번째 사진</div>
+                  <div class="gesture-toolbar">
+                    <label class="upload-label">
+                      사진 선택
+                      <input type="file" accept="image/*" data-file-input="2" />
+                    </label>
+                    <button class="button subtle" type="button" data-reset-photo="2">초기화</button>
                   </div>
                 </div>
               </article>
@@ -742,6 +834,8 @@
       const searchStatus = document.getElementById("searchStatus");
       const resultsEl = document.getElementById("results");
       const selectedWrap = document.getElementById("selectedWrap");
+      const layoutModeButtons = document.querySelectorAll("[data-layout-mode]");
+      const uploadSectionTitle = document.getElementById("uploadSectionTitle");
       const previewCanvas = document.getElementById("previewCanvas");
       const canvasWrap = document.querySelector(".canvas-wrap");
       const downloadSecondary = document.getElementById("downloadSecondary");
@@ -749,8 +843,27 @@
       const bookCoverInput = document.getElementById("bookCoverInput");
       const ctx = previewCanvas.getContext("2d");
       const DRAG_SENSITIVITY = 70;
+      const COLLAGE_MODES = {
+        "three-split": {
+          uploadTitle: "오른쪽 사진 2장 업로드",
+          photoLabels: ["상단 사진", "하단 사진"],
+        },
+        "right-stack": {
+          uploadTitle: "오른쪽 사진 3장 업로드",
+          photoLabels: ["상단 사진", "중간 사진", "하단 사진"],
+        },
+        "grid-quad": {
+          uploadTitle: "사진 3장 업로드",
+          photoLabels: ["왼쪽 아래 사진", "오른쪽 위 사진", "오른쪽 아래 사진"],
+        },
+      };
+
+      function createPhotoState() {
+        return { file: null, objectUrl: "", image: null, zoom: 1, offsetX: 0, offsetY: 0 };
+      }
 
       const state = {
+        layoutMode: "three-split",
         results: [],
         selectedBook: null,
         selectedBookImage: null,
@@ -760,8 +873,9 @@
         bookTransform: { zoom: 1, offsetX: 0, offsetY: 0 },
         activeCanvasTarget: null,
         photos: [
-          { file: null, objectUrl: "", image: null, zoom: 1, offsetX: 0, offsetY: 0 },
-          { file: null, objectUrl: "", image: null, zoom: 1, offsetX: 0, offsetY: 0 },
+          createPhotoState(),
+          createPhotoState(),
+          createPhotoState(),
         ],
       };
 
@@ -803,9 +917,55 @@
         });
       }
 
+      function getActiveMode() {
+        return COLLAGE_MODES[state.layoutMode] || COLLAGE_MODES["three-split"];
+      }
+
+      function getRequiredPhotoCount() {
+        return getActiveMode().photoLabels.length;
+      }
+
+      function getActivePhotos() {
+        return state.photos.slice(0, getRequiredPhotoCount());
+      }
+
       function updateDownloadButtons() {
-        const ready = Boolean(state.selectedBookImage && state.photos.every((photo) => photo.image));
+        const ready = Boolean(state.selectedBookImage && getActivePhotos().every((photo) => photo.image));
         downloadSecondary.disabled = !ready;
+      }
+
+      function updateLayoutModeControls() {
+        layoutModeButtons.forEach((button) => {
+          const isActive = button.getAttribute("data-layout-mode") === state.layoutMode;
+          button.classList.toggle("active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+        });
+      }
+
+      function renderUploadSlots() {
+        const mode = getActiveMode();
+        uploadSectionTitle.textContent = mode.uploadTitle;
+        document.querySelectorAll("[data-slot]").forEach((card) => {
+          const index = Number(card.getAttribute("data-slot"));
+          const isVisible = index < mode.photoLabels.length;
+          card.hidden = !isVisible;
+          const title = card.querySelector(".upload-title");
+          if (title && mode.photoLabels[index]) {
+            title.textContent = mode.photoLabels[index];
+          }
+        });
+        updateDownloadButtons();
+      }
+
+      function setLayoutMode(mode) {
+        if (!COLLAGE_MODES[mode] || state.layoutMode === mode) return;
+        state.layoutMode = mode;
+        state.activeCanvasTarget = null;
+        canvasWrap.classList.remove("can-drag");
+        canvasWrap.classList.remove("is-dragging");
+        updateLayoutModeControls();
+        renderUploadSlots();
+        drawCanvas();
       }
 
       function clearCustomBookCover() {
@@ -1115,12 +1275,41 @@
         const columnWidth = (width - outer * 2 - gap) / 2;
         const columnHeight = height - outer * 2;
         const photoGap = 18;
+
+        if (state.layoutMode === "right-stack") {
+          const photoHeight = (columnHeight - photoGap * 2) / 3;
+          return {
+            width,
+            height,
+            bookRect: { x: outer, y: outer, width: columnWidth, height: columnHeight },
+            photoRects: [
+              { x: outer + columnWidth + gap, y: outer, width: columnWidth, height: photoHeight },
+              { x: outer + columnWidth + gap, y: outer + photoHeight + photoGap, width: columnWidth, height: photoHeight },
+              { x: outer + columnWidth + gap, y: outer + (photoHeight + photoGap) * 2, width: columnWidth, height: photoHeight },
+            ],
+          };
+        }
+
+        if (state.layoutMode === "grid-quad") {
+          const rowHeight = (columnHeight - gap) / 2;
+          return {
+            width,
+            height,
+            bookRect: { x: outer, y: outer, width: columnWidth, height: rowHeight },
+            photoRects: [
+              { x: outer, y: outer + rowHeight + gap, width: columnWidth, height: rowHeight },
+              { x: outer + columnWidth + gap, y: outer, width: columnWidth, height: rowHeight },
+              { x: outer + columnWidth + gap, y: outer + rowHeight + gap, width: columnWidth, height: rowHeight },
+            ],
+          };
+        }
+
         const photoHeight = (columnHeight - photoGap) / 2;
 
         return {
           width,
           height,
-          leftRect: { x: outer, y: outer, width: columnWidth, height: columnHeight },
+          bookRect: { x: outer, y: outer, width: columnWidth, height: columnHeight },
           photoRects: [
             { x: outer + columnWidth + gap, y: outer, width: columnWidth, height: photoHeight },
             { x: outer + columnWidth + gap, y: outer + photoHeight + photoGap, width: columnWidth, height: photoHeight },
@@ -1130,9 +1319,7 @@
 
       function drawCanvas() {
         const layout = getCollageLayout();
-        const { width, height, leftRect } = layout;
-        const topRect = layout.photoRects[0];
-        const bottomRect = layout.photoRects[1];
+        const { width, height, bookRect } = layout;
         const isMobileViewport = window.innerWidth <= 640;
         const titleFontSize = isMobileViewport ? 82 : 52;
         const subtitleFontSize = isMobileViewport ? 42 : 30;
@@ -1157,72 +1344,75 @@
         ctx.shadowColor = "rgba(72, 57, 34, 0.14)";
         ctx.shadowBlur = 18;
         ctx.shadowOffsetY = 10;
-        drawRoundedRect(ctx, leftRect.x, leftRect.y, leftRect.width, leftRect.height, 34);
+        drawRoundedRect(ctx, bookRect.x, bookRect.y, bookRect.width, bookRect.height, 34);
         ctx.fillStyle = "#faf7f1";
         ctx.fill();
-        drawRoundedRect(ctx, topRect.x, topRect.y, topRect.width, topRect.height, 30);
-        ctx.fillStyle = "#faf7f1";
-        ctx.fill();
-        drawRoundedRect(ctx, bottomRect.x, bottomRect.y, bottomRect.width, bottomRect.height, 30);
-        ctx.fillStyle = "#faf7f1";
-        ctx.fill();
+        layout.photoRects.forEach((photoRect) => {
+          drawRoundedRect(ctx, photoRect.x, photoRect.y, photoRect.width, photoRect.height, 30);
+          ctx.fillStyle = "#faf7f1";
+          ctx.fill();
+        });
         ctx.restore();
 
         ctx.save();
-        drawRoundedRect(ctx, leftRect.x, leftRect.y, leftRect.width, leftRect.height, 34);
+        drawRoundedRect(ctx, bookRect.x, bookRect.y, bookRect.width, bookRect.height, 34);
         ctx.clip();
-        const leftGradient = ctx.createLinearGradient(leftRect.x, leftRect.y, leftRect.x, leftRect.y + leftRect.height);
+        const leftGradient = ctx.createLinearGradient(bookRect.x, bookRect.y, bookRect.x, bookRect.y + bookRect.height);
         leftGradient.addColorStop(0, "#f8f4ec");
         leftGradient.addColorStop(1, "#f0e7d6");
         ctx.fillStyle = leftGradient;
-        ctx.fillRect(leftRect.x, leftRect.y, leftRect.width, leftRect.height);
+        ctx.fillRect(bookRect.x, bookRect.y, bookRect.width, bookRect.height);
 
         if (state.selectedBookImage) {
           fillCoverImage(
             ctx,
             state.selectedBookImage,
-            leftRect,
+            bookRect,
             state.bookTransform.zoom,
             state.bookTransform.offsetX,
             state.bookTransform.offsetY,
           );
         } else {
-          const placeholder = ctx.createLinearGradient(leftRect.x, leftRect.y, leftRect.x + leftRect.width, leftRect.y + leftRect.height);
+          const placeholder = ctx.createLinearGradient(bookRect.x, bookRect.y, bookRect.x + bookRect.width, bookRect.y + bookRect.height);
           placeholder.addColorStop(0, "#5f9d87");
           placeholder.addColorStop(1, "#2e5c4d");
           ctx.fillStyle = placeholder;
-          ctx.fillRect(leftRect.x, leftRect.y, leftRect.width, leftRect.height);
+          ctx.fillRect(bookRect.x, bookRect.y, bookRect.width, bookRect.height);
           ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
           ctx.font = `800 ${titleFontSize}px Pretendard, sans-serif`;
           ctx.textAlign = "center";
-          ctx.fillText("대표 판본", leftRect.x + leftRect.width / 2, leftRect.y + leftRect.height / 2 - (isMobileViewport ? 22 : 18));
+          ctx.fillText("대표 판본", bookRect.x + bookRect.width / 2, bookRect.y + bookRect.height / 2 - (isMobileViewport ? 22 : 18));
           ctx.font = `500 ${subtitleFontSize}px Pretendard, sans-serif`;
-          ctx.fillText("알라딘에서 책을 골라 주세요", leftRect.x + leftRect.width / 2, leftRect.y + leftRect.height / 2 + (isMobileViewport ? 42 : 36));
+          ctx.fillText("알라딘에서 책을 골라 주세요", bookRect.x + bookRect.width / 2, bookRect.y + bookRect.height / 2 + (isMobileViewport ? 42 : 36));
         }
         ctx.restore();
 
-        drawPhotoSlot(ctx, state.photos[0], topRect, "상단 사진", fontSizes);
-        drawPhotoSlot(ctx, state.photos[1], bottomRect, "하단 사진", fontSizes);
+        const photoLabels = getActiveMode().photoLabels;
+        layout.photoRects.forEach((photoRect, index) => {
+          drawPhotoSlot(ctx, state.photos[index], photoRect, photoLabels[index], fontSizes);
+        });
 
         ctx.strokeStyle = "rgba(95, 74, 42, 0.12)";
         ctx.lineWidth = 2;
-        drawRoundedRect(ctx, leftRect.x, leftRect.y, leftRect.width, leftRect.height, 34);
+        drawRoundedRect(ctx, bookRect.x, bookRect.y, bookRect.width, bookRect.height, 34);
         ctx.stroke();
-        drawRoundedRect(ctx, topRect.x, topRect.y, topRect.width, topRect.height, 30);
-        ctx.stroke();
-        drawRoundedRect(ctx, bottomRect.x, bottomRect.y, bottomRect.width, bottomRect.height, 30);
-        ctx.stroke();
+        layout.photoRects.forEach((photoRect) => {
+          drawRoundedRect(ctx, photoRect.x, photoRect.y, photoRect.width, photoRect.height, 30);
+          ctx.stroke();
+        });
 
         if (state.activeCanvasTarget !== null) {
           const activeRect = state.activeCanvasTarget.kind === "book"
-            ? leftRect
+            ? bookRect
             : layout.photoRects[state.activeCanvasTarget.index];
-          ctx.save();
-          ctx.strokeStyle = "rgba(66, 133, 244, 0.92)";
-          ctx.lineWidth = 8;
-          drawRoundedRect(ctx, activeRect.x + 6, activeRect.y + 6, activeRect.width - 12, activeRect.height - 12, 24);
-          ctx.stroke();
-          ctx.restore();
+          if (activeRect) {
+            ctx.save();
+            ctx.strokeStyle = "rgba(66, 133, 244, 0.92)";
+            ctx.lineWidth = 8;
+            drawRoundedRect(ctx, activeRect.x + 6, activeRect.y + 6, activeRect.width - 12, activeRect.height - 12, 24);
+            ctx.stroke();
+            ctx.restore();
+          }
         }
 
         ctx.fillStyle = "rgba(92, 74, 44, 0.24)";
@@ -1256,19 +1446,19 @@
         const x = ((clientX - rect.left) / rect.width) * previewCanvas.width;
         const y = ((clientY - rect.top) / rect.height) * previewCanvas.height;
         const layout = getCollageLayout();
-        const leftRect = layout.leftRect;
+        const bookRect = layout.bookRect;
 
         const insideBook =
-          x >= leftRect.x &&
-          x <= leftRect.x + leftRect.width &&
-          y >= leftRect.y &&
-          y <= leftRect.y + leftRect.height;
+          x >= bookRect.x &&
+          x <= bookRect.x + bookRect.width &&
+          y >= bookRect.y &&
+          y <= bookRect.y + bookRect.height;
 
         if (insideBook) {
           return {
             kind: "book",
-            slotWidthClient: (leftRect.width / previewCanvas.width) * rect.width,
-            slotHeightClient: (leftRect.height / previewCanvas.height) * rect.height,
+            slotWidthClient: (bookRect.width / previewCanvas.width) * rect.width,
+            slotHeightClient: (bookRect.height / previewCanvas.height) * rect.height,
           };
         }
 
@@ -1315,6 +1505,12 @@
         if (event.key !== "Enter" && event.key !== " ") return;
         event.preventDefault();
         chooseBook(Number(card.getAttribute("data-select-book")));
+      });
+
+      layoutModeButtons.forEach((button) => {
+        button.addEventListener("click", function (event) {
+          setLayoutMode(event.currentTarget.getAttribute("data-layout-mode"));
+        });
       });
 
       function setupCanvasGesture() {
@@ -1541,6 +1737,8 @@
       downloadSecondary.addEventListener("click", downloadCanvas);
 
       setupCanvasGesture();
+      updateLayoutModeControls();
+      renderUploadSlots();
       renderSelectedBook();
       drawCanvas();
     })();
