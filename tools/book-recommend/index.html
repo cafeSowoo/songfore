@@ -541,6 +541,90 @@
             margin-top: 2px;
         }
 
+        .model-settings {
+            margin-bottom: 14px;
+        }
+
+        .model-toggle {
+            width: 100%;
+            min-height: 48px;
+            border: 1px solid rgba(46, 92, 77, 0.18);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.82);
+            color: var(--text-main);
+            font: inherit;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 0 14px;
+            cursor: pointer;
+        }
+
+        .model-current {
+            color: var(--primary-dark);
+            font-size: 0.88rem;
+            font-weight: 900;
+            margin-left: auto;
+        }
+
+        .model-arrow {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            transition: transform 0.2s;
+        }
+
+        .model-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .model-panel {
+            margin-top: 10px;
+            border: 1px solid rgba(46, 92, 77, 0.14);
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.74);
+        }
+
+        .model-panel.collapsed {
+            display: none;
+        }
+
+        .model-option {
+            display: grid;
+            grid-template-columns: 22px 1fr;
+            gap: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(46, 92, 77, 0.1);
+        }
+
+        .model-option:last-child {
+            border-bottom: 0;
+        }
+
+        .model-option input {
+            width: 16px;
+            min-height: 16px;
+            margin-top: 3px;
+            accent-color: var(--primary);
+        }
+
+        .model-option strong {
+            display: block;
+            font-size: 0.92rem;
+            color: var(--text-main);
+        }
+
+        .model-option span {
+            display: block;
+            margin-top: 3px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            line-height: 1.45;
+        }
+
         /* API 키 설정 카드 */
         .key-card {
             border: 1.5px dashed rgba(46, 92, 77, 0.25);
@@ -1028,6 +1112,36 @@
                 <div class="step-badge">3</div>
                 <span class="step-title">추천글 생성</span>
             </div>
+            <div class="model-settings">
+                <button class="model-toggle" id="model-toggle" type="button" onclick="toggleModelPanel()">
+                    <span>모델 설정</span>
+                    <span class="model-current" id="model-current">기본</span>
+                    <span class="model-arrow" id="model-arrow">▼</span>
+                </button>
+                <div class="model-panel collapsed" id="model-panel">
+                    <label class="model-option">
+                        <input type="radio" name="model-mode" value="default" checked />
+                        <span>
+                            <strong>기본</strong>
+                            <span>현재 구현 그대로 Gemini 서버 호출 후 필요하면 기존 폴백을 사용합니다.</span>
+                        </span>
+                    </label>
+                    <label class="model-option">
+                        <input type="radio" name="model-mode" value="manus" />
+                        <span>
+                            <strong>Manus 실험</strong>
+                            <span>Manus API로 추천글을 생성합니다. 응답은 조금 더 오래 걸릴 수 있습니다.</span>
+                        </span>
+                    </label>
+                    <label class="model-option">
+                        <input type="radio" name="model-mode" value="gemini" />
+                        <span>
+                            <strong>Gemini 빠른 생성</strong>
+                            <span>Gemini 서버 모델만 사용해 빠르게 생성합니다.</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
             <button class="btn-generate" id="btn-gen" onclick="generate()">
                 <div class="spinner" id="spinner"></div>
                 <span id="btn-text">✨ 추천글 생성하기</span>
@@ -1060,9 +1174,15 @@
     <script>
         // ─── Gemini: Netlify Function 엔드포인트 (키는 서버에만 존재) ───
         const FUNCTION_URL = '/.netlify/functions/book-recommend';
+        const MANUS_FUNCTION_URL = '/.netlify/functions/book-recommend-manus-test';
 
         // OpenAI 폴백 (Netlify Function 실패 시 localStorage 키로 클라이언트 직호출)
         const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
+        const MODEL_MODE_LABELS = {
+            default: '기본',
+            manus: 'Manus 실험',
+            gemini: 'Gemini 빠른 생성'
+        };
 
         // 검색된 도서의 ISBN/링크 (알라딘 링크 생성에 활용)
         let currentIsbn = '';
@@ -1513,7 +1633,7 @@ ${contextText}
                 buildResultHeading(month, day, title, author),
                 quote ? `'${quote}'` : '',
                 aiBody,
-                '해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다🤗',
+                '해당 도서에 관심 있으신 회원분들은 소모임 앱에서 참석 버튼을 눌러주시기 바랍니다🤗',
                 `[도서 정보] ${aladinUrl}`
             ].filter(Boolean).join('\n\n');
         }
@@ -1523,13 +1643,14 @@ ${contextText}
             return `📖 ${month}월 ${day}일 정모 도서 안내<br>
 &lt;${esc(title)}&gt; - ${esc(author)}${quoteHtml}<br><br>
 <span class="ai-highlight">${esc(aiBody)}</span><br><br>
-해당 도서에 관심 있으신 회원분들은 소모임 앱의 게시판에 댓글 참여 부탁드립니다🤗<br>
+해당 도서에 관심 있으신 회원분들은 소모임 앱에서 참석 버튼을 눌러주시기 바랍니다🤗<br>
 [도서 정보] <a href="${esc(aladinUrl)}" target="_blank" style="color:var(--primary);font-size:0.88rem;word-break:break-all;">${esc(aladinUrl)}</a>`;
         }
 
         function getModelLabel(usedModel = 'Gemini') {
             const isOpenAiFallback = /chatgpt|gpt|openai/i.test(usedModel);
-            const providerLabel = isOpenAiFallback ? 'OpenAI' : 'Gemini';
+            const isManus = /manus/i.test(usedModel);
+            const providerLabel = isManus ? 'Manus' : (isOpenAiFallback ? 'OpenAI' : 'Gemini');
             const modelLabel = usedModel && usedModel !== providerLabel ? `${providerLabel}: ${usedModel}` : providerLabel;
             return { isOpenAiFallback, modelLabel };
         }
@@ -1625,18 +1746,34 @@ ${contextText}
 
             const q = `intitle:${title}${author ? '+inauthor:' + author : ''}`;
             try {
-                const res = await fetch(FUNCTION_URL, {
+                const searchPayload = { action: 'search', q, title, author };
+                let res = await fetch(FUNCTION_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'search', q, title, author })
+                    body: JSON.stringify(searchPayload)
                 });
-                const data = await res.json().catch(() => ({}));
+                let data = await res.json().catch(() => ({}));
+
+                if (res.status === 503) {
+                    setStatus('info', '🔍 도서 검색 서버가 잠시 불안정해 한 번 더 시도 중입니다…');
+                    res = await fetch(FUNCTION_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(searchPayload)
+                    });
+                    data = await res.json().catch(() => ({}));
+                }
 
                 if (!res.ok) {
                     currentIsbn = '';
                     currentBookLink = '';
                     currentShortBookLink = '';
-                    setStatus('miss', `⚠️ 검색 오류: ${data?.error || res.status}. 아래에 직접 붙여넣어 주세요.`);
+                    const errorMessage = data?.error?.message || data?.error || res.status;
+                    if (res.status === 503) {
+                        setStatus('miss', '⚠️ 도서 검색 서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해 주세요.');
+                    } else {
+                        setStatus('miss', `⚠️ 검색 오류: ${errorMessage}. 아래에 직접 붙여넣어 주세요.`);
+                    }
                     hideCover();
                     return;
                 }
@@ -1747,7 +1884,121 @@ ${contextText}
             document.getElementById('book-cover-wrap').classList.remove('visible');
         }
 
-        /* ─── Gemini 추천글 생성 ─────────────────────────── */
+        async function callGeminiPrompt(prompt) {
+            const response = await fetch(FUNCTION_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data?.error || response.status);
+            }
+
+            const text = (data?.text || '').trim();
+            if (!text) {
+                throw new Error('Gemini 응답이 비어있습니다.');
+            }
+
+            return {
+                text,
+                model: data?.model || 'Gemini'
+            };
+        }
+
+        async function callManusPrompt(title, author, quote, description) {
+            const response = await fetch(MANUS_FUNCTION_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, author, quote, description, timeoutMs: 45_000 })
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data?.error || response.status);
+            }
+
+            const text = (data?.text || '').trim();
+            if (!text) {
+                throw new Error('Manus 응답이 비어있습니다.');
+            }
+
+            return {
+                text,
+                model: data?.model || 'Manus'
+            };
+        }
+
+        async function callDefaultPrompt(prompt) {
+            let aiBody = null;
+            let usedModel = '';
+
+            document.getElementById('btn-text').textContent = 'Gemini 분석 중…';
+            let fnRes;
+            try {
+                fnRes = await fetch(FUNCTION_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+            } catch (netErr) {
+                fnRes = null;
+            }
+
+            if (fnRes && fnRes.ok) {
+                const fnData = await fnRes.json().catch(() => ({}));
+                const text = (fnData?.text || '').trim();
+                if (text) {
+                    aiBody = text;
+                    usedModel = fnData?.model || 'Gemini';
+                }
+            } else if (fnRes) {
+                const fnErr = await fnRes.json().catch(() => ({}));
+                const msg = fnErr?.error || '';
+                if (fnRes.status !== 429 && fnRes.status !== 502 && fnRes.status !== 503) {
+                    throw new Error(`서버 오류: ${msg || fnRes.status}`);
+                }
+            }
+
+            if (!aiBody) {
+                const OPENAI_API_KEY = getOpenAIKey();
+                if (!OPENAI_API_KEY) {
+                    throw new Error('Gemini 서버 응답이 없습니다. 위 설정에서 OpenAI API 키를 등록하거나 잠시 후 다시 시도해 주세요.');
+                }
+                document.getElementById('btn-text').textContent = 'ChatGPT로 재시도 중…';
+
+                const oRes = await fetch(OPENAI_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [{ role: 'user', content: prompt }],
+                        temperature: 0.7,
+                        max_tokens: 400
+                    })
+                });
+
+                if (!oRes.ok) {
+                    const e = await oRes.json().catch(() => ({}));
+                    throw new Error('OpenAI 오류: ' + (e?.error?.message || oRes.status));
+                }
+                const oData = await oRes.json();
+                aiBody = oData?.choices?.[0]?.message?.content?.trim();
+                usedModel = 'ChatGPT (gpt-4o-mini)';
+                if (!aiBody) throw new Error('OpenAI 응답이 비어있습니다.');
+            }
+
+            return {
+                text: aiBody,
+                model: usedModel || 'Gemini'
+            };
+        }
+
+        /* ─── 추천글 생성 ─────────────────────────── */
         async function generate() {
             const title = document.getElementById('book-title').value.trim();
             const author = document.getElementById('book-author').value.trim();
@@ -1777,76 +2028,23 @@ ${contextText}
             const prompt = buildRecommendationPrompt(title, recommendationContext);
 
             try {
-                let aiBody = null;
-                let usedModel = '';
+                const modelMode = getSelectedModelMode();
+                let result;
 
-                // ① Netlify Function을 통해 Gemini 호출 (키는 서버에 숨겨져 있음)
-                document.getElementById('btn-text').textContent = 'Gemini 분석 중…';
-                let fnRes;
-                try {
-                    fnRes = await fetch(FUNCTION_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ prompt })
-                    });
-                } catch (netErr) {
-                    fnRes = null; // 네트워크 오류 → OpenAI 폴백으로
+                if (modelMode === 'manus') {
+                    document.getElementById('btn-text').textContent = 'Manus 대기 중…';
+                    result = await callManusPrompt(title, author, quote, desc);
+                } else if (modelMode === 'gemini') {
+                    document.getElementById('btn-text').textContent = 'Gemini 분석 중…';
+                    result = await callGeminiPrompt(prompt);
+                } else {
+                    result = await callDefaultPrompt(prompt);
                 }
 
-                if (fnRes && fnRes.ok) {
-                    const fnData = await fnRes.json().catch(() => ({}));
-                    const text = (fnData?.text || '').trim();
-                    if (text) {
-                        aiBody = text;
-                        usedModel = fnData?.model || 'Gemini';
-                    }
-                } else if (fnRes) {
-                    // Function 자체 오류 (환경변수 누락 등)
-                    const fnErr = await fnRes.json().catch(() => ({}));
-                    const msg = fnErr?.error || '';
-                    // 할당량 초과가 아닌 서버 오류면 바로 알림
-                    if (fnRes.status !== 429 && fnRes.status !== 502 && fnRes.status !== 503) {
-                        throw new Error(`서버 오류: ${msg || fnRes.status}`);
-                    }
-                    // 429/502/503 → OpenAI 폴백 시도
-                }
-
-                // ② Gemini 실패 시 → 사용자가 저장한 OpenAI 키로 폴백
-                if (!aiBody) {
-                    const OPENAI_API_KEY = getOpenAIKey();
-                    if (!OPENAI_API_KEY) {
-                        throw new Error('Gemini 서버 응답이 없습니다. 위 설정에서 OpenAI API 키를 등록하거나 잠시 후 다시 시도해 주세요.');
-                    }
-                    document.getElementById('btn-text').textContent = 'ChatGPT로 재시도 중…';
-
-                    const oRes = await fetch(OPENAI_URL, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${OPENAI_API_KEY}`
-                        },
-                        body: JSON.stringify({
-                            model: 'gpt-4o-mini',
-                            messages: [{ role: 'user', content: prompt }],
-                            temperature: 0.7,
-                            max_tokens: 400
-                        })
-                    });
-
-                    if (!oRes.ok) {
-                        const e = await oRes.json().catch(() => ({}));
-                        throw new Error('OpenAI 오류: ' + (e?.error?.message || oRes.status));
-                    }
-                    const oData = await oRes.json();
-                    aiBody = oData?.choices?.[0]?.message?.content?.trim();
-                    usedModel = 'ChatGPT (gpt-4o-mini)';
-                    if (!aiBody) throw new Error('OpenAI 응답이 비어있습니다.');
-                }
-
-                if (!aiBody) throw new Error('응답이 비어있습니다. 다시 시도해 주세요.');
+                if (!result?.text) throw new Error('응답이 비어있습니다. 다시 시도해 주세요.');
 
                 const aladinUrl = await resolvePreferredAladinUrl(title);
-                renderResult(parsedMonth, parsedDay, title, author, quote, aiBody, usedModel, aladinUrl);
+                renderResult(parsedMonth, parsedDay, title, author, quote, result.text, result.model, aladinUrl);
 
             } catch (err) {
                 showError('❌ ' + err.message);
@@ -2009,8 +2207,25 @@ ${contextText}
         }
 
         /* ─── 유틸 ───────────────────────────────────────── */
+        function getSelectedModelMode() {
+            return document.querySelector('input[name="model-mode"]:checked')?.value || 'default';
+        }
+
+        function updateModelLabel() {
+            const mode = getSelectedModelMode();
+            document.getElementById('model-current').textContent = MODEL_MODE_LABELS[mode] || MODEL_MODE_LABELS.default;
+        }
+
+        function toggleModelPanel() {
+            const panel = document.getElementById('model-panel');
+            const arrow = document.getElementById('model-arrow');
+            panel.classList.toggle('collapsed');
+            arrow.classList.toggle('open');
+        }
+
         function setLoading(on) {
             document.getElementById('btn-gen').disabled = on;
+            document.getElementById('model-toggle').disabled = on;
             document.getElementById('spinner').style.display = on ? 'block' : 'none';
             document.getElementById('btn-text').textContent = on ? 'AI가 글을 쓰는 중…' : '✨ 추천글 생성하기';
         }
@@ -2068,6 +2283,11 @@ ${contextText}
             updateKeyStatus();
         }
         initKeys();
+        updateModelLabel();
+
+        document.querySelectorAll('input[name="model-mode"]').forEach(input => {
+            input.addEventListener('change', updateModelLabel);
+        });
 
         document.getElementById('book-title').addEventListener('keydown', e => {
             if (e.key === 'Enter') {

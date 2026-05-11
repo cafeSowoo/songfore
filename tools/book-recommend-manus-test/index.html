@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manus 추천글 테스트 - 송도 독서 포레스트</title>
+  <style>
+    :root {
+      --primary: #12bfa5;
+      --primary-dark: #078a79;
+      --ink: #163d39;
+      --muted: #5f7773;
+      --line: rgba(34, 77, 72, 0.16);
+      --surface: rgba(255, 255, 255, 0.92);
+      --soft: #eef9f5;
+      --danger: #b34242;
+      --shadow: 0 18px 45px rgba(23, 88, 78, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 10%, rgba(18, 191, 165, 0.22), transparent 28%),
+        radial-gradient(circle at 80% 0%, rgba(42, 157, 143, 0.16), transparent 30%),
+        linear-gradient(180deg, #eef8f3 0%, #f8fbf8 100%);
+    }
+
+    .wrap {
+      width: min(860px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .back-link {
+      display: block;
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 8px;
+      color: var(--ink);
+      text-align: center;
+      text-decoration: none;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.82);
+      box-shadow: 0 8px 26px rgba(26, 98, 88, 0.08);
+    }
+
+    .card {
+      margin-top: 18px;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.78);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .hero-mark {
+      display: grid;
+      width: 72px;
+      height: 72px;
+      place-items: center;
+      border-radius: 8px;
+      color: #fff;
+      background: linear-gradient(135deg, #26c99f, #18b8d8);
+      box-shadow: 0 14px 26px rgba(18, 191, 165, 0.25);
+      font-size: 32px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.45rem, 5vw, 2.1rem);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      font-weight: 900;
+    }
+
+    .step-badge {
+      display: grid;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      border-radius: 999px;
+      color: #fff;
+      background: var(--primary);
+      font-size: 0.9rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .form-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 0.95rem;
+      font-weight: 850;
+      color: #284d48;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.86);
+      font: inherit;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    input {
+      min-height: 54px;
+      padding: 0 16px;
+    }
+
+    textarea {
+      min-height: 230px;
+      padding: 15px 16px;
+      line-height: 1.65;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: rgba(18, 191, 165, 0.72);
+      box-shadow: 0 0 0 4px rgba(18, 191, 165, 0.12);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      min-height: 52px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      background: linear-gradient(135deg, #28c98b, #13bdb0);
+      font: inherit;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 12px 26px rgba(18, 191, 165, 0.22);
+    }
+
+    button.secondary {
+      color: var(--ink);
+      background: #fff;
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.72;
+    }
+
+    .status {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--primary-dark);
+      line-height: 1.55;
+      font-weight: 750;
+    }
+
+    .status.visible {
+      display: block;
+    }
+
+    .status.error {
+      background: #fff1f1;
+      color: var(--danger);
+    }
+
+    .result-card {
+      display: none;
+    }
+
+    .result-card.visible {
+      display: block;
+    }
+
+    .result-label {
+      font-weight: 900;
+      color: var(--primary-dark);
+    }
+
+    .result-preview {
+      margin-top: 14px;
+      padding: 18px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.78);
+      color: #244c47;
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+
+    .meta {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      word-break: break-all;
+    }
+
+    @media (max-width: 680px) {
+      .wrap {
+        width: min(100% - 20px, 860px);
+        padding-top: 14px;
+      }
+
+      .card {
+        padding: 18px 16px;
+      }
+
+      .hero {
+        grid-template-columns: 58px 1fr;
+      }
+
+      .hero-mark {
+        width: 58px;
+        height: 58px;
+        font-size: 26px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="back-link" href="../book-recommend/">← 기존 추천 페이지로</a>
+
+    <section class="card hero">
+      <div class="hero-mark" aria-hidden="true">M</div>
+      <div>
+        <h1>Manus 추천글 테스트</h1>
+        <p>기존 페이지에서 책 제목, 저자, 도서 소개를 복사해 붙여넣고 Manus API 결과만 따로 확인합니다.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="step-header">
+        <div class="step-badge">1</div>
+        <span>테스트 입력</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="book-title">책 제목</label>
+          <input id="book-title" type="text" autocomplete="off" placeholder="예: 어른을 위한 고전의 숲" />
+        </div>
+        <div class="form-group">
+          <label for="book-author">저자</label>
+          <input id="book-author" type="text" autocomplete="off" placeholder="예: 강경희" />
+        </div>
+        <div class="form-group full">
+          <label for="book-quote">인용문 한마디 (선택)</label>
+          <input id="book-quote" type="text" autocomplete="off" placeholder="추천글에 반영할 문장이 있으면 입력" />
+        </div>
+        <div class="form-group full">
+          <label for="book-desc">도서 소개</label>
+          <textarea id="book-desc" placeholder="기존 추천 페이지에서 검색으로 불러온 도서 소개를 복사해 붙여넣으세요."></textarea>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btn-generate" type="button">Manus 추천글 생성</button>
+        <button class="secondary" id="btn-fill-sample" type="button">현재 테스트 샘플 채우기</button>
+      </div>
+      <div class="status" id="status"></div>
+    </section>
+
+    <section class="card result-card" id="result-card">
+      <div class="result-label">생성 결과</div>
+      <div class="result-preview" id="result-preview"></div>
+      <div class="meta" id="result-meta"></div>
+      <div class="actions">
+        <button class="secondary" id="btn-copy" type="button">결과 복사</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const FUNCTION_URL = '/.netlify/functions/book-recommend-manus-test';
+    const sample = {
+      title: '어른을 위한 고전의 숲',
+      author: '강경희',
+      description: '수십 년간 대학에서 동양 고전과 문학을 주제로 강의를 해온 저자 강경희는 “모든 것이 가로막히고, 앞이 보이지 않을 때마다 오래 전 동양 고전에서 오늘의 고민에 대한 해답을 얻을 수 있다”라고 강조한다. 그는 고전이 단순히 과거의 유산이 아니라, 지금을 살아가는 우리가 겪는 문제와 혼란을 다스릴 실용적인 통찰을 제공하는 학문이라고 힘주어 말한다.'
+    };
+
+    const titleEl = document.getElementById('book-title');
+    const authorEl = document.getElementById('book-author');
+    const quoteEl = document.getElementById('book-quote');
+    const descEl = document.getElementById('book-desc');
+    const statusEl = document.getElementById('status');
+    const resultCard = document.getElementById('result-card');
+    const resultPreview = document.getElementById('result-preview');
+    const resultMeta = document.getElementById('result-meta');
+    const generateButton = document.getElementById('btn-generate');
+
+    function setStatus(type, message) {
+      statusEl.className = 'status visible' + (type === 'error' ? ' error' : '');
+      statusEl.textContent = message;
+    }
+
+    function clearStatus() {
+      statusEl.className = 'status';
+      statusEl.textContent = '';
+    }
+
+    function setLoading(on) {
+      generateButton.disabled = on;
+      generateButton.textContent = on ? 'Manus 응답 대기 중...' : 'Manus 추천글 생성';
+    }
+
+    function fillSample() {
+      titleEl.value = sample.title;
+      authorEl.value = sample.author;
+      descEl.value = sample.description;
+      quoteEl.value = '';
+      clearStatus();
+      resultCard.classList.remove('visible');
+    }
+
+    async function generate() {
+      const title = titleEl.value.trim();
+      const author = authorEl.value.trim();
+      const quote = quoteEl.value.trim();
+      const description = descEl.value.trim();
+
+      clearStatus();
+      resultCard.classList.remove('visible');
+
+      if (!title) return setStatus('error', '책 제목을 입력해 주세요.');
+      if (!author) return setStatus('error', '저자를 입력해 주세요.');
+      if (!description) return setStatus('error', '도서 소개를 입력해 주세요.');
+
+      setLoading(true);
+      setStatus('info', 'Manus task를 만들고 응답을 기다리는 중입니다. 처음 테스트는 20~30초 정도 걸릴 수 있습니다.');
+
+      try {
+        const response = await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, author, quote, description })
+        });
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          resultMeta.textContent = [
+            data?.taskId ? `task: ${data.taskId}` : '',
+            data?.taskUrl ? `url: ${data.taskUrl}` : ''
+          ].filter(Boolean).join(' / ');
+          throw new Error(data?.error || response.status);
+        }
+
+        resultPreview.textContent = data?.text || '';
+        resultMeta.textContent = [
+          data?.model ? `model: ${data.model}` : '',
+          data?.taskId ? `task: ${data.taskId}` : '',
+          data?.taskUrl ? `url: ${data.taskUrl}` : ''
+        ].filter(Boolean).join(' / ');
+        resultCard.classList.add('visible');
+        setStatus('info', 'Manus 추천글 생성이 완료되었습니다.');
+      } catch (error) {
+        setStatus('error', `Manus 테스트 실패: ${error?.message || error}`);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function copyResult() {
+      const text = resultPreview.textContent.trim();
+      if (!text) return;
+      await navigator.clipboard.writeText(text);
+      setStatus('info', '결과를 복사했습니다.');
+    }
+
+    document.getElementById('btn-fill-sample').addEventListener('click', fillSample);
+    document.getElementById('btn-generate').addEventListener('click', generate);
+    document.getElementById('btn-copy').addEventListener('click', copyResult);
+
+    fillSample();
+  </script>
+</body>
+</html>
