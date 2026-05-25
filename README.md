@@ -1,31 +1,29 @@
-# Songfore DJ Trip
+# Songfore
 
-`/dj` 경로에서 동작하는 여행 장소 공유 MVP입니다.
+송포레 도구 모음 홈페이지입니다.
 
-현재 버전은 다음에 집중합니다.
+## Included
 
-- 에어비앤비 스타일의 좌우 분할 레이아웃
-- 카테고리 필터
-- 장소 추가 UI
-- 작성자 및 댓글 UI
-- Netlify Functions + Supabase 연동
-- 네이버 지도, 서버 지오코딩, 장소 검색 연결
+- 조 편성 도구
+- 공지 메일 도구
+- 책 추천, 책 표지, 책 콜라주 도구
+- 일부 도구용 Netlify Functions
 
 ## 로컬 준비
 
-1. `.env.example` 값을 참고해 환경 변수를 준비합니다.
-2. `npm run build` 를 실행하면 `config/runtime-config.js` 가 생성됩니다.
-3. `npm start` 로 정적 페이지를 확인할 수 있습니다.
+```bash
+npm start
+```
 
-장소 검색형 후보 추가를 사용하려면 Netlify 환경 변수에
-`NAVER_SEARCH_CLIENT_ID`, `NAVER_SEARCH_CLIENT_SECRET` 을 함께 설정해야 합니다.
+그다음 `http://127.0.0.1:4173`에서 확인합니다.
 
 ## Netlify
 
 - Publish directory: `.`
 - Build command: `npm run build`
 
-## 다음 연결 포인트
+Netlify production은 운영 배포할 때만 unlock/deploy/re-lock 원칙으로 다룹니다.
 
-- 초대코드 검증
-- 여행 일정 / 투표 기능
+## Archived
+
+이전에 `/dj`에서 운영하던 여행 보드는 별도 아카이브 프로젝트로 분리했습니다.

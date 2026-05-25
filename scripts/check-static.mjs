@@ -2,19 +2,16 @@ import { access } from "node:fs/promises";
 import path from "node:path";
 
 const requiredFiles = [
-  "dj/index.html",
-  "src/main.js",
-  "src/app.js",
-  "src/lib/api.js",
-  "src/styles.css",
-  "supabase/schema.sql",
-  "config/runtime-config.js",
-  "netlify/functions/place-search.js",
-  "netlify/functions/trip.js",
-  "netlify/functions/places.js",
-  "netlify/functions/comments.js",
-  "netlify/functions/saves.js",
-  "netlify/functions/schedule.js"
+  "index.html",
+  "tools/grouping-dnd-v4/index.html",
+  "tools/notice-mail-v2/index.html",
+  "tools/book-recommend/index.html",
+  "tools/book-collage/index.html",
+  "tools/book-cover-wide/index.html",
+  "netlify/functions/book-recommend.js",
+  "netlify/functions/book-collage.js",
+  "netlify/functions/book-cover-wide.js",
+  "netlify/functions/lib/http.js"
 ];
 
 for (const file of requiredFiles) {
@@ -23,4 +20,4 @@ for (const file of requiredFiles) {
   console.log(`OK ${file}`);
 }
 
-console.log("Static scaffold check passed.");
+console.log("Songfore static scaffold check passed.");
