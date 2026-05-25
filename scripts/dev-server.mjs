@@ -67,7 +67,10 @@ function readRequestBody(request) {
 
 async function handleFunctionRequest(request, response) {
   const pathname = decodeURIComponent((request.url || "/").split("?")[0]);
-  const functionName = pathname.replace(/^\/\.netlify\/functions\//, "").replace(/\/+$/, "");
+  const functionName = pathname
+    .replace(/^\/\.netlify\/functions\//, "")
+    .replace(/^\/api\//, "")
+    .replace(/\/+$/, "");
   const entryFile = path.join(functionDir, `${functionName}.js`);
   const fileStat = await stat(entryFile).catch(() => null);
 
@@ -106,7 +109,10 @@ async function handleFunctionRequest(request, response) {
 
 const server = http.createServer(async (request, response) => {
   try {
-    if ((request.url || "").startsWith("/.netlify/functions/")) {
+    if (
+      (request.url || "").startsWith("/.netlify/functions/") ||
+      (request.url || "").startsWith("/api/")
+    ) {
       await handleFunctionRequest(request, response);
       return;
     }

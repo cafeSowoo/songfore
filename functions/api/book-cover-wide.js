@@ -1,0 +1,6 @@
+import handler from "../../netlify/functions/book-cover-wide.js";
+import { runNetlifyHandler } from "../_lib/netlifyCompat.js";
+
+export function onRequest(context) {
+  return runNetlifyHandler(handler, context);
+}

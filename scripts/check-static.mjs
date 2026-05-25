@@ -11,7 +11,14 @@ const requiredFiles = [
   "netlify/functions/book-recommend.js",
   "netlify/functions/book-collage.js",
   "netlify/functions/book-cover-wide.js",
-  "netlify/functions/lib/http.js"
+  "netlify/functions/lib/http.js",
+  "functions/api/book-recommend.js",
+  "functions/api/book-collage.js",
+  "functions/api/book-cover-wide.js",
+  "functions/api/book-recommend-manus-test.js",
+  "functions/_lib/netlifyCompat.js",
+  "scripts/build-static.mjs",
+  "wrangler.toml"
 ];
 
 for (const file of requiredFiles) {

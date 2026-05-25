@@ -1,6 +1,8 @@
 # Local Netlify folder
 .netlify
+.wrangler
 .env
 .env.local
 .env.*.local
 node_modules/
+dist/

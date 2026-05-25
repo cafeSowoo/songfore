@@ -1173,8 +1173,8 @@
 
     <script>
         // ─── Gemini: Netlify Function 엔드포인트 (키는 서버에만 존재) ───
-        const FUNCTION_URL = '/.netlify/functions/book-recommend';
-        const MANUS_FUNCTION_URL = '/.netlify/functions/book-recommend-manus-test';
+        const FUNCTION_URL = '/api/book-recommend';
+        const MANUS_FUNCTION_URL = '/api/book-recommend-manus-test';
 
         // OpenAI 폴백 (Netlify Function 실패 시 localStorage 키로 클라이언트 직호출)
         const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
