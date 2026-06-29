@@ -42,6 +42,17 @@ Cloudflare Pages에서는 `functions/api/*`가 `/api/*` 요청을 처리합니�
 - `GEMINI_API_KEY`
 - `MANUS_API_KEY`
 
+### 모임 업데이트 도구
+
+`/tools/meeting-admin/`은 `/api/meeting-sheet`를 통해 Google Sheets에 저장합니다.
+운영 배포 환경에 아래 값을 등록합니다.
+
+- `MEETING_ADMIN_TOKEN`: 운영진 화면에서 입력할 저장 토큰
+- `GOOGLE_SERVICE_ACCOUNT_JSON`: Google 서비스 계정 JSON 전체 문자열
+- `SONGFORE_ATTENDANCE_SPREADSHEET_ID`: 출석부 스프레드시트 ID. 생략하면 현재 출석부 ID를 사용합니다.
+
+서비스 계정의 `client_email`을 출석부 Google Sheet에 편집자로 공유해야 합니다.
+
 `songfore.com` 전환 전에는 `cf.songfore.com` 같은 임시 도메인으로 먼저 확인합니다.
 
 ## Archived

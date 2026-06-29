@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../../assets/favicon/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="../../assets/favicon/favicon.svg" type="image/svg+xml" />
+  <title>모임 업데이트</title>
+  <style>
+    :root {
+      --bg: #f4f8f6;
+      --bg-soft: #e9f4f0;
+      --panel: #ffffff;
+      --panel-soft: #f8fbfa;
+      --line: #d7e5df;
+      --line-strong: #b9d4ca;
+      --text: #1d2e2a;
+      --muted: #637872;
+      --primary: #167a67;
+      --primary-strong: #0f5d4f;
+      --primary-soft: #e2f3ed;
+      --danger: #b3261e;
+      --danger-soft: #ffefed;
+      --ok: #167a3d;
+      --ok-soft: #e7f7eb;
+      --warn: #946200;
+      --warn-soft: #fff4d8;
+      --shadow: 0 16px 40px rgba(41, 86, 74, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--text);
+      background:
+        linear-gradient(135deg, rgba(226, 243, 237, 0.9), rgba(244, 248, 246, 0.8) 42%, rgba(234, 243, 248, 0.82)),
+        var(--bg);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .wrap {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 48px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      color: var(--primary-strong);
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.65rem, 3.4vw, 2.35rem);
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+      gap: 16px;
+      margin-top: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px 0;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 1.04rem;
+      line-height: 1.3;
+    }
+
+    .panel-body {
+      padding: 16px 18px 18px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label,
+    .field-label {
+      color: #314842;
+      font-size: 0.88rem;
+      font-weight: 800;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 11px 12px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 86px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(22, 122, 103, 0.12);
+    }
+
+    .btn {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .btn.secondary {
+      background: var(--primary-soft);
+      color: var(--primary-strong);
+      border: 1px solid #c6e4d8;
+    }
+
+    .btn.ghost {
+      background: #fff;
+      color: var(--primary-strong);
+      border: 1px solid var(--line-strong);
+    }
+
+    .btn.danger {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border: 1px solid #ffc9c3;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .status {
+      display: none;
+      margin-top: 12px;
+      padding: 11px 12px;
+      border-radius: 8px;
+      line-height: 1.5;
+      font-size: 0.92rem;
+      white-space: pre-wrap;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .status.ok {
+      background: var(--ok-soft);
+      color: var(--ok);
+      border: 1px solid #bde8c9;
+    }
+
+    .status.warn {
+      background: var(--warn-soft);
+      color: var(--warn);
+      border: 1px solid #f6dfa2;
+    }
+
+    .status.error {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border: 1px solid #ffc9c3;
+    }
+
+    .member-tools {
+      display: grid;
+      gap: 10px;
+    }
+
+    .member-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .metric {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+
+    .member-list {
+      display: grid;
+      gap: 8px;
+      max-height: 520px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .member-row {
+      display: grid;
+      grid-template-columns: minmax(72px, 1fr) minmax(210px, 2fr);
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .member-name {
+      min-width: 0;
+      font-weight: 900;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .status-buttons {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 5px;
+    }
+
+    .status-btn {
+      min-height: 31px;
+      padding: 6px 5px;
+      border-radius: 7px;
+      background: var(--panel-soft);
+      color: var(--muted);
+      border: 1px solid var(--line);
+      font-size: 0.78rem;
+      font-weight: 900;
+    }
+
+    .status-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .status-btn.cancel.active {
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .preview {
+      display: grid;
+      gap: 10px;
+    }
+
+    .preview-row {
+      display: grid;
+      grid-template-columns: 118px minmax(0, 1fr);
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .preview-row:last-child {
+      border-bottom: 0;
+    }
+
+    .preview-key {
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 900;
+    }
+
+    .preview-value {
+      min-width: 0;
+      line-height: 1.5;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .recent-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .recent-item {
+      display: grid;
+      grid-template-columns: 94px minmax(0, 1fr);
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .recent-item strong {
+      color: var(--text);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 920px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .hero-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .wrap {
+        width: min(100vw - 20px, 1180px);
+        padding-top: 14px;
+      }
+
+      .hero,
+      .panel {
+        border-radius: 8px;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .member-row {
+        grid-template-columns: 1fr;
+      }
+
+      .status-buttons {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .preview-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+    <a class="back-link" href="../../index.html">홈으로</a>
+
+    <section class="hero">
+      <div>
+        <h1>모임 업데이트</h1>
+        <p>모임 책 목록과 출석부를 한 번에 저장합니다.</p>
+      </div>
+      <div class="hero-actions">
+        <button class="btn secondary" type="button" id="loadBtn">시트 불러오기</button>
+        <a class="btn ghost" href="https://docs.google.com/spreadsheets/d/1d9XXe85v0FPHKKxLYYjde90XheA5hE2Xz5YDeiDWNVc/edit" target="_blank" rel="noreferrer">시트 열기</a>
+      </div>
+    </section>
+
+    <div class="layout">
+      <div class="stack">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">기본 정보</h2>
+          </div>
+          <form class="panel-body" autocomplete="on" onsubmit="return false;">
+            <div class="grid-2">
+              <input type="hidden" name="username" value="songfore-admin" autocomplete="username" />
+              <div class="field">
+                <label for="adminToken">관리자 토큰</label>
+                <input type="password" id="adminToken" autocomplete="current-password" placeholder="운영진 토큰" />
+              </div>
+              <div class="field">
+                <label for="meetingDate">모임일</label>
+                <input type="date" id="meetingDate" />
+              </div>
+              <div class="field">
+                <label for="meetingNo">회차</label>
+                <input type="text" id="meetingNo" inputmode="numeric" placeholder="예: 155" />
+              </div>
+              <div class="field">
+                <label for="recommender">추천인</label>
+                <input type="text" id="recommender" placeholder="예: 한현선" />
+              </div>
+              <div class="field full">
+                <label for="bookTitle">도서명</label>
+                <input type="text" id="bookTitle" placeholder="예: 파란하늘 빨간지구" />
+              </div>
+              <div class="field">
+                <label for="bookAuthor">저자</label>
+                <input type="text" id="bookAuthor" placeholder="예: 조천호" />
+              </div>
+              <div class="field">
+                <label for="bookCategory">분류</label>
+                <input type="text" id="bookCategory" placeholder="예: 인문교양" />
+              </div>
+              <div class="field full">
+                <label for="bookNote">비고</label>
+                <textarea id="bookNote" placeholder="예: 장소 변경, 행사, 취소 사유"></textarea>
+              </div>
+            </div>
+            <div class="status" id="message"></div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">참석 체크</h2>
+            <button class="btn danger" type="button" id="clearBtn">초기화</button>
+          </div>
+          <div class="panel-body member-tools">
+            <div class="grid-2">
+              <div class="field">
+                <label for="memberSearch">회원 검색</label>
+                <input type="search" id="memberSearch" placeholder="이름 검색" />
+              </div>
+              <div class="field">
+                <label for="quickStatus">빠른 선택</label>
+                <select id="quickStatus">
+                  <option value="참석">참석</option>
+                  <option value="지각">지각</option>
+                  <option value="신입">신입</option>
+                  <option value="신입(지각)">신입(지각)</option>
+                  <option value="취소">취소</option>
+                </select>
+              </div>
+            </div>
+            <div class="toolbar">
+              <button class="btn secondary" type="button" id="applySearchBtn">검색 결과에 적용</button>
+              <button class="btn ghost" type="button" id="showSelectedBtn">선택자만 보기</button>
+              <button class="btn ghost" type="button" id="showAllBtn">전체 보기</button>
+            </div>
+            <div class="member-summary" id="memberSummary"></div>
+            <div class="member-list" id="memberList"></div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">저장 위치</h2>
+          </div>
+          <div class="panel-body">
+            <div class="preview" id="previewBox">
+              <div class="preview-row">
+                <div class="preview-key">출석부</div>
+                <div class="preview-value" id="attendanceTarget">시트를 불러와 주세요.</div>
+              </div>
+              <div class="preview-row">
+                <div class="preview-key">책 목록</div>
+                <div class="preview-value" id="bookTarget">시트를 불러와 주세요.</div>
+              </div>
+              <div class="preview-row">
+                <div class="preview-key">참석 인원</div>
+                <div class="preview-value" id="attendeeCount">0명</div>
+              </div>
+            </div>
+            <div class="toolbar" style="margin-top: 14px;">
+              <button class="btn secondary" type="button" id="previewBtn">미리보기 갱신</button>
+              <button class="btn" type="button" id="saveBtn" disabled>시트에 저장</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">최근 모임</h2>
+          </div>
+          <div class="panel-body">
+            <div class="recent-list" id="recentList">
+              <div class="recent-item">
+                <strong>-</strong>
+                <span>시트를 불러오면 표시됩니다.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const STATUS_OPTIONS = ['참석', '지각', '신입', '신입(지각)', '취소'];
+    const attendeeStatuses = new Set(['참석', '지각', '신입', '신입(지각)']);
+
+    const els = {
+      adminToken: document.getElementById('adminToken'),
+      meetingDate: document.getElementById('meetingDate'),
+      meetingNo: document.getElementById('meetingNo'),
+      recommender: document.getElementById('recommender'),
+      bookTitle: document.getElementById('bookTitle'),
+      bookAuthor: document.getElementById('bookAuthor'),
+      bookCategory: document.getElementById('bookCategory'),
+      bookNote: document.getElementById('bookNote'),
+      loadBtn: document.getElementById('loadBtn'),
+      previewBtn: document.getElementById('previewBtn'),
+      saveBtn: document.getElementById('saveBtn'),
+      clearBtn: document.getElementById('clearBtn'),
+      message: document.getElementById('message'),
+      memberSearch: document.getElementById('memberSearch'),
+      quickStatus: document.getElementById('quickStatus'),
+      applySearchBtn: document.getElementById('applySearchBtn'),
+      showSelectedBtn: document.getElementById('showSelectedBtn'),
+      showAllBtn: document.getElementById('showAllBtn'),
+      memberSummary: document.getElementById('memberSummary'),
+      memberList: document.getElementById('memberList'),
+      attendanceTarget: document.getElementById('attendanceTarget'),
+      bookTarget: document.getElementById('bookTarget'),
+      attendeeCount: document.getElementById('attendeeCount'),
+      recentList: document.getElementById('recentList')
+    };
+
+    let sheetState = null;
+    let members = [];
+    let selected = new Map();
+    let selectedOnly = false;
+
+    function setDefaultDate() {
+      const now = new Date();
+      const day = now.getDay();
+      const daysUntilSaturday = (6 - day + 14) % 14 || 14;
+      now.setDate(now.getDate() + daysUntilSaturday);
+      els.meetingDate.value = now.toISOString().slice(0, 10);
+    }
+
+    function showMessage(type, text) {
+      els.message.className = `status show ${type}`;
+      els.message.textContent = text;
+    }
+
+    function clearMessage() {
+      els.message.className = 'status';
+      els.message.textContent = '';
+    }
+
+    function setBusy(isBusy) {
+      els.loadBtn.disabled = isBusy;
+      els.previewBtn.disabled = isBusy;
+      els.saveBtn.disabled = isBusy || !sheetState;
+    }
+
+    function formatDateForSheet(dateValue) {
+      if (!dateValue) return '';
+      const [year, month, day] = dateValue.split('-');
+      return `${year}.${month}.${day}`;
+    }
+
+    function getAttendancePayload() {
+      return Array.from(selected.entries())
+        .filter(([, status]) => status)
+        .map(([name, status]) => ({ name, status }));
+    }
+
+    function countAttendees() {
+      return getAttendancePayload().filter((item) => attendeeStatuses.has(item.status)).length;
+    }
+
+    function renderSummary() {
+      const payload = getAttendancePayload();
+      const counts = STATUS_OPTIONS.reduce((acc, status) => {
+        acc[status] = payload.filter((item) => item.status === status).length;
+        return acc;
+      }, {});
+      els.memberSummary.innerHTML = [
+        `<span class="metric">참석 인정 ${countAttendees()}명</span>`,
+        `<span class="metric">입력 ${payload.length}명</span>`,
+        ...STATUS_OPTIONS.map((status) => `<span class="metric">${status} ${counts[status]}명</span>`)
+      ].join('');
+      els.attendeeCount.textContent = `${countAttendees()}명`;
+    }
+
+    function filteredMembers() {
+      const query = els.memberSearch.value.trim().toLowerCase();
+      return members.filter((member) => {
+        const status = selected.get(member.name) || '';
+        if (selectedOnly && !status) return false;
+        if (!query) return true;
+        return member.name.toLowerCase().includes(query);
+      });
+    }
+
+    function setMemberStatus(name, status) {
+      if (selected.get(name) === status) {
+        selected.delete(name);
+      } else {
+        selected.set(name, status);
+      }
+      renderMembers();
+      renderSummary();
+    }
+
+    function renderMembers() {
+      const rows = filteredMembers();
+      if (!rows.length) {
+        els.memberList.innerHTML = '<div class="status show warn">표시할 회원이 없습니다.</div>';
+        return;
+      }
+
+      els.memberList.innerHTML = rows.map((member) => {
+        const current = selected.get(member.name) || '';
+        const buttons = STATUS_OPTIONS.map((status) => {
+          const active = current === status ? ' active' : '';
+          const cancel = status === '취소' ? ' cancel' : '';
+          return `<button class="status-btn${active}${cancel}" type="button" data-name="${member.name}" data-status="${status}">${status}</button>`;
+        }).join('');
+
+        return `
+          <div class="member-row">
+            <div class="member-name" title="${member.name}">${member.name}</div>
+            <div class="status-buttons">${buttons}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderPreview() {
+      if (!sheetState) {
+        return;
+      }
+
+      const dateText = formatDateForSheet(els.meetingDate.value);
+      const title = els.bookTitle.value.trim() || '(도서명 미입력)';
+      const attendance = sheetState.attendance;
+      const books = sheetState.books;
+      const meetingNo = els.meetingNo.value.trim() || books.suggestedNo;
+
+      els.attendanceTarget.textContent = `${attendance.sheet} ${attendance.targetColumn}열 / ${dateText || '날짜 미입력'} / ${title}`;
+      els.bookTarget.textContent = `${books.sheet} ${books.targetRow}행 / ${meetingNo}회 / ${title}`;
+      els.attendeeCount.textContent = `${countAttendees()}명`;
+      els.saveBtn.disabled = false;
+    }
+
+    function renderRecent() {
+      const recent = sheetState?.attendance?.latestMeetings || [];
+      if (!recent.length) {
+        els.recentList.innerHTML = '<div class="recent-item"><strong>-</strong><span>최근 모임이 없습니다.</span></div>';
+        return;
+      }
+
+      els.recentList.innerHTML = recent.slice().reverse().map((item) => `
+        <div class="recent-item">
+          <strong>${item.date}</strong>
+          <span>${item.title || '-'}</span>
+        </div>
+      `).join('');
+    }
+
+    async function callApi(payload) {
+      const token = els.adminToken.value.trim();
+      if (!token) {
+        throw new Error('관리자 토큰을 입력해 주세요.');
+      }
+      localStorage.setItem('songforeMeetingAdminToken', token);
+
+      const response = await fetch('/api/meeting-sheet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...payload, adminToken: token })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || '요청에 실패했습니다.');
+      }
+      return data;
+    }
+
+    async function loadPreview() {
+      clearMessage();
+      setBusy(true);
+      try {
+        const data = await callApi({
+          action: 'preview',
+          meetingDate: els.meetingDate.value
+        });
+        sheetState = data;
+        members = data.attendance.members || [];
+        if (!els.meetingNo.value.trim()) {
+          els.meetingNo.value = data.books.suggestedNo || '';
+        }
+        renderMembers();
+        renderSummary();
+        renderPreview();
+        renderRecent();
+        showMessage('ok', `시트를 불러왔습니다. 활동 회원 ${members.length}명을 확인했습니다.`);
+      } catch (error) {
+        sheetState = null;
+        els.saveBtn.disabled = true;
+        showMessage('error', error.message);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function validateMeeting() {
+      if (!sheetState) return '먼저 시트를 불러와 주세요.';
+      if (!els.meetingDate.value) return '모임일을 선택해 주세요.';
+      if (!els.bookTitle.value.trim()) return '도서명을 입력해 주세요.';
+      if (!els.bookAuthor.value.trim()) return '저자를 입력해 주세요.';
+      return '';
+    }
+
+    async function saveMeeting() {
+      clearMessage();
+      const validation = validateMeeting();
+      if (validation) {
+        showMessage('error', validation);
+        return;
+      }
+
+      const ok = window.confirm('입력한 내용을 Google Sheets에 저장할까요?');
+      if (!ok) return;
+
+      setBusy(true);
+      try {
+        const data = await callApi({
+          action: 'save',
+          meeting: {
+            no: els.meetingNo.value.trim(),
+            date: els.meetingDate.value,
+            title: els.bookTitle.value.trim(),
+            author: els.bookAuthor.value.trim(),
+            category: els.bookCategory.value.trim(),
+            recommender: els.recommender.value.trim(),
+            note: els.bookNote.value.trim()
+          },
+          attendance: getAttendancePayload()
+        });
+        showMessage(
+          'ok',
+          `저장했습니다.\n출석부: ${data.updated.attendanceRange}\n책 목록: ${data.updated.bookRange}\n참석 인정: ${data.updated.attendeeCount}명`
+        );
+        await loadPreview();
+      } catch (error) {
+        showMessage('error', error.message);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function applyStatusToFiltered() {
+      const status = els.quickStatus.value;
+      filteredMembers().forEach((member) => {
+        selected.set(member.name, status);
+      });
+      renderMembers();
+      renderSummary();
+      renderPreview();
+    }
+
+    function clearSelected() {
+      selected = new Map();
+      renderMembers();
+      renderSummary();
+      renderPreview();
+    }
+
+    els.memberList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-name][data-status]');
+      if (!button) return;
+      setMemberStatus(button.dataset.name, button.dataset.status);
+      renderPreview();
+    });
+
+    [
+      els.meetingDate,
+      els.meetingNo,
+      els.bookTitle,
+      els.bookAuthor,
+      els.bookCategory,
+      els.recommender,
+      els.bookNote
+    ].forEach((el) => {
+      el.addEventListener('input', renderPreview);
+    });
+
+    els.loadBtn.addEventListener('click', loadPreview);
+    els.previewBtn.addEventListener('click', loadPreview);
+    els.saveBtn.addEventListener('click', saveMeeting);
+    els.clearBtn.addEventListener('click', clearSelected);
+    els.memberSearch.addEventListener('input', renderMembers);
+    els.applySearchBtn.addEventListener('click', applyStatusToFiltered);
+    els.showSelectedBtn.addEventListener('click', () => {
+      selectedOnly = true;
+      renderMembers();
+    });
+    els.showAllBtn.addEventListener('click', () => {
+      selectedOnly = false;
+      renderMembers();
+    });
+
+    els.adminToken.value = localStorage.getItem('songforeMeetingAdminToken') || '';
+    setDefaultDate();
+    renderSummary();
+  </script>
+</body>
+
+</html>

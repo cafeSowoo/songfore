@@ -10,6 +10,20 @@ const ALLOWED_ORIGINS = new Set([
 const rateMap = new Map();
 const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
 
+function readGeminiKey() {
+  return (
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.GOOGLE_GENAI_API_KEY ||
+    ""
+  ).trim();
+}
+
+function readGeminiModels() {
+  const configured = (process.env.GEMINI_MODEL || "").trim();
+  return configured ? [configured, ...GEMINI_MODELS] : GEMINI_MODELS;
+}
+
 function isRateLimited(ip, limit = 20, windowMs = 60_000) {
   const now = Date.now();
   const key = ip || "unknown";
@@ -326,7 +340,7 @@ async function handleShortlinkLookup(body, headers) {
 }
 
 async function handleGeminiPrompt(body, headers) {
-  const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
+  const geminiApiKey = readGeminiKey();
   if (!geminiApiKey) {
     return jsonResponse({ error: "Missing GEMINI_API_KEY" }, 500, headers);
   }
@@ -338,16 +352,19 @@ async function handleGeminiPrompt(body, headers) {
 
   let lastError = "Unknown error";
 
-  for (const modelId of GEMINI_MODELS) {
+  for (const modelId of readGeminiModels()) {
     const url =
       "https://generativelanguage.googleapis.com/v1beta/models/" +
-      `${modelId}:generateContent?key=${encodeURIComponent(geminiApiKey)}`;
+      `${modelId}:generateContent`;
 
     let response;
     try {
       response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": geminiApiKey,
+        },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
