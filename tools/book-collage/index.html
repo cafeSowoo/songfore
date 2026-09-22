@@ -709,6 +709,14 @@
               <div class="section-title">콜라주 형식</div>
             </div>
             <div class="format-options" role="group" aria-label="콜라주 형식 선택">
+              <button class="format-option" type="button" data-layout-mode="two-horizontal" aria-pressed="false">
+                <span class="format-name">2분할 A</span>
+                <span class="format-copy">왼쪽 책 표지, 오른쪽 사진 1장</span>
+              </button>
+              <button class="format-option" type="button" data-layout-mode="two-vertical" aria-pressed="false">
+                <span class="format-name">2분할 B</span>
+                <span class="format-copy">위 책 표지, 아래 사진 1장</span>
+              </button>
               <button class="format-option active" type="button" data-layout-mode="three-split" aria-pressed="true">
                 <span class="format-name">3분할</span>
                 <span class="format-copy">왼쪽 책 표지, 오른쪽 사진 2장</span>
@@ -844,6 +852,14 @@
       const ctx = previewCanvas.getContext("2d");
       const DRAG_SENSITIVITY = 70;
       const COLLAGE_MODES = {
+        "two-horizontal": {
+          uploadTitle: "오른쪽 사진 1장 업로드",
+          photoLabels: ["오른쪽 사진"],
+        },
+        "two-vertical": {
+          uploadTitle: "하단 사진 1장 업로드",
+          photoLabels: ["하단 사진"],
+        },
         "three-split": {
           uploadTitle: "오른쪽 사진 2장 업로드",
           photoLabels: ["상단 사진", "하단 사진"],
@@ -1275,6 +1291,29 @@
         const columnWidth = (width - outer * 2 - gap) / 2;
         const columnHeight = height - outer * 2;
         const photoGap = 18;
+
+        if (state.layoutMode === "two-horizontal") {
+          return {
+            width,
+            height,
+            bookRect: { x: outer, y: outer, width: columnWidth, height: columnHeight },
+            photoRects: [
+              { x: outer + columnWidth + gap, y: outer, width: columnWidth, height: columnHeight },
+            ],
+          };
+        }
+
+        if (state.layoutMode === "two-vertical") {
+          const rowHeight = (columnHeight - gap) / 2;
+          return {
+            width,
+            height,
+            bookRect: { x: outer, y: outer, width: width - outer * 2, height: rowHeight },
+            photoRects: [
+              { x: outer, y: outer + rowHeight + gap, width: width - outer * 2, height: rowHeight },
+            ],
+          };
+        }
 
         if (state.layoutMode === "right-stack") {
           const photoHeight = (columnHeight - photoGap * 2) / 3;
